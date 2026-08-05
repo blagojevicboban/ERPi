@@ -23,7 +23,8 @@
 | **4** | Osnovna sredstva | ⬜ |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | ⬜ |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
-| **7** | `ERPiMigration` — DOS import (Finansije/Sredstva/Zarade) + direktan `ErpiZaradeProdukcijaImporter` | ⬜ |
+| **7.1** | `ERPiMigration` — direktan `ErpiFinansijeImporter` (uvoz iz `baza.db` / `AccountingDbContext` u `ErpiDbContext`) + `UvozWizardView` | ✅ |
+| 7.2 | DOS import (Finansije/Sredstva/Zarade) + direktan `ErpiZaradeProdukcijaImporter` | ⬜ |
 | **8** | Velopack pakovanje i CI/CD | ⬜ |
 
 ---

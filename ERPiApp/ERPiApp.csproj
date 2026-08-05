@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
+    <ProjectReference Include="..\ERPiMigration\ERPiMigration.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

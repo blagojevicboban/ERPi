@@ -2,4 +2,5 @@
   <Project Path="ERPiApp/ERPiApp.csproj" />
   <Project Path="ERPiData/ERPiData.csproj" />
   <Project Path="ERPiData.Tests/ERPiData.Tests.csproj" />
+  <Project Path="ERPiMigration/ERPiMigration.csproj" />
 </Solution>

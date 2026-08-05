@@ -81,6 +81,9 @@
                         <RadioButton x:Name="BtnMagacin" Content="📦 Magacin i PDV" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije, magacini, šifarnik artikala i PDV"/>
                         <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
 
+                        <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
+                        <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz stare baza.db baze ERPiFinansije"/>
+
                         <!-- Ostatak Finansija (SEF) i moduli Sredstva/Zarade dolaze u narednim podfazama -->
                         <TextBlock Text="USKORO" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="24,14,0,3"/>
                         <TextBlock Text="Osnovna sredstva" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>

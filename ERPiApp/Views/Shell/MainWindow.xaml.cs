@@ -67,6 +67,12 @@ public partial class MainWindow : Window
         MainContentHost.Content = new SefPfrMainView(_db);
     }
 
+    private void NavUvoz_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "⚙️ Uvoz podataka iz ERPiFinansije";
+        MainContentHost.Content = new ERPiApp.Views.Podesavanja.UvozWizardView(_db);
+    }
+
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();
 
     private void BtnOdjava_Click(object sender, RoutedEventArgs e) => PromeniFirmu();

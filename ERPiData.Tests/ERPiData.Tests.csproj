@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
+    <ProjectReference Include="..\ERPiMigration\ERPiMigration.csproj" />
+    <ProjectReference Include="..\..\ERPiFinansije\ERPiFinansijeData\ERPiFinansijeData.csproj" />
   </ItemGroup>
 
 </Project>

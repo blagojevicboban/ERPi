@@ -1,0 +1,120 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using ERPiData;
+using ERPiFinansijeData;
+using ERPiMigration.Importers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
+
+namespace ERPiApp.Views.Podesavanja;
+
+public partial class UvozWizardView : UserControl
+{
+    private readonly ErpiDbContext _db;
+
+    public UvozWizardView(ErpiDbContext db)
+    {
+        InitializeComponent();
+        _db = db;
+
+        // Ako u %LocalAppData%\ERPiFinansije\Baze postoji baza.db, postavi je kao podrazumevanu
+        var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ERPiFinansije", "Baze", "baza.db");
+        if (File.Exists(defaultPath))
+        {
+            TxtPutanjaBaze.Text = defaultPath;
+        }
+    }
+
+    private void BtnIzaberiBazu_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFileDialog
+        {
+            Filter = "SQLite baza (*.db)|*.db|Svi fajlovi (*.*)|*.*",
+            Title = "Izaberite staru baza.db datoteku"
+        };
+
+        if (dlg.ShowDialog() == true)
+        {
+            TxtPutanjaBaze.Text = dlg.FileName;
+        }
+    }
+
+    private void BtnAnaliziraj_Click(object sender, RoutedEventArgs e)
+    {
+        var path = Environment.ExpandEnvironmentVariables(TxtPutanjaBaze.Text.Trim());
+        if (!File.Exists(path))
+        {
+            MessageBox.Show($"Datoteka baze ne postoji na putanji: {path}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        try
+        {
+            var options = new DbContextOptionsBuilder<AccountingDbContext>()
+                .UseSqlite($"Data Source={path}")
+                .Options;
+
+            using var srcDb = new AccountingDbContext(options);
+
+            var brPartnera = srcDb.Partneri.Count();
+            var brKonta = srcDb.Konta.Count();
+            var brNaloga = srcDb.Nalozi.Count();
+            var brMagacina = srcDb.Magacini.Count();
+            var brArtikala = srcDb.Artikli.Count();
+            var brKalkulacija = srcDb.Kalkulacije.Count();
+
+            TxtStatistika.Text = $"• Partneri: {brPartnera}\n• Kontni plan: {brKonta} konta\n• Glavna knjiga: {brNaloga} naloga\n• Magacini: {brMagacina}\n• Artikli: {brArtikala}\n• Kalkulacije: {brKalkulacija}";
+            PnlStatistika.Visibility = Visibility.Visible;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri čitanju baze: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void BtnPokreniUvoz_Click(object sender, RoutedEventArgs e)
+    {
+        var path = Environment.ExpandEnvironmentVariables(TxtPutanjaBaze.Text.Trim());
+        if (!File.Exists(path))
+        {
+            MessageBox.Show($"Datoteka baze ne postoji na putanji: {path}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        BtnPokreniUvoz.IsEnabled = false;
+        BtnAnaliziraj.IsEnabled = false;
+
+        try
+        {
+            var options = new DbContextOptionsBuilder<AccountingDbContext>()
+                .UseSqlite($"Data Source={path}")
+                .Options;
+
+            using var srcDb = new AccountingDbContext(options);
+
+            var importer = new ErpiFinansijeImporter(_db);
+            var res = await importer.ImportFromDatabaseAsync(srcDb);
+
+            if (res.Success)
+            {
+                MessageBox.Show(res.Message, "Uvoz uspešan", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(res.Message, "Greška pri uvozu", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Neočekivana greška: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            BtnPokreniUvoz.IsEnabled = true;
+            BtnAnaliziraj.IsEnabled = true;
+        }
+    }
+}
