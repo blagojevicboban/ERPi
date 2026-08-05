@@ -114,4 +114,22 @@ public partial class PartneriView : UserControl
         var dlg = new ZatvoriStavkeWindow(_zatvaranjeService, otvorene) { Owner = Window.GetWindow(this) };
         if (dlg.ShowDialog() == true) await OsveziStavke();
     }
+
+    private async void BtnKamata_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgPartneri.SelectedItem is not Partner partner)
+        {
+            MessageBox.Show("Izaberite partnera.", "Nije izabran partner", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dlg = new KamataWindow(new KamataService(_db), partner) { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() == true) await OsveziStavke();
+    }
+
+    private void BtnIosIzvestaj_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new IosIzvestajWindow(_zatvaranjeService) { Owner = Window.GetWindow(this) };
+        dlg.ShowDialog();
+    }
 }

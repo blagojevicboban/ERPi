@@ -17,7 +17,7 @@
 | **3.1** | Finansije — Glavna knjiga: `Nalog`/`StavkaNaloga`, `NaloziView`, `NalogEditWindow` (MVP) | ✅ |
 | **3.2** | Partneri — CRUD (`PartneriView`/`PartnerEditWindow`) + otvorene stavke po kontu (MVP) | ✅ |
 | **3.2b** | `ZatvaranjeStavke` — ručno parovanje Duguje/Potražuje stavki, delimična zatvaranja, `ZatvoriStavkeWindow` | ✅ |
-| 3.2c | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ⬜ |
+| **3.2c** | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ✅ |
 | 3.3 | Magacin (kalkulacije, nivelacije, fakture) i PDV evidencija | ⬜ |
 | 3.4 | SEF e-Fakture i e-Fiskalizacija (PFR) | ⬜ |
 | **4** | Osnovna sredstva | ⬜ |
@@ -84,6 +84,37 @@
   Partnerima neka to proveri pre nego što se osloni na ovaj ekran.
 
 ---
+
+## 3b. Poznati nedostaci u Fazi 3.2c (MVP, namerno odloženo)
+
+- **Nema PDF export** ni za IOS izveštaj ni za obračun kamate (`GenerisiZbirniIOSPdf`/
+  `GenerisiKamataPdf` iz ERPiFinansije nisu preneti) — ERPi uopšte još nema `PdfReportService`
+  ni bilo koji PDF izveštaj; ovo je opštiji nedostatak celog projekta, ne samo ovog ekrana.
+  Ide zajedno sa prvim pravim izveštajem kome PDF stvarno zatreba.
+- **IOS filter po kontu je samo jedan prefiks** (`kontoPrefix`), ne pravi opseg
+  `odKonta`-`doKonta` sa poređenjem stringova kao u ERPiFinansije
+  `OtvoreneStavkeService.GetIosIzvestajAsync` — dovoljno za "pokaži samo konto 204" ili "435",
+  nedovoljno za "od 200000 do 209999" opseg. Doći po potrebi.
+- **`ObracunajKamatuZaKontoAsync`/`ProknjiziKamatuNalogZaKontoAsync` (kamata za "sintetički"
+  konto bez partnera) nije prenet** — namerno, jer ERPi šema nema legacy DBF razlog da
+  `StavkaNaloga.PartnerId` izostane (vidi napomenu u `KamataService`/`ZatvaranjeStavkiService`).
+  Ako se ikad pojavi proknjižena stavka bez `PartnerId`-ja na kontu kupca, kamata se za nju danas
+  ne može obračunati — trebalo bi prvo popraviti unos (dodeliti partnera), ne dodavati sintetičku
+  granu nazad.
+- **`KamataService.ProknjiziKamatuNalogAsync` zahteva postojeću dugovnu stavku partnera na kontu
+  204/120** da bi znao koji `KontoId` da upotrebi (nema "podrazumevani konto 204000" fallback kao
+  ERPiFinansije, jer bi to zahtevalo string→FK nagađanje) — kamata na partnera bez ijedne
+  proknjižene stavke na kontu kupca ne može da se proknjiži dok se prvi dug ne unese.
+  Isto tako, `662000` (Prihodi od zateznih kamata) mora već postojati u kontnom planu firme —
+  ne kreira se automatski.
+- **Nema F1 help prozora** (`EditHelpWindow` iz ERPiFinansije) na `KamataWindow`/
+  `IosIzvestajWindow` — ERPi generalno još nema uspostavljen help-prozor obrazac ni na jednom
+  ekranu, ne samo ovde.
+- **Kamata/IOS ekrani nisu vizuelno voženi end-to-end kroz UI** (isti razlog kao napomena za
+  `ZatvoriStavkeWindow` u §3a — zahteva prethodno proknjižene naloge sa partnerom i konto 204/
+  662000 u kontnom planu, dug UI setup za jednu driver sesiju). Build i EF migracija su
+  provereni čisti; sam čin obračuna/knjiženja kamate i IOS grupisanja kroz UI još nije vizuelno
+  potvrđen — prvi sledeći rad na Partnerima/Finansijama neka to proveri.
 
 ## 4. Testiranje
 

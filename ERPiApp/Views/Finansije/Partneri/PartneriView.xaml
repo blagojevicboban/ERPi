@@ -20,7 +20,9 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="BtnNovPartner" Content="➕" Style="{StaticResource IconButtonStyle}" ToolTip="Nov partner" Click="BtnNovPartner_Click" Margin="0,0,8,0"/>
                     <Button x:Name="BtnIzmeniPartnera" Content="✏️" Style="{StaticResource IconButtonStyle}" ToolTip="Izmeni izabranog partnera" Click="BtnIzmeniPartnera_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnObrisiPartnera" Content="🗑️" Style="{StaticResource IconButtonStyle}" ToolTip="Obriši izabranog partnera" Click="BtnObrisiPartnera_Click"/>
+                    <Button x:Name="BtnObrisiPartnera" Content="🗑️" Style="{StaticResource IconButtonStyle}" ToolTip="Obriši izabranog partnera" Click="BtnObrisiPartnera_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnKamata" Content="💰" Style="{StaticResource IconButtonStyle}" ToolTip="Obračun zatezne kamate za izabranog partnera" Click="BtnKamata_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnIosIzvestaj" Content="📑" Style="{StaticResource IconButtonStyle}" ToolTip="IOS izveštaj — svi partneri" Click="BtnIosIzvestaj_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>

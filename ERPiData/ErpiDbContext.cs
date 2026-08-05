@@ -23,6 +23,7 @@ public class ErpiDbContext : DbContext
     public DbSet<Nalog> Nalozi => Set<Nalog>();
     public DbSet<StavkaNaloga> StavkeNaloga => Set<StavkaNaloga>();
     public DbSet<ZatvaranjeStavke> ZatvaranjaStavki => Set<ZatvaranjeStavke>();
+    public DbSet<KamatnaStopa> KamatneStope => Set<KamatnaStopa>();
 
     /// <summary>
     /// Kreira DbContext nad zadatom SQLite bazom (jedna baza po firmi) i primenjuje EF Core
