@@ -49,16 +49,25 @@
         <!-- OTVORENE STAVKE IZABRANOG PARTNERA -->
         <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="16" Margin="0,16,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
             <DockPanel>
-                <TextBlock x:Name="TxtStavkeNaslov" Text="📋 Otvorene stavke" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <TextBlock x:Name="TxtStavkeNaslov" Text="📋 Otvorene stavke" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <CheckBox x:Name="ChkSveStavke" Content="Prikaži i zatvorene" VerticalAlignment="Center" Margin="0,0,16,0" Checked="ChkSveStavke_Changed" Unchecked="ChkSveStavke_Changed"/>
+                        <Button x:Name="BtnZatvoriStavke" Content="🔗" Style="{StaticResource IconButtonStyle}" ToolTip="Zatvori (upari) dve stavke" Click="BtnZatvoriStavke_Click"/>
+                    </StackPanel>
+                </Grid>
                 <DataGrid x:Name="DgStavke" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Konto" Binding="{Binding Konto}" Width="180"/>
-                        <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="100"/>
-                        <DataGridTextColumn Header="Br. naloga" Binding="{Binding BrojNaloga}" Width="90"/>
+                        <DataGridTextColumn Header="Konto" Binding="{Binding Konto}" Width="150"/>
+                        <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="90"/>
+                        <DataGridTextColumn Header="Br. naloga" Binding="{Binding BrojNaloga}" Width="80"/>
                         <DataGridTextColumn Header="Opis" Binding="{Binding Opis}" Width="*"/>
-                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding Duguje, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
-                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding Potrazuje, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
-                        <DataGridTextColumn Header="Saldo (RSD)" Binding="{Binding Saldo, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Strana" Binding="{Binding Strana}" Width="80"/>
+                        <DataGridTextColumn Header="Iznos (RSD)" Binding="{Binding OriginalniIznos, StringFormat=\{0:N2\}}" Width="110" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Zatvoreno (RSD)" Binding="{Binding Zatvoreno, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Preostalo (RSD)" Binding="{Binding Preostalo, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="130"/>
+                        <DataGridTextColumn Header="Dana kašnjenja" Binding="{Binding DanaKasnjenja}" Width="100" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

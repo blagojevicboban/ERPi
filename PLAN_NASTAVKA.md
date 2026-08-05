@@ -16,7 +16,8 @@
 | **2** | WPF Shell (`MainWindow`), `LoginWindow`, `CompanySelectWindow` — izbor/kreiranje firme, jedna baza po firmi | ✅ |
 | **3.1** | Finansije — Glavna knjiga: `Nalog`/`StavkaNaloga`, `NaloziView`, `NalogEditWindow` (MVP) | ✅ |
 | **3.2** | Partneri — CRUD (`PartneriView`/`PartnerEditWindow`) + otvorene stavke po kontu (MVP) | ✅ |
-| 3.2b | IOS izveštaj (svi partneri odjednom), `ZatvaranjeStavke` (ručno parovanje/delimična zatvaranja), kamate | ⬜ |
+| **3.2b** | `ZatvaranjeStavke` — ručno parovanje Duguje/Potražuje stavki, delimična zatvaranja, `ZatvoriStavkeWindow` | ✅ |
+| 3.2c | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ⬜ |
 | 3.3 | Magacin (kalkulacije, nivelacije, fakture) i PDV evidencija | ⬜ |
 | 3.4 | SEF e-Fakture i e-Fiskalizacija (PFR) | ⬜ |
 | **4** | Osnovna sredstva | ⬜ |
@@ -64,17 +65,23 @@
 - Nema Konta/MestaTroska CRUD ekrana još (Partneri sad ima, Faza 3.2) — unose se direktno u
   bazu ili preko budućih šifarničkih ekrana.
 
-## 3a. Poznati nedostaci u Fazi 3.2 (MVP, namerno odloženo)
+## 3a. Poznati nedostaci u Fazi 3.2/3.2b (MVP, namerno odloženo)
 
-- **Nema `ZatvaranjeStavke`** (ručno parovanje fakture sa uplatom, delimična zatvaranja) —
-  ERPiFinansije ga ima (`ZatvaranjeStavke` model + `ZatvaranjeStavkiService`), namerno
-  odloženo u 3.2b. Otvorene stavke u `PartneriView` su prost hronološki saldo po kontu, bez
-  pojma "zatvoreno/otvoreno" po pojedinačnoj stavci.
 - **Nema IOS izveštaja za sve partnere odjednom** (samo po jednom, izabranom u listi) — puni
   `GetIosIzvestajAsync` iz ERPiFinansije namerno nije prenet, nosi mnogo legacy-DBF logike
   ("sintetički partneri" izvedeni iz konta kad `PartnerId` nije popunjen) koja u ERPi šemi
-  sa pravim `KontoId`/`PartnerId` FK-ovima od početka nije potrebna.
-- Nema kamata (zatezna kamata na kašnjenje) — deo je istog 3.2b posla kao `ZatvaranjeStavke`.
+  sa pravim `KontoId`/`PartnerId` FK-ovima od početka nije potrebna. Ide u 3.2c.
+- Nema kamata (zatezna kamata na kašnjenje) — `KamatnaStopa` (ERPiFinansije) nije preneta.
+  Ide u 3.2c.
+- **`ZatvoriGrupnoAsync`** (M:N grupno parovanje — jedna uplata zatvara više faktura odjednom)
+  nije prenet, samo 1:1 `ZatvoriAsync`. ERPiFinansijeData ga ima gotovog ako zatreba (FIFO
+  alokacija preko liste (StavkaId, Iznos) parova).
+- **`ZatvoriStavkeWindow` nije proveren end-to-end sa stvarnim uparivanjem** (zahteva prethodno
+  Konta + proknjižene Naloge sa PartnerId na stavkama, dug UI setup za jednu driver sesiju) —
+  provereno je samo da se ekran otvara bez pada i da guard ("izaberite partnera") radi. Logika
+  `ZatvoriAsync` je 1:1 prenesena iz ERPiFinansije (koja je u produkciji), ali sam čin
+  uparivanja kroz `ZatvoriStavkeWindow` UI još nije vizuelno potvrđen. Prvi sledeći rad na
+  Partnerima neka to proveri pre nego što se osloni na ovaj ekran.
 
 ---
 
@@ -93,6 +100,6 @@
 
 ## Sledeći koraci
 
-Faza 3.2 (Partneri i otvorene stavke) nastavlja Finansije modul redom. Alternativa je preskočiti
-napred na Fazu 5 (Zarade) jer je to jedini modul sa stvarnim korisnicima danas — odluka je na
-korisniku, ne pretpostavljati.
+Faza 3.2c (IOS izveštaj za sve partnere, kamate) zaokružuje Partnere, ili se može preskočiti na
+Fazu 3.3 (Magacin/PDV) ili napred na Fazu 5 (Zarade, jedini modul sa stvarnim korisnicima danas)
+— odluka je na korisniku, ne pretpostavljati.

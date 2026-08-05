@@ -22,6 +22,7 @@ public class ErpiDbContext : DbContext
 
     public DbSet<Nalog> Nalozi => Set<Nalog>();
     public DbSet<StavkaNaloga> StavkeNaloga => Set<StavkaNaloga>();
+    public DbSet<ZatvaranjeStavke> ZatvaranjaStavki => Set<ZatvaranjeStavke>();
 
     /// <summary>
     /// Kreira DbContext nad zadatom SQLite bazom (jedna baza po firmi) i primenjuje EF Core
@@ -82,6 +83,27 @@ public class ErpiDbContext : DbContext
             .HasOne(s => s.MestoTroska)
             .WithMany()
             .HasForeignKey(s => s.MestoTroskaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Restrict na obe strane: stavka koja je već zatvorena (delimično ili potpuno) se ne
+        // sme obrisati bez prethodnog otkazivanja zatvaranja — inače bi "koliko je zatvoreno"
+        // tiho izgubilo osnovu iz koje se računa.
+        modelBuilder.Entity<ZatvaranjeStavke>()
+            .HasOne(z => z.StavkaDuguje)
+            .WithMany()
+            .HasForeignKey(z => z.StavkaDugujeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ZatvaranjeStavke>()
+            .HasOne(z => z.StavkaPotrazuje)
+            .WithMany()
+            .HasForeignKey(z => z.StavkaPotrazujeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ZatvaranjeStavke>()
+            .HasOne(z => z.Korisnik)
+            .WithMany()
+            .HasForeignKey(z => z.KorisnikId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Podrazumevani administratorski nalog — isti obrazac (i ista lozinka "admin123") kao

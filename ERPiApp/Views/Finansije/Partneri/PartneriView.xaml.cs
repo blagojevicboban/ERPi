@@ -2,20 +2,21 @@ using System.Windows;
 using System.Windows.Controls;
 using ERPiData;
 using ERPiData.Models.Core;
-using ERPiData.Models.Finansije;
-using Microsoft.EntityFrameworkCore;
+using ERPiData.Services;
 
 namespace ERPiApp.Views.Finansije.Partneri;
 
 public partial class PartneriView : UserControl
 {
     private readonly ErpiDbContext _db;
+    private readonly ZatvaranjeStavkiService _zatvaranjeService;
     private List<Partner> _sviPartneri = new();
 
     public PartneriView(ErpiDbContext db)
     {
         InitializeComponent();
         _db = db;
+        _zatvaranjeService = new ZatvaranjeStavkiService(db);
         Ucitaj();
     }
 
@@ -45,7 +46,11 @@ public partial class PartneriView : UserControl
 
     private void TxtPretraga_TextChanged(object sender, TextChangedEventArgs e) => Filtriraj();
 
-    private void DgPartneri_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void DgPartneri_SelectionChanged(object sender, SelectionChangedEventArgs e) => await OsveziStavke();
+
+    private async void ChkSveStavke_Changed(object sender, RoutedEventArgs e) => await OsveziStavke();
+
+    private async Task OsveziStavke()
     {
         if (DgPartneri.SelectedItem is not Partner partner)
         {
@@ -55,50 +60,9 @@ public partial class PartneriView : UserControl
         }
 
         TxtStavkeNaslov.Text = $"📋 Otvorene stavke — {partner.Naziv}";
-        DgStavke.ItemsSource = UcitajOtvoreneStavke(partner.PartnerId);
+        var samoOtvorene = ChkSveStavke.IsChecked != true;
+        DgStavke.ItemsSource = await _zatvaranjeService.GetOtvoreneStavkeZaPartneraAsync(partner.PartnerId, samoOtvorene: samoOtvorene);
     }
-
-    /// <summary>
-    /// Hronološke proknjižene stavke partnera, sa kumulativnim saldom koji se restartuje na
-    /// svaki novi konto — partner koji je i kupac (204x) i dobavljač (435x) ima DVA nezavisna
-    /// salda, ne jedan pomešan (to pomešano ne bi odgovaralo nijednom stvarnom kontu).
-    /// </summary>
-    private List<StavkaRed> UcitajOtvoreneStavke(int partnerId)
-    {
-        var stavke = _db.StavkeNaloga
-            .Include(s => s.Nalog)
-            .Include(s => s.Konto)
-            .Where(s => s.PartnerId == partnerId && s.Nalog!.Status == StatusNaloga.Proknjizen)
-            .OrderBy(s => s.KontoId)
-            .ThenBy(s => s.Nalog!.DatumNaloga)
-            .ThenBy(s => s.Nalog!.NalogId)
-            .ThenBy(s => s.RedniBroj)
-            .ToList();
-
-        var rezultat = new List<StavkaRed>();
-        int? prethodniKonto = null;
-        decimal saldo = 0m;
-
-        foreach (var s in stavke)
-        {
-            if (prethodniKonto != s.KontoId) saldo = 0m;
-            saldo += s.Duguje - s.Potrazuje;
-            prethodniKonto = s.KontoId;
-
-            rezultat.Add(new StavkaRed(
-                s.Konto?.Prikaz ?? "?",
-                s.Nalog!.DatumNaloga,
-                s.Nalog.BrojNaloga,
-                string.IsNullOrWhiteSpace(s.Opis) ? (s.BrojDokumenta ?? s.Nalog.Opis ?? "") : s.Opis,
-                s.Duguje,
-                s.Potrazuje,
-                saldo));
-        }
-
-        return rezultat;
-    }
-
-    private record StavkaRed(string Konto, DateTime Datum, int BrojNaloga, string Opis, decimal Duguje, decimal Potrazuje, decimal Saldo);
 
     private void DgPartneri_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) => IzmeniIzabranog();
 
@@ -136,5 +100,18 @@ public partial class PartneriView : UserControl
         _db.Partneri.Remove(partner);
         _db.SaveChanges();
         Ucitaj();
+    }
+
+    private async void BtnZatvoriStavke_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgPartneri.SelectedItem is not Partner partner)
+        {
+            MessageBox.Show("Izaberite partnera.", "Nije izabran partner", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var otvorene = await _zatvaranjeService.GetOtvoreneStavkeZaPartneraAsync(partner.PartnerId);
+        var dlg = new ZatvoriStavkeWindow(_zatvaranjeService, otvorene) { Owner = Window.GetWindow(this) };
+        if (dlg.ShowDialog() == true) await OsveziStavke();
     }
 }
