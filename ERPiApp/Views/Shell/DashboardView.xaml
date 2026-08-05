@@ -1,0 +1,28 @@
+<UserControl x:Class="ERPiApp.Views.Shell.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel>
+        <TextBlock Text="Faza 1-2 su gotove: zajednička Core šema (Firme, Korisnici, Partneri, Konta, Mesta troška) i prijava/izbor firme rade nad jednom bazom. Moduli (Finansije, Sredstva, Zarade) dolaze u narednim fazama."
+                   TextWrapping="Wrap" FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,20"/>
+
+        <ItemsControl x:Name="ItemsStatistika">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="10" Padding="18,16" Margin="0,0,16,16" Width="200">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Naslov}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding Vrednost}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ERPiApp/ERPiApp.csproj" />
+  <Project Path="ERPiData/ERPiData.csproj" />
+</Solution>

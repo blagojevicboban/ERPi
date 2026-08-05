@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+
+    <!-- Citamo verziju direktno iz version.txt kako bi bila ispravna i pri buildu iz Visual Studio-a -->
+    <Version>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\..\version.txt').Trim())</Version>
+
+    <Authors>Blagojević Boban</Authors>
+    <Company>Blagojević Boban</Company>
+    <Product>ERPiApp</Product>
+    <Copyright>Copyright © Blagojević Boban 2026</Copyright>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,85 @@
+<Window x:Class="ERPiApp.Views.Firma.CompanySelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ERPi — Izbor firme" Height="560" Width="480"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="{StaticResource SurfaceBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Lista firmi -->
+            <RowDefinition Height="Auto"/> <!-- Dugme Otvori -->
+            <RowDefinition Height="Auto"/> <!-- Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Margin="16,16,16,0" CornerRadius="12" Padding="20,18">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="{StaticResource SidebarStartColor}" Offset="0"/>
+                    <GradientStop Color="{StaticResource SidebarEndColor}" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="🚀" FontSize="36" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="ERPi" FontSize="22" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Izaberite firmu za rad" FontSize="12" Foreground="#38BDF8" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- TOOLBAR -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="24,16,24,8">
+            <Button x:Name="BtnNovaFirma" Content="➕" Style="{StaticResource IconButtonStyle}"
+                    ToolTip="Nova firma" Click="BtnNovaFirma_Click" Margin="0,0,8,0"/>
+            <Button x:Name="BtnOtvoriBazu" Content="📂" Style="{StaticResource IconButtonStyle}"
+                    ToolTip="Dodaj postojeću ERPi bazu sa diska" Click="BtnOtvoriBazu_Click" Margin="0,0,8,0"/>
+            <Button x:Name="BtnUkloni" Content="🗑️" Style="{StaticResource IconButtonStyle}"
+                    ToolTip="Ukloni sa liste (baza se ne briše)" Click="BtnUkloni_Click"/>
+        </StackPanel>
+
+        <!-- LISTA FIRMI -->
+        <Border Grid.Row="2" Margin="24,0,24,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8">
+            <ListBox x:Name="LstFirme" BorderThickness="0" Background="Transparent"
+                     MouseDoubleClick="LstFirme_MouseDoubleClick">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="12,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="{Binding Naziv}" FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Grid.Row="1" Text="{Binding DisplayText}" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <TextBlock Grid.Row="2" x:Name="TxtEmptyState" Text="Nema sačuvanih firmi — dodajte novu ili postojeću bazu."
+                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="Wrap" TextAlignment="Center" MaxWidth="320" Visibility="Collapsed"/>
+
+        <!-- OTVORI -->
+        <Button Grid.Row="3" x:Name="BtnOtvori" Content="Otvori firmu" Height="44" Margin="24,16,24,0"
+                Style="{StaticResource ActionButtonStyle}" FontSize="15" FontWeight="SemiBold" Click="BtnOtvori_Click"/>
+
+        <TextBlock x:Name="TxtError" Grid.Row="3" Foreground="#DC2626" TextWrapping="Wrap" HorizontalAlignment="Center"
+                   Margin="24,66,24,0" Visibility="Collapsed"/>
+
+        <!-- FOOTER -->
+        <TextBlock Grid.Row="4" Text="ERPi © 2026 Blagojević Boban" FontSize="11"
+                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,14,0,16"/>
+    </Grid>
+</Window>

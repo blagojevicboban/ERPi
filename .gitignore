@@ -1,0 +1,36 @@
+# ==============================================================================
+# .gitignore za ERPi (integrisani .NET 8 / WPF poslovni sistem)
+# ==============================================================================
+
+# ─── Razvojno okruženje i korisnička podešavanja ──────────────────────────────
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ─── .NET / C# kompajlirani izlazi i paketi ───────────────────────────────────
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+publish_output/
+ReleasePackage/
+ERPiSetup_v*.exe
+
+# ─── SQLite baze podataka (sadrže stvarne i osetljive podatke) ────────────────
+*.db
+*.db-shm
+*.db-wal
+
+# ─── Ostali privremeni i bekap fajlovi ─────────────────────────────────────────
+*.bak
+*.tmp
+*.log
+*.zip
+*.rar
+*.arj
