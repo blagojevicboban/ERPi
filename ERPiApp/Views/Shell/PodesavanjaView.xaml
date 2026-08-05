@@ -15,7 +15,7 @@
                     <TextBlock Text="⚙️ Podešavanja aplikacije" FontSize="20" FontWeight="Bold"
                                Foreground="{StaticResource TextBrush}"/>
                     <TextBlock Text="Prilagodite izgled i ponašanje ERPi aplikacije. Izmene se primenjuju odmah i čuvaju automatski."
-                               FontSize="12" Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
@@ -35,7 +35,7 @@
                             <TextBlock Text="⚠️ Info traka o podrazumevanoj lozinci"
                                        FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                             <TextBlock Text="Prikazuje žutu upozoravajuću traku ispod zaglavlja kada nalog koristi podrazumevanu lozinku (admin123). Po defaultu isključena."
-                                       FontSize="11" Foreground="{StaticResource MutedTextBrush}"
+                                       FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                        Margin="0,4,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                         <ToggleButton x:Name="TglInfoTraka"
@@ -59,7 +59,7 @@
                             <TextBlock Text="🌙 Tamni/svetli režim" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextBrush}"/>
                             <TextBlock Text="Prebacivanje između tamne i svetle teme. (Uskoro)"
-                                       FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
+                                       FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
                         </StackPanel>
                         <ToggleButton Grid.Column="1" Width="52" Height="28"
                                       Style="{StaticResource ToggleSwitchStyle}"
@@ -85,7 +85,7 @@
                             <TextBlock Text="🔔 Sistemske notifikacije" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextBrush}"/>
                             <TextBlock Text="Toast obaveštenja pri uspešnim akcijama. (Uskoro)"
-                                       FontSize="11" Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
+                                       FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
                         </StackPanel>
                         <ToggleButton Grid.Column="1" Width="52" Height="28"
                                       Style="{StaticResource ToggleSwitchStyle}"
@@ -110,18 +110,18 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="Verzija:" FontSize="12" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,16,8"/>
+                        <TextBlock Text="Verzija:" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,16,8"/>
                         <TextBlock x:Name="TxtVerzija" Grid.Column="1" FontSize="12" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
                         <TextBlock Text="Lokacija baze:" Grid.Row="1" FontSize="12"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,0,16,8"/>
+                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,16,8"/>
                         <TextBlock x:Name="TxtDbPath" Grid.Row="1" Grid.Column="1" FontSize="11"
-                                   Foreground="{StaticResource MutedTextBrush}" TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"
                                    ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,8"/>
                         <TextBlock Text="Podešavanja:" Grid.Row="2" FontSize="12"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,0,16,0"/>
+                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,16,0"/>
                         <TextBlock x:Name="TxtSettingsPath" Grid.Row="2" Grid.Column="1" FontSize="11"
-                                   Foreground="{StaticResource MutedTextBrush}" TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"
                                    ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                     </Grid>
                 </StackPanel>

@@ -5,11 +5,12 @@
         Height="768" Width="1280"
         MinHeight="650" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{StaticResource BackgroundBrush}"
+        PreviewKeyDown="Window_PreviewKeyDown">
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition x:Name="SidebarColumn" Width="240"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -24,14 +25,14 @@
 
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top" Margin="20,20,20,12">
-                    <TextBlock Text="🚀 ERPi" FontSize="20" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="Integrisani poslovni sistem" FontSize="11" Foreground="#38BDF8" Margin="0,2,0,0"/>
+                    <TextBlock x:Name="TxtBrandTitle" Text="🚀 ERPi" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock x:Name="TxtBrandSubtitle" Text="Integrisani poslovni sistem" FontSize="11" Foreground="#38BDF8" Margin="0,2,0,0"/>
                 </StackPanel>
 
                 <!-- Aktivna firma -->
                 <Border DockPanel.Dock="Top" Margin="16,0,16,15" Background="#1E293B" CornerRadius="8" Padding="12,10"
                         Cursor="Hand" MouseDown="FirmaBorder_MouseDown" ToolTip="Kliknite za promenu firme">
-                    <Grid>
+                    <Grid x:Name="PnlFirmaDetails">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -51,7 +52,7 @@
                 <Separator DockPanel.Dock="Top" Background="#334155" Margin="16,0,16,10"/>
 
                 <!-- Modul Switcher -->
-                <Grid DockPanel.Dock="Top" Margin="16,0,16,12">
+                <Grid x:Name="PnlModulSwitcher" DockPanel.Dock="Top" Margin="16,0,16,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -178,16 +179,14 @@
                             <RadioButton x:Name="BtnZaradePodesavanja" Content="⚙️ Podešavanja" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePodesavanja_Click" ToolTip="Uvoz podataka iz ERPiZarade i DOS/DBF fajlova"/>
                         </StackPanel>
 
-                        <!-- SREDSTVA MODUL (FAZA 6 - USKORO) -->
+                        <!-- SREDSTVA MODUL (KLONIRANO IZ ERPiSredstva) -->
                         <StackPanel x:Name="PnlNavSredstva" Visibility="Collapsed">
                             <TextBlock Text="OSNOVNA SREDSTVA" FontSize="10" FontWeight="SemiBold" Foreground="#52B788" Margin="24,6,0,3"/>
-                            <Border Margin="20,12,20,0" Background="#15000000" CornerRadius="8" Padding="14">
-                                <StackPanel>
-                                    <TextBlock Text="🏛️ Modul Osnovna sredstva" FontSize="13" FontWeight="Bold" Foreground="White"/>
-                                    <TextBlock Text="Integracija modula ERPiSredstva dolazi u narednoj Fazi 6 (registar sredstava, amortizacija, popis i inventar)."
-                                               FontSize="11" Foreground="#A8D5C2" Margin="0,6,0,0" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
+                            <RadioButton x:Name="BtnSredstvaRegistar" Content="🏛️ Registar sredstava" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaRegistar_Click" ToolTip="Šifarnik osnovnih sredstava, nalepnice"/>
+                            <RadioButton x:Name="BtnSredstvaKartice" Content="📋 Analitičke kartice" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaKartice_Click" ToolTip="Hronologija promena po sredstvu"/>
+                            <RadioButton x:Name="BtnSredstvaPrijave" Content="📥 Prijava sredstava" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaPrijave_Click" ToolTip="Nalog za prijem/aktiviranje novih sredstava"/>
+                            <RadioButton x:Name="BtnSredstvaRashod" Content="📤 Rashod i promene" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaRashod_Click" ToolTip="Rashodovanje, prodaja, otuđenje, prenos OJ"/>
+                            <RadioButton x:Name="BtnSredstvaAmortizacija" Content="📈 Obračun amortizacije" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaAmortizacija_Click" ToolTip="Obračun i knjiženje amortizacije po periodu"/>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>
@@ -204,6 +203,8 @@
 
             <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="24,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnToggleSidebar" Content="☰" Style="{StaticResource IconButtonStyle}" Margin="0,0,16,0"
+                            ToolTip="Sklopi / Proširi bočni meni (Ctrl+M)" Click="BtnToggleSidebar_Click"/>
                     <TextBlock x:Name="TxtHeaderTitle" Text="📊 Radna tabla" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>

@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using ERPiApp.Views.Finansije.Nalozi;
@@ -47,6 +49,52 @@ public partial class MainWindow : Window
         PnlUpozorenjeLozinka.Visibility = AppConfig.PrikaziInfoTraku
             ? Visibility.Visible
             : Visibility.Collapsed;
+    }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.M && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+        {
+            BtnToggleSidebar_Click(sender, e);
+            e.Handled = true;
+        }
+    }
+
+    private void BtnToggleSidebar_Click(object sender, RoutedEventArgs e)
+    {
+        if (SidebarColumn.Width.Value > 100)
+        {
+            SidebarColumn.Width = new GridLength(64);
+            TxtBrandTitle.Visibility = Visibility.Collapsed;
+            TxtBrandSubtitle.Visibility = Visibility.Collapsed;
+            PnlFirmaDetails.Visibility = Visibility.Collapsed;
+            PnlModulSwitcher.Visibility = Visibility.Collapsed;
+            SetNavHeadersVisibility(Visibility.Collapsed);
+        }
+        else
+        {
+            SidebarColumn.Width = new GridLength(240);
+            TxtBrandTitle.Visibility = Visibility.Visible;
+            TxtBrandSubtitle.Visibility = Visibility.Visible;
+            PnlFirmaDetails.Visibility = Visibility.Visible;
+            PnlModulSwitcher.Visibility = Visibility.Visible;
+            SetNavHeadersVisibility(Visibility.Visible);
+        }
+    }
+
+    /// <summary>Sklanja/vraća sekcijske naslove i separatore u sve tri modulske nav-liste (Finansije/Zarade/Sredstva)
+    /// kad se bočni meni sklopi na uzanu traku — nema smisla da širok tekst naslova (npr. "FINANSIJSKO
+    /// KNJIGOVODSTVO") stoji u koloni od 64px.</summary>
+    private void SetNavHeadersVisibility(Visibility vidljivost)
+    {
+        foreach (var panel in new[] { PnlNavFinansije, PnlNavZarade, PnlNavSredstva })
+        {
+            foreach (var child in panel.Children.OfType<UIElement>())
+            {
+                if (child is TextBlock or Separator)
+                    child.Visibility = vidljivost;
+            }
+        }
     }
 
     private void NavDashboard_Click(object sender, RoutedEventArgs e)
@@ -220,7 +268,8 @@ public partial class MainWindow : Window
         PnlNavZarade.Visibility = Visibility.Collapsed;
         PnlNavSredstva.Visibility = Visibility.Visible;
         PostaviBojuSidebara((Color)FindResource("SredstvaSidebarStartColor"), (Color)FindResource("SredstvaSidebarEndColor"));
-        TxtHeaderTitle.Text = "🏛️ Osnovna sredstva";
+        TxtHeaderTitle.Text = "🏛️ Registar osnovnih sredstava";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Sredstva.SredstvaPage(_db);
     }
 
     /// <summary>
@@ -427,5 +476,44 @@ public partial class MainWindow : Window
         AppConfig.ActiveMesec = mesec;
         TxtHeaderTitle.Text = $"📋 Obračun zarada {mesec}/{godina}";
         MainContentHost.Content = new ERPiApp.Views.Zarade.Obracun.ObracunPage();
+    }
+
+    // ── Navigacija Sredstva ───────────────────────────────────────────
+
+    private void NavSredstvaRegistar_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏛️ Registar osnovnih sredstava";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Sredstva.SredstvaPage(_db);
+    }
+
+    private void NavSredstvaKartice_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📋 Analitičke kartice sredstava";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Kartice.KarticePage(_db);
+    }
+
+    private void NavSredstvaPrijave_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📥 Prijava sredstava";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Prijave.PrijavaPage(_db);
+    }
+
+    private void NavSredstvaRashod_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📤 Rashod i promene";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Rashod.RashodPage(_db);
+    }
+
+    private void NavSredstvaAmortizacija_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📈 Obračun amortizacije";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Amortizacija.AmortizacijaPage(_db);
+    }
+
+    /// <summary>Otvara analitičku karticu izabranog sredstva — poziva je SredstvaPage (dupli klik / dugme "Kartica").</summary>
+    public void NavigateToSredstvaKartica(int sredstvoId)
+    {
+        TxtHeaderTitle.Text = "📋 Analitičke kartice sredstava";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Kartice.KarticePage(_db, sredstvoId);
     }
 }

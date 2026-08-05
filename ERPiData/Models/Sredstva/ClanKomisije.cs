@@ -1,0 +1,13 @@
+namespace ERPiData.Models.Sredstva;
+
+/// <summary>Član popisne komisije — port iz ERPiSredstvaData.Models.ClanKomisije, bez izmena.</summary>
+public class ClanKomisije
+{
+    public int Id { get; set; }
+
+    public int KomisijaId { get; set; }
+    public Komisija Komisija { get; set; } = null!;
+
+    public string ImePrezime { get; set; } = string.Empty;
+    public string Uloga { get; set; } = "Član"; // npr. Predsednik, Član
+}

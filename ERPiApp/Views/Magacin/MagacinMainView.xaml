@@ -21,6 +21,9 @@
             <TabItem Header="🏭 Šifarnik magacina">
                 <ContentControl x:Name="HostMagacini"/>
             </TabItem>
+            <TabItem Header="🏛️ Poreske tarife">
+                <ContentControl x:Name="HostPoreskeTarife"/>
+            </TabItem>
         </TabControl>
     </Grid>
 </UserControl>

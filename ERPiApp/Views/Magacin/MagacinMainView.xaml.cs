@@ -12,6 +12,7 @@ public partial class MagacinMainView : UserControl
     private UvozneKalkulacijeView? _vUvoz;
     private ArtikliView? _vArtikli;
     private MagaciniView? _vMagacini;
+    private PoreskeTarifeView? _vPoreskeTarife;
 
     public MagacinMainView(ErpiDbContext db)
     {
@@ -24,6 +25,7 @@ public partial class MagacinMainView : UserControl
         _vUvoz = new UvozneKalkulacijeView(_db);
         _vArtikli = new ArtikliView(_db);
         _vMagacini = new MagaciniView(_db);
+        _vPoreskeTarife = new PoreskeTarifeView(_db);
 
         HostKalkulacije.Content = _vKalkulacije;
         HostNivelacije.Content = _vNivelacije;
@@ -31,6 +33,7 @@ public partial class MagacinMainView : UserControl
         HostUvoz.Content = _vUvoz;
         HostArtikli.Content = _vArtikli;
         HostMagacini.Content = _vMagacini;
+        HostPoreskeTarife.Content = _vPoreskeTarife;
     }
 
     private void TabMainMagacin_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -43,6 +46,7 @@ public partial class MagacinMainView : UserControl
             _vUvoz?.UcitajPodatke();
             _vArtikli?.UcitajArtikle();
             _vMagacini?.UcitajMagacine();
+            _vPoreskeTarife?.UcitajTarife();
         }
     }
 }

@@ -4,7 +4,7 @@
 > [`ANALIZA_I_PLAN.md`](ANALIZA_I_PLAN.md) i beleži šta je urađeno, šta je namerno odloženo
 > i koje odluke ne treba poništavati bez razloga.
 >
-> Stanje na dan **05.08.2026**, verzija **2.0.0-alpha**.
+> Stanje na dan **05.08.2026** (dopunjeno u istoj sesiji sa Fazom 4), verzija **2.0.0-alpha**.
 
 ---
 
@@ -29,7 +29,7 @@
 | **3.10**| Putni nalozi (`PutniNaloziView`, `PutniNalogModels`, `PutniNalogService`) | ✅ |
 | **3.11**| Kompenzacije (`KompenzacijeView`, `KompenzacijaModels`, `KompenzacijaService`, Pametno skeniranje) | ✅ |
 | **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, `PdvEvidencija`, `PpPdvXmlGenerator`) | ✅ Sve komponente prenesene, ožičene u sidebar/tabove i pokrivene xUnit testovima |
-| **4** | Osnovna sredstva | ⬜ |
+| **4** | Osnovna sredstva | 🔶 (jezgro preneto, vidi §3h — Popis/Revalorizacija/Izveštaji hub odloženi) |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | 🔶 (u toku, vidi §3e) |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
 | **7.1** | `ERPiMigration` — direktan `ErpiFinansijeImporter` (uvoz iz `baza.db` / `AccountingDbContext` u `ErpiDbContext`) + `UvozWizardView` | ✅ |
@@ -329,6 +329,80 @@ se više ne pogađa).
 
 ---
 
+## 3h. Faza 4 (Osnovna sredstva) — stanje 05.08.2026, jezgro preneto iz ERPiSredstva
+
+Preneto u ovoj sesiji (`ERPiData/Models/Sredstva`, `ERPiData/Services/Sredstva`,
+`ERPiApp/Views/Sredstva/**`), migracija `DodajOsnovnaSredstva` (verifikovana na scratch bazi),
+55 xUnit testova (17 postojećih + 38 novih, port iz `ERPiSredstvaData.Tests`, svi prolaze):
+
+- **Registar sredstava** (`Sredstva/SredstvaPage`) — šifarnik, pretraga, ukupne vrednosti,
+  bar-kod nalepnice (`NalepniceDocument`, ZXing.Net — paket dodat u `ERPiApp.csproj`).
+- **Analitičke kartice** (`Kartice/KarticePage`) — hronologija promena po sredstvu (master-detail),
+  PDF štampa (`AnalitickaKarticaDocument`). `MainWindow.NavigateToSredstvaKartica(sredstvoId)` je
+  novi javni helper (isti obrazac kao Zaradin `NavigateToObracun`) — poziva ga `SredstvaPage` pri
+  dupl-kliku/dugmetu "Kartica" da otvori karticu konkretnog sredstva iz drugog ekrana.
+- **Prijava sredstava** (`Prijave/PrijavaPage` + `PrijavaWindow`) — nalog za prijem/aktiviranje,
+  PDF štampa (`PrijavaDocument`).
+- **Rashod i promene** (`Rashod/RashodPage` + `RashodWindow`) — rashodovanje/prodaja/otuđenje/
+  prenos OJ/brisanje/povećanje vrednosti-količine-amortizacije, sa automatskim obračunom srazmerne
+  amortizacije do datuma rashoda (MRS 16), PDF štampa (`RashodDocument`).
+- **Amortizacija** (`Amortizacija/AmortizacijaPage`, 3 taba) — obračun i knjiženje računovodstvene
+  amortizacije po periodu, lista po godinama, poreska amortizacija (Obrazac OA po Pravilniku za
+  sredstva od 2019.) sa masovnom dodelom poreskih grupa i PDF izveštajima (`AmortizacijaDocument`,
+  `ObrazacOADocument`, `ObrazacPB1Document`).
+- Sidebar Sredstva sekcija (`MainWindow.xaml` `PnlNavSredstva`) ožičena sa 5 stavki
+  (Registar/Kartice/Prijave/Rashod/Amortizacija), zamenjuje raniji "USKORO" placeholder.
+  `NavButtonStyleSredstva` (zeleni sidebar) je već postojao iz Faze 7.2a, sada se prvi put koristi.
+- Dopunjen `ERPiApp/App.xaml`: `AccentBrush`/`SuccessBrush`/`WarningBrush`/`DangerBrush`,
+  `StatCard`/`DangerButton` stilovi i tri status-boja konvertera (`ERPiApp/Converters/StatusConverters.cs`)
+  preneti iz `ERPiSredstvaApp`-ovog `Styles.xaml`/`Converters` — nedostajali su za Sredstva ekrane.
+
+**Odluke koje ne treba poništavati (specifične za Fazu 4):**
+- **`Sredstvo.Konto`/`Kartica.Konto`/`Prijava.Konto`** (string u izvoru) su postali **`KontoId`**
+  FK ka `Core.Konto` — isti obrazac string→FK kao svuda drugde (vidi §2). `AmortizacionaGrupa`/
+  `PoreskaGrupa` OSTAJU stringovi (katalog kodovi I–V iz `PoreskaGrupaCatalog`, nema svoju tabelu
+  ni u izvoru) — to nije previd, nego namerno: nema šta da se referencira.
+- **`Dobavljac` (zaseban model u ERPiSredstvaData, samo `Konto`+`OpisKonta`+adresa) namerno NIJE
+  prenet.** `Prijava.DobavljacId` je postao `Prijava.PartnerId` FK ka `Core.Partner`
+  (`JeDobavljac = true`) — dobavljač je ovde samo partner, isti obrazac kao Finansije/Zarade.
+  Posledica: `PrijavaWindow`-ov "+ Novi dobavljač" brzi unos (izvor je otvarao `DobavljacWindow`)
+  je uklonjen — novi dobavljač/partner se unosi kroz postojeći ekran Partneri pre otvaranja
+  Prijave. `DobavljaciPage`/`DobavljacWindow` iz izvora nisu portovani.
+- **`Firma`/`Korisnik`/`LoginWindow`/`Dashboard`/`Podesavanja` ekrani iz ERPiSredstvaApp nisu
+  portovani** — ERPi već ima svoje (Core `Firma`/`Korisnik`, `CompanySelectWindow`/`LoginWindow`,
+  `Shell/DashboardView`, `Podesavanja/UvozWizardView`), isti obrazac kao "Šta NIJE nedostatak" u
+  §3g za Finansije.
+
+**Poznati nedostaci (namerno odloženo, "Trim, don't transplant whole"):**
+- **`PopisPage`/`UpisPopisaWindow`** (godišnji popis, `Komisija`/`ClanKomisije`/`Popis`/
+  `PopisnaStavka` modeli i `PopisCalculator` servis VEĆ postoje i imaju migraciju i xUnit
+  testove — samo UI ekrani nisu preneti). Napomena: izvorni `UpisPopisaWindow.xaml` referencira
+  `StaticResource OutlineButton` koji **ne postoji ni u izvornom `ERPiSredstvaApp/Resources/
+  Styles.xaml`** — pre porta ovog ekrana ili definisati taj stil ili zameniti sa `SecondaryButton`.
+- **`RevalorizacijaPage`** (revalorizacija/indeksacija po koeficijentima) — `RevalorizacijaCalculator`
+  servis već postoji i pokriven je xUnit testovima, UI ekran nije prenet.
+- **`IzvestajiPage`** (zbirna izveštajna stranica) nije prenet — isti opštiji nedostatak kao
+  "Izveštaji hub" za Finansije u §3g (ERPi generalno još nema centralnu izveštajnu stranicu ni za
+  jedan modul).
+- **F1 Pomoc** — Sredstva nema `Views/Sredstva/Pomoc` (ERPiSredstvaApp ima `Pomoc/EditHelpWindow`
+  itd.) — isti opštiji nedostatak kao za Finansije u §3g, Zarade je jedini modul koji ga ima
+  (prenet u Fazi 5).
+- **`ObracunskaJedinica`** (int na `Sredstvo`/`Kartica`/`Prijava`/`Rashod`) je ostala kao goli
+  numerički kod, bez FK — u izvornom ERPiSredstva takođe nema svoj šifarnik/tabelu, pa nije bilo
+  šta da se poveže. Ako se u budućnosti pokaže da "obračunska jedinica" treba da bude pravo mesto
+  troška, to je nova modelska odluka (mapiranje na `Core.MestoTroska`), ne prost string→FK port.
+- **Nijedan Sredstva ekran nije vizuelno proveren kroz UI** — isti razlog kao §3d/§3g za druge
+  module (korisnik testira sam, vidi §4). Build je čist (`dotnet build ERPi.slnx`, 0 grešaka), EF
+  migracija primenjena end-to-end na scratch bazi, 55/55 xUnit testova prolazi — ali dugme-po-dugme
+  provera (posebno `PrijavaWindow`/`RashodWindow` transakciona knjiženja i `AmortizacijaPage`-ov
+  poreski tab) nije urađena.
+- **DOS uvoz Sredstava** (`DosSredstvaImporter` iz `ERPiMigration`, planiran u ANALIZA_I_PLAN §4
+  kao Faza 7.2b) i dalje nije napisan — modeli/migracija sada postoje pa je uvoznik sledeći
+  logičan korak kad zatreba (Sredstva nema produkcione podatke, DOS import će biti dovoljan, isti
+  status kao Finansije).
+
+---
+
 ## 4. Testiranje
 
 - **`run-erpi-app`** (`ERPiApp/.claude/skills` i `.agents/skills`, mora ostati sinhronizovano
@@ -437,19 +511,58 @@ skoro potpuno nedostaju. Ispravljeno na 🔶 gore. Puna lista, po modulu:
   zamenjujući eksplicitan `LoadKonta()` poziv (isti `Checked` handler ga ionako zove). Grep
   cele `ERPiApp/Views` stabla za `IsChecked="True".*Checked=` nije našao drugih instanci ovog
   obrasca — ovo je bio jedini slučaj.
-- **I dalje nedostaje**: `PrimopredajaService`+`PrimopredajaEditWindow` (interni transfer
-  između magacina — model već ispravljen na FK, servis/ekran ne postoje), `NivelacijaService`+
-  `NivelacijaEditWindow`, `MaloprodajnaKalkulacijaService`+`MaloprodajnaKalkulacijaEditWindow`,
-  `UvoznaKalkulacijaService`+ekran, `RacunOtpremnicaService`+ekran (model `RacunOtpremnica` ne
-  postoji uopšte u ERPi — mora se prvo kreirati), `MaterijalnaKarticaService`'s
-  `MaterijalneKarticeView`/`ProveraKarticaWindow` (pregled/provera same kartice — servisni sloj
-  postoji, ekran ne), `KEPKnjigaView`, `RobnoDashboardView` (Robna strana — Materijalna je
-  gotova). DMS (`DmsService`, `DmsOcrInvoiceParser`, `DmsOcrMatchingService`, `DmsWindow`,
-  `DmsOcrPreviewWindow`) nema nikakav trag — ni model, ni servis, ni ekran. Trgovina extra
-  ekrani bez pandana: `NarudzbenicaEditWindow`, `PonudaEditWindow`, `PoreskaTarifaEditWindow`.
-  Puna tabelarna lista Ulaza/Trebovanja/Primopredaja sa filterima (originalni `MagacinView`,
-  odvojen od `MaterijalnoDashboardView`) takođe nije portovana — dashboard pokriva poslednjih 8
-  + brze akcije, ne punu istoriju.
+- **AŽURIRANO 05.08.2026 (kasnije u istoj sesiji, commit `3491df9`)** — sledeće više NIJE
+  nedostatak, prethodna verzija ovog pasusa je bila zastarela: `PrimopredajaService`+
+  `PrimopredajaEditWindow` (Materijalno, `MaterijalId` — ožičeno kao brza akcija u
+  `MaterijalnoDashboardView`), `NivelacijaService`+`NivelacijaEditWindow`/`NivelacijeView`,
+  `MaloprodajnaKalkulacijaService`+`MaloprodajneKalkulacijeView`, `UvoznaKalkulacijaService`+
+  `UvozneKalkulacijeView`, `RacunOtpremnicaService`+`RacuniOtpremniceView`/
+  `RacunOtpremnicaEditWindow` (model `RacunOtpremnica` kreiran, migracija
+  `DodajRacunOtpremnica`), `DmsService` (servisni sloj postoji, bez UI ekrana — vidi dole).
+  Sve pod `MagacinMainView` hub-om (taboovi: Ulazne kalkulacije/Nivelacije/MP kalkulacije/
+  Uvozne kalkulacije/Šifarnik artikala/Šifarnik magacina) + `BtnRacuniOtpremnice` kao zaseban
+  top-level nav. Build čist, xUnit testovi (`RobnoMaterijalnoTests`, `PdvTests`) prolaze.
+  **I dalje nedostaje** (provereno ponovo 05.08.2026, uz uporedbu izvornog `TrgovinaView.xaml`
+  tab-po-tab — vidi §3i za pun detalj i za novi nalaz Zaduženja/Razduženja):
+  - `MaterijalnaKarticaService`'s `MaterijalneKarticeView`/`ProveraKarticaWindow` (pregled/
+    provera same kartice — servisni sloj postoji, ekran ne).
+  - `KEPKnjigaView`, `RobnoDashboardView` (Robna strana — Materijalna je gotova).
+  - DMS UI (`DmsWindow`, `DmsOcrPreviewWindow`, `DmsOcrInvoiceParser`, `DmsOcrMatchingService`)
+    — `DmsService` osnovni servis postoji, OCR/matching sloj i ekran ne.
+  - Trgovina extra ekrani bez pandana: `NarudzbenicaEditWindow`, `PonudaEditWindow`,
+    `PoreskaTarifaEditWindow` — vidi §3i.
+  - Puna tabelarna lista Ulaza/Trebovanja/Primopredaja sa filterima (originalni `MagacinView`,
+    odvojen od `MaterijalnoDashboardView`) takođe nije portovana — dashboard pokriva poslednjih
+    8 + brze akcije, ne punu istoriju.
+
+## 3i. Robno (Trgovina) tab-po-tab revizija (05.08.2026, na zahtev korisnika uz screenshot)
+
+Korisnik je pokazao screenshot izvornog `ERPiFinansijeApp`-ovog `TrgovinaView` (13 tabova) i
+pitao šta u ERPi-ju nedostaje. Puna uporedba tab-po-tab sa izvornim
+`ERPiFinansijeApp/Views/Trgovina/TrgovinaView.xaml`:
+
+| Tab u izvoru | Status u ERPi |
+| :--- | :--- |
+| Ponude & Predračuni | ⬜ nedostaje (vidi dole) |
+| Narudžbenice Dobavljačima | ⬜ nedostaje (vidi dole) |
+| **Računopolagači** | ✅ **nije stvarni nedostatak** — u izvoru je ovo isti `Magacin` šifarnik (`DgRacunopolagaci` binduje `SifraMagacina`/`NazivMagacina`/`OdgovornoLice`/`VrstaMagacina`, `LoadRacunopolagace()` čita `db.Magacini`), samo drugačije nazvan tab u istom ekranu. ERPi već ima identične kolone (uključujući `OdgovornoLice`) u `MagaciniView` (tab "Šifarnik magacina" u `MagacinMainView`) — nema šta dodatno da se portuje, eventualno samo dodati alias/tooltip ako korisnik želi da i ERPi ima tab pod imenom "Računopolagači".
+| Šifarnik artikala | ✅ `ArtikliView` |
+| Poreske tarife | ✅ portovano (05.08.2026, iste sesije) — `PoreskaTarifa` model + `PoreskeTarifeView`/`PoreskaTarifaEditWindow`, tab u `MagacinMainView`, migracija `DodajPoreskeTarife` verifikovana na scratch bazi |
+| **Zaduženja** / **Razduženja** | ⬜ nedostaje, **ali nije novi entitet** — u izvoru dele istu `PrimopredajaNalog`/`PrimopredajaStavka` tabelu kao tab "Primopredaje", razlikovane samo preko `VrstaDokumenta` ("Zaduženje"/"Razduženje"/"Primopredaja", vidi `TrgovinaView.xaml.cs` komentar oko L1584 i `ApplyFilterPrimopredaje` koje filtrira `_svePrimopredaje.Where(p => p.VrstaDokumenta == vrsta)`). **Važna arhitekturna razlika**: ta izvorna `PrimopredajaNalog` je Robno/Artikal-bazirana (`PrimopredajaStavka.SifraArtikla`, koristi se u `Views/Trgovina/PrimopredajaEditWindow`) — DRUGAČIJA od ERPi-jevog već portovanog `PrimopredajaNalog`-a (`ERPiData/Models/Magacin/UlazNalog.cs`), koji je namerno Materijalno/`MaterijalId`-bazirano (§3g odluka, port izvorne `Views/Magacin/PrimopredajaEditWindow`, koja radi nad `Materijali`). Dakle Zaduženje/Razduženje/Robna-Primopredaja **ne mogu da se dodaju kao filter na postojeći ERPi `PrimopredajaService`** — treba nov model (npr. `RobnoInternoKretanje`/`RobnaStavkaKretanja` sa `ArtikalId` FK, `MagacinIdDaje`/`MagacinIdPrima`, `VrstaDokumenta` diskriminator "Primopredaja"/"Zaduženje"/"Razduženje", analogno postojećem Materijalnom pandanu), nov servis (kopija `PrimopredajaService`-ove VP↔MP PDV logike, ali nad `RobnaKarticaService`/`MaterijalnaKarticaService`-ovim Robno-pandanom ako postoji, ili direktno nad `RobnaKartica` ako je već portovano — proveriti pre pisanja) i UI (1 edit prozor + 1 list view sa "Svi/Proknjiženi/Neproknjiženi" filterom, parametrizovan po `VrstaDokumenta`, po uzoru na izvorni `TrgovinaView`-ov `NovaPrimopredaja(vrsta)`/`ApplyFilterPrimopredaje(vrsta)` obrazac — ne 3 odvojena skoro-identična ekrana).
+| Kalkulacije | ✅ `KalkulacijeView` |
+| Robne kartice | pretpostavlja se ✅ preko `RobniBrutoBilansService`/`RobniBrutoBilansView` — nije posebno provereno da li postoji i pojedinačna kartična (analitička) pretraga po artiklu, samo zbirni bruto bilans; vidi i `MaterijalneKarticeView` nedostatak gore (Materijalna strana ima isti otvoren nedostatak).
+
+**Ponude & Predračuni / Narudžbenice Dobavljačima** (izvor: `ERPiFinansijeData/Models` nema
+posebne fajlove za ove — proveriti da li su modelovane kao `VrstaDokumenta` na zajedničkom
+"dokument" entitetu ili kao zaseban `Ponuda`/`Narudzbenica` model pre porta; oba tab-a u izvoru
+imaju dugme "Pretvori u Fakturu/Kalkulaciju" — zavise od `RacunOtpremnica`/`Kalkulacija` kao
+odredišta konverzije, oba već postoje u ERPi, pa je preduslov zadovoljen).
+
+**Poreske tarife** — portovano (vidi tabelu gore). Preostaju tri: **Ponude & Predračuni**,
+**Narudžbenice Dobavljačima**, **Zaduženja/Razduženja** (Robno/Artikal varijanta Primopredaje,
+zahteva nov model — vidi arhitekturnu napomenu gore). Nije vizuelno provereno kroz UI
+(korisnik testira sam, vidi §4) — `PoreskeTarifeView` build je čist, migracija primenjena
+end-to-end na scratch bazi, ali dugme-po-dugme provera CRUD-a nije urađena.
 
 **Finansije — ekrani koji postoje u ERPiFinansije a nemaju pandan u ERPi:**
 - **Korisnici/prava pristupa** — `KorisniciView`/`KorisnikEditWindow` nemaju NIKAKAV pandan;
@@ -546,9 +659,51 @@ ekrane sa realnim podacima.
 ## Sledeći koraci
 
 Faze 3.5–3.12 su implementirane, commit-ovane i push-ovane na `origin/main` (05.08.2026), ali
-**3.12 je delimično netačno označena** — videti §3g za ispravku. Sledeći rad treba da krene od
-§3g ("Preporučeni redosled sledećeg rada"): Robno-materijalno servisi/ekrani prvo, zatim PDV
-evidencija i Korisnici. §3d ("Poznati nedostaci u Fazi 3.5–3.12", vizuelna provera + čišćenje
-legacy kolona u `KontaView`) ostaje važeće uporedo. Tek posle toga: Faza 4 (Osnovna sredstva) i
-Faza 5 (Obračun zarada, već u toku — vidi §3e).
+**3.12 je delimično netačno označena** — videti §3g za ispravku. §3d ("Poznati nedostaci u Fazi
+3.5–3.12", vizuelna provera + čišćenje legacy kolona u `KontaView`) ostaje važeće uporedo.
+
+**Faza 4 (Osnovna sredstva) je sada 🔶 — jezgro preneto u istoj sesiji** (registar, kartice,
+prijava, rashod, amortizacija + poreska amortizacija/Obrazac OA), vidi §3h za pun opis i za listu
+odloženog (Popis, Revalorizacija, Izveštaji hub, DOS uvoz). **Nije commit-ovano** — celo stablo
+`ERPiData/Models/Sredstva`, `ERPiData/Services/Sredstva`, `ERPiApp/Views/Sredstva`, migracija
+`DodajOsnovnaSredstva` i prateća migracija `PdvZapisRacunOtpremnicaSefPolja` (pre-postojeća
+neprimenjena šema izdvojena u sopstvenu migraciju pri generisanju — videti §3h) su i dalje
+untracked/modified u `git status`; ne commit-ovati dok korisnik ne kaže.
+
+Preporučeni redosled sledećeg rada (bilo koji redosled je razuman, ovo je samo predlog):
+1. **Korisnik vizuelno proveri Fazu 4** kroz UI (registar → prijava → kartica → amortizacija →
+   rashod, tim redosledom prati zavisnost podataka) pre nego što se nastavi dalje na tom modulu.
+2. §3g ("Preporučeni redosled sledećeg rada" za Finansije): Robno-materijalno ostatak servisa/
+   ekrana, PDV evidencija, Korisnici/prava pristupa.
+3. Dovršiti Fazu 4 (Popis/Revalorizacija/Izveštaji hub iz §3h) kad zatreba periodični popis ili
+   revalorizacija.
+4. Faza 5 (Obračun zarada, već u toku — vidi §3e) i Faza 6 (automatsko knjiženje Zarade/Sredstva →
+   Nalog, sad kad oba modula postoje u istoj bazi).
+
+---
+
+## 5. Sesija 05.08.2026 (nastavak, uveče) — Robno tab-po-tab revizija + Poreske tarife
+
+Korisnik je pokazao screenshot izvornog `TrgovinaView`-a i tražio da se proveri šta u ERPi
+Robno delu nedostaje. Puna revizija je otkrila da je §3g-ova "I dalje nedostaje" lista bila
+**zastarela** — najveći deo (Primopredaje, Nivelacije, MP/Uvozna kalkulacija, Računi-Otpremnice)
+je već portovan i commit-ovan u `3491df9`, samo dokument nije ažuriran. Ispravljeno gore u §3g,
+puna tab-po-tab tabela u novom §3i.
+
+**Urađeno u ovoj sesiji:**
+- Portovane **Poreske tarife** (`PoreskaTarifa` model, `PoreskeTarifeView`/
+  `PoreskaTarifaEditWindow`, tab u `MagacinMainView`, migracija `DodajPoreskeTarife`).
+
+**I dalje nedostaje** (§3i, redosled po preporuci — korisnik nije birao dalji redosled u ovoj
+sesiji):
+1. **Ponude & Predračuni** + **Narudžbenice Dobavljačima** — provereno da im preduslovi
+   (`RacunOtpremnica`/`Kalkulacija` kao odredište konverzije) već postoje u ERPi.
+2. **Zaduženja/Razduženja** — najsloženiji od preostalih, zahteva nov Robno/Artikal-bazirani
+   model (§3i objašnjava zašto se NE može dodati kao filter na postojeći Materijalno/`MaterijalId`
+   `PrimopredajaService`).
+3. `Računopolagači` **ne treba portovati** — već pokriveno kroz `MagaciniView` (§3i).
+
+**Nije vizuelno provereno kroz UI** (korisnik testira sam, vidi §4) — `PoreskeTarifeView` build
+je čist, migracija primenjena end-to-end na scratch bazi (16. u nizu, posle `DodajOsnovnaSredstva`),
+ali CRUD dugme-po-dugme provera nije urađena. **Nije commit-ovano.**
 

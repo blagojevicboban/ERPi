@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using ERPiData.Models.Core;
 using ERPiData.Models.Finansije;
 using ERPiData.Models.Magacin;
+using ERPiData.Models.Sredstva;
 using ERPiData.Models.Zarade;
 using ERPiData.Seeds.Zarade;
 
@@ -59,6 +60,7 @@ public class ErpiDbContext : DbContext
     public DbSet<PfrRacun> PfrRacuni => Set<PfrRacun>();
     public DbSet<RacunOtpremnica> RacuniOtpremnice => Set<RacunOtpremnica>();
     public DbSet<RacunOtpremnicaStavka> RacunOtpremnicaStavke => Set<RacunOtpremnicaStavka>();
+    public DbSet<PoreskaTarifa> PoreskeTarife => Set<PoreskaTarifa>();
 
     // ── Zarade ────────────────────────────────────────────────────────
     public DbSet<Radnik> Radnici => Set<Radnik>();
@@ -90,6 +92,16 @@ public class ErpiDbContext : DbContext
     public DbSet<SablonUgovora> SabloniUgovora => Set<SablonUgovora>();
     public DbSet<KontoKnjizenja> KontaKnjizenja => Set<KontoKnjizenja>();
     public DbSet<Bolovanje> Bolovanja => Set<Bolovanje>();
+
+    // ── Sredstva ──────────────────────────────────────────────────────
+    public DbSet<Models.Sredstva.Sredstvo> Sredstva => Set<Models.Sredstva.Sredstvo>();
+    public DbSet<Models.Sredstva.Kartica> SredstvaKartice => Set<Models.Sredstva.Kartica>();
+    public DbSet<Prijava> SredstvaPrijave => Set<Prijava>();
+    public DbSet<Models.Sredstva.Rashod> SredstvaRashodi => Set<Models.Sredstva.Rashod>();
+    public DbSet<Komisija> Komisije => Set<Komisija>();
+    public DbSet<ClanKomisije> ClanoviKomisije => Set<ClanKomisije>();
+    public DbSet<Popis> Popisi => Set<Popis>();
+    public DbSet<PopisnaStavka> PopisneStavke => Set<PopisnaStavka>();
 
     /// <summary>
     /// Kreira DbContext nad zadatom SQLite bazom (jedna baza po firmi) i primenjuje EF Core
@@ -504,6 +516,82 @@ public class ErpiDbContext : DbContext
         modelBuilder.Entity<Bolovanje>()
             .HasIndex(b => new { b.BrojRadnika, b.Godina, b.Mesec, b.DatumOd })
             .IsUnique();
+
+        // ── Sredstva Relacije i Indeksi ──────────────────────────────────
+        modelBuilder.Entity<Models.Sredstva.Sredstvo>()
+            .HasIndex(s => s.InventarskiBroj);
+
+        modelBuilder.Entity<Models.Sredstva.Sredstvo>()
+            .HasIndex(s => s.LegacySifra);
+
+        modelBuilder.Entity<Models.Sredstva.Sredstvo>()
+            .HasOne(s => s.Konto)
+            .WithMany()
+            .HasForeignKey(s => s.KontoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Models.Sredstva.Kartica>()
+            .HasOne(k => k.Sredstvo)
+            .WithMany(s => s.Kartice)
+            .HasForeignKey(k => k.SredstvoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Models.Sredstva.Kartica>()
+            .HasOne(k => k.Konto)
+            .WithMany()
+            .HasForeignKey(k => k.KontoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Prijava>()
+            .HasOne(p => p.Sredstvo)
+            .WithMany(s => s.Prijave)
+            .HasForeignKey(p => p.SredstvoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Prijava>()
+            .HasOne(p => p.Konto)
+            .WithMany()
+            .HasForeignKey(p => p.KontoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Prijava>()
+            .HasOne(p => p.Partner)
+            .WithMany()
+            .HasForeignKey(p => p.PartnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Models.Sredstva.Rashod>()
+            .HasOne(r => r.Sredstvo)
+            .WithMany(s => s.Rashodi)
+            .HasForeignKey(r => r.SredstvoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Komisija>()
+            .HasMany(k => k.Clanovi)
+            .WithOne(c => c.Komisija)
+            .HasForeignKey(c => c.KomisijaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Komisija>()
+            .HasMany(k => k.Popisi)
+            .WithOne(p => p.Komisija)
+            .HasForeignKey(p => p.KomisijaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Popis>()
+            .HasMany(p => p.Stavke)
+            .WithOne(st => st.Popis)
+            .HasForeignKey(st => st.PopisId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PopisnaStavka>()
+            .HasOne(st => st.Sredstvo)
+            .WithMany()
+            .HasForeignKey(st => st.SredstvoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Popis>()
+            .HasIndex(p => new { p.KomisijaId, p.Godina });
 
         base.OnModelCreating(modelBuilder);
     }

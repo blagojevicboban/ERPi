@@ -3,6 +3,7 @@ using System;
 using ERPiData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERPiData.Migrations
 {
     [DbContext(typeof(ErpiDbContext))]
-    partial class ErpiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805172004_DodajOsnovnaSredstva")]
+    partial class DodajOsnovnaSredstva
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -1613,31 +1616,6 @@ namespace ERPiData.Migrations
                     b.HasIndex("NivelacijaCenaId");
 
                     b.ToTable("NivelacijeStavke");
-                });
-
-            modelBuilder.Entity("ERPiData.Models.Magacin.PoreskaTarifa", b =>
-                {
-                    b.Property<int>("PoreskaTarifaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PorezProcenat")
-                        .HasColumnType("decimal(5, 2)");
-
-                    b.Property<bool>("PorezUCeni")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PosebanPorezProcenat")
-                        .HasColumnType("decimal(5, 2)");
-
-                    b.Property<string>("TarifniBroj")
-                        .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("PoreskaTarifaId");
-
-                    b.ToTable("PoreskeTarife");
                 });
 
             modelBuilder.Entity("ERPiData.Models.Magacin.PrimopredajaNalog", b =>
