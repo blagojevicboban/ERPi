@@ -75,4 +75,20 @@ public class Partner
     /// <summary>"šifra - naziv" za padajuće liste, isti obrazac kao Artikal/Magacin/Konto.Prikaz.</summary>
     [NotMapped]
     public string Prikaz => string.IsNullOrWhiteSpace(SifraPartnera) ? Naziv : $"{SifraPartnera} - {Naziv}";
+
+    /// <summary>Čitljiv spisak uloga partnera za listu (npr. "Dobavljač, Kupac") — prazno ako nijedna nije označena.</summary>
+    [NotMapped]
+    public string TipPrikaz
+    {
+        get
+        {
+            var uloge = new List<string>();
+            if (JeDobavljac) uloge.Add("Dobavljač");
+            if (JeKupac) uloge.Add("Kupac");
+            if (JeRadnik) uloge.Add("Radnik");
+            if (JeBanka) uloge.Add("Banka");
+            if (JePoreskaUprava) uloge.Add("Poreska uprava");
+            return string.Join(", ", uloge);
+        }
+    }
 }

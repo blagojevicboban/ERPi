@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using ERPiApp.Views.Finansije.Nalozi;
+using ERPiApp.Views.Finansije.Partneri;
 using ERPiApp.Views.Firma;
 using ERPiData;
 
@@ -44,6 +45,12 @@ public partial class MainWindow : Window
     {
         TxtHeaderTitle.Text = "📖 Glavna knjiga i Nalozi";
         MainContentHost.Content = new NaloziView(_db);
+    }
+
+    private void NavPartneri_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "👥 Partneri";
+        MainContentHost.Content = new PartneriView(_db);
     }
 
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();

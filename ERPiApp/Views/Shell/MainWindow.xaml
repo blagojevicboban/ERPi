@@ -77,10 +77,10 @@
 
                         <TextBlock Text="FINANSIJE I MAGACIN" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
                         <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Dnevnik glavne knjige — nalozi i stavke"/>
+                        <RadioButton x:Name="BtnPartneri" Content="👥 Partneri" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Partneri i otvorene stavke po kontu"/>
 
-                        <!-- Ostatak Finansija (Partneri/IOS, Magacin, PDV, SEF) i moduli Sredstva/Zarade dolaze u narednim podfazama -->
+                        <!-- Ostatak Finansija (Magacin, PDV, SEF) i moduli Sredstva/Zarade dolaze u narednim podfazama -->
                         <TextBlock Text="USKORO" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="24,14,0,3"/>
-                        <TextBlock Text="Partneri i otvorene stavke" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
                         <TextBlock Text="Magacin i PDV" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
                         <TextBlock Text="Osnovna sredstva" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
                         <TextBlock Text="Obračun zarada" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>

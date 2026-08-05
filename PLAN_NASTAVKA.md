@@ -15,7 +15,8 @@
 | **1** | Core šema (`ERPiData`: Firma, Korisnik, Partner, Konto, MestoTroska) + početna migracija | ✅ |
 | **2** | WPF Shell (`MainWindow`), `LoginWindow`, `CompanySelectWindow` — izbor/kreiranje firme, jedna baza po firmi | ✅ |
 | **3.1** | Finansije — Glavna knjiga: `Nalog`/`StavkaNaloga`, `NaloziView`, `NalogEditWindow` (MVP) | ✅ |
-| 3.2 | Partneri i otvorene stavke (IOS, kamate) | ⬜ |
+| **3.2** | Partneri — CRUD (`PartneriView`/`PartnerEditWindow`) + otvorene stavke po kontu (MVP) | ✅ |
+| 3.2b | IOS izveštaj (svi partneri odjednom), `ZatvaranjeStavke` (ručno parovanje/delimična zatvaranja), kamate | ⬜ |
 | 3.3 | Magacin (kalkulacije, nivelacije, fakture) i PDV evidencija | ⬜ |
 | 3.4 | SEF e-Fakture i e-Fiskalizacija (PFR) | ⬜ |
 | **4** | Osnovna sredstva | ⬜ |
@@ -60,8 +61,20 @@
 - `ColPartner`/`ColMestoTroska` u editoru nemaju način da se izbor vrati na prazno posle prvog
   izbora bez zatvaranja dijaloga — sitna UX mana, ne blokira unos.
 - Nema F2 pretrage konta ni šifarnika opisa (ERPiFinansije ih ima) — obična padajuća lista.
-- Nema Partneri/Konta/MestaTroska CRUD ekrana još — `NalogEditWindow` pretpostavlja da već
-  postoje (unose se direktno u bazu ili preko budućih šifarničkih ekrana).
+- Nema Konta/MestaTroska CRUD ekrana još (Partneri sad ima, Faza 3.2) — unose se direktno u
+  bazu ili preko budućih šifarničkih ekrana.
+
+## 3a. Poznati nedostaci u Fazi 3.2 (MVP, namerno odloženo)
+
+- **Nema `ZatvaranjeStavke`** (ručno parovanje fakture sa uplatom, delimična zatvaranja) —
+  ERPiFinansije ga ima (`ZatvaranjeStavke` model + `ZatvaranjeStavkiService`), namerno
+  odloženo u 3.2b. Otvorene stavke u `PartneriView` su prost hronološki saldo po kontu, bez
+  pojma "zatvoreno/otvoreno" po pojedinačnoj stavci.
+- **Nema IOS izveštaja za sve partnere odjednom** (samo po jednom, izabranom u listi) — puni
+  `GetIosIzvestajAsync` iz ERPiFinansije namerno nije prenet, nosi mnogo legacy-DBF logike
+  ("sintetički partneri" izvedeni iz konta kad `PartnerId` nije popunjen) koja u ERPi šemi
+  sa pravim `KontoId`/`PartnerId` FK-ovima od početka nije potrebna.
+- Nema kamata (zatezna kamata na kašnjenje) — deo je istog 3.2b posla kao `ZatvaranjeStavke`.
 
 ---
 
