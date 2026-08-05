@@ -22,6 +22,10 @@ public class Materijal
 
     [MaxLength(50)]
     public string? Pakovanje { get; set; }
+
+    /// <summary>Format "šifra - naziv (JM)" za padajuće liste u editorima ulaza/trebovanja/primopredaje.</summary>
+    [NotMapped]
+    public string Prikaz => $"{SifraArtikla} - {Naziv} ({JedinicaMere})";
 }
 
 public class MaterijalnaKartica

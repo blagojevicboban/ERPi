@@ -35,7 +35,17 @@ public partial class KarticaKontaView : UserControl
         // NaloziView-ov RadioButton.IsChecked slucaj, samo za DataGrid selekciju. Ostali
         // ekrani sa "izaberi prvi red" (KompenzacijeView, PutniNaloziView) vec koriste ovaj
         // Loaded obrazac — ne vracati na direktan poziv.
-        Loaded += (_, _) => LoadKonta();
+        //
+        // ChkSamoSaPrometom.IsChecked se iz istog razloga NE postavlja kao XAML literal
+        // (IsChecked="True") — to bi okinulo Checked="Filter_Changed" SINHRONO usred
+        // InitializeComponent(), pre nego sto su _db/_service uopste dodeljeni u telu
+        // konstruktora (dodeljuju se tek POSLE InitializeComponent() poziva iznad) —
+        // NullReferenceException na _service unutar LoadKonta(). Uhvaceno uzivo 05.08.2026
+        // kad je korisnik prvi put otvorio ovaj ekran sa pravim podacima (AUTOTEST/ARHIBEL).
+        // Postavljanje ovde, u Loaded, okida isti Checked handler ali tek kad je sve vec
+        // spremno — i zamenjuje eksplicitni LoadKonta() poziv (Filter_Changed ionako zove
+        // LoadKonta unutra), pa se ne ucitava dvaput.
+        Loaded += (_, _) => ChkSamoSaPrometom.IsChecked = true;
     }
 
     private async void LoadKonta()

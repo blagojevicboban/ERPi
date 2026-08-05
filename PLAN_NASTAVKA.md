@@ -19,7 +19,7 @@
 | **3.2b** | `ZatvaranjeStavke` — ručno parovanje Duguje/Potražuje stavki, delimična zatvaranja, `ZatvoriStavkeWindow` | ✅ |
 | **3.2c** | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ✅ |
 | **3.3a** | Magacin Osnovno (VP Kalkulacije, Šifarnik magacina/artikala, PDV zapisi) | ✅ |
-| **3.3b / 3.12** | Robno & Materijalno poslovanje (Materijalne/Robne kartice, Ulazi, Trebovanja, MP/Uvozne kalkulacije, Nivelacije, KEP knjiga, Bruto bilansi robe/materijala) | ✅ |
+| **3.3b / 3.12** | Robno & Materijalno poslovanje (Materijalne/Robne kartice, Ulazi, Trebovanja, MP/Uvozne kalkulacije, Nivelacije, KEP knjiga, Bruto bilansi robe/materijala) | 🔶 Ulazi/Trebovanja gotovi (05.08.2026, §3g); Primopredaja/RacunOtpremnica/Nivelacija/MP-Kalkulacija/DMS/KEP knjiga i dalje samo modeli |
 | **3.4** | SEF e-Fakture (UBL 2.1 API) i e-Fiskalizacija (`PfrRacun`) | ✅ |
 | **3.5** | Šifarnici Konta & Mesta troška (`KontaView`/`KontoEditWindow`/`MestaTroskaView`/`MestoTroskaEditWindow`) | ✅ |
 | **3.6** | Izveštaji Glavne knjige & Bilansi (`BrutoBilansView`, `KarticaKontaView`, `BilansStanjaView`, `BilansUspehaView`, `AprProsireniIzvestajiService`) | ✅ |
@@ -28,7 +28,7 @@
 | **3.9** | Devizno knjigovodstvo & Kursne liste (`DeviznoValviranjeWindow`, `DeviznoKnjigovodstvoService`, `KursnaListaService`, `NbsApiClient`) | ✅ |
 | **3.10**| Putni nalozi (`PutniNaloziView`, `PutniNalogModels`, `PutniNalogService`) | ✅ |
 | **3.11**| Kompenzacije (`KompenzacijeView`, `KompenzacijaModels`, `KompenzacijaService`, Pametno skeniranje) | ✅ |
-| **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, EF Migracija `DodajRobnoIMaterijalno`) | ✅ |
+| **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, EF Migracija `DodajRobnoIMaterijalno`) | 🔶 duplikat reda 3.3b iznad — ista netačnost, ista ispravka u §3g (samo Ulazi/Trebovanja gotovi) |
 | **4** | Osnovna sredstva | ⬜ |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | 🔶 (u toku, vidi §3e) |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
@@ -375,11 +375,172 @@ Da bi `ERPi` u potpunosti zamenio `ERPiFinansije`, sve preostale funkcionalnosti
 
 ---
 
+## 3g. Uporedna revizija ERPi vs ERPiFinansije (05.08.2026, na zahtev korisnika — "dosta stvari nisu implementirane")
+
+Korisnik je zatražio proveru da li ERPi zaista pokriva sve što ima ERPiFinansije. Revizija je
+rađena upoređivanjem foldera 1:1 (`ERPiFinansijeApp/Views` naspram `ERPiApp/Views/Finansije` +
+`Views/Magacin`, `ERPiFinansijeData/Services` naspram `ERPiData/Services` + `ERPiApp/Services`) —
+**§1 tabela je bila netačna za Fazu 3.12**: migracija i modeli postoje, ali servisni i UI sloj
+skoro potpuno nedostaju. Ispravljeno na 🔶 gore. Puna lista, po modulu:
+
+**Robno & Materijalno (Faza 3.12) — najveći nalaz, delimično zatvoreno u ovoj sesiji:**
+- Modeli su zatečeni (`TrebovanjeNalog`, `UlazNalog`, `PrimopredajaNalog`, `NivelacijaCena`,
+  `MaloprodajnaKalkulacija`, `UvoznaKalkulacija`), ali **nijedan od 8 servisa iz
+  `ERPiFinansijeData/Services`** bio prenet u `ERPiData/Services`, niti ijedan odgovarajući
+  ekran u `ERPiApp/Views`. Modeli su bili potvrđeno **nekorišćeni nigde u ERPiApp-u** pre ove
+  sesije (`grep` za `TrebovanjeNalog`/`UlazNalog`/itd. van `ERPiData` — nula pogodaka).
+- **Usput nađeno i ispravljeno u ovoj sesiji**: `TrebovanjeNalog.SifraMagacina`,
+  `TrebovanjeStavka.SifraArtikla`, `UlazNalog.SifraMagacina`, `UlazStavka.SifraArtikla`,
+  `PrimopredajaNalog.SifraMagacinaDaje/Prima`, `PrimopredajaStavka.SifraArtikla`,
+  `MaloprodajnaKalkulacija.SifraMagacinaPrima/Daje/SifraDobavljaca`,
+  `MaloprodajnaKalkulacijaStavka.SifraArtikla` su i dalje bili DBF-stil string kodovi umesto
+  pravih FK-ova — kršenje pravila iz `import-from-source-apps` skill-a ("string reference → real
+  foreign key", vidi i §2 gore). `NivelacijaCena`/`UvoznaKalkulacija` su, za razliku od ostalih,
+  već imale ispravne FK-ove — nekonzistentnost je nastala jer su modeli dodavani u različitim
+  ranijim sesijama. Ispravljeno na prave FK-ove: `MagacinId` svuda, i **`MaterijalId`** (ne
+  `ArtikalId`!) na `TrebovanjeStavka`/`UlazStavka`/`PrimopredajaStavka` — Ulaz/Trebovanje/
+  Primopredaja su Materijalno (ne Robno) knjigovodstvo, rade nad `Materijal` šifarnikom, isto
+  kao ERPiFinansije-in izvorni `MaterijalnaKarticaService.GetArtikliAsync()` (koji uprkos imenu
+  vraća `List<Materijal>`, ne `List<Artikal>`) — `MaloprodajnaKalkulacijaStavka.ArtikalId`
+  ostaje na `Artikal` jer je to zaista Robno (maloprodaja). Migracija `PopraviRobnoFkVezama`
+  (regenerisana posle ove ispravke), proverena na scratch bazi.
+- **Portovano i radi (build čist, 4 nova xUnit testa prolaze)**: `MaterijalnaKarticaService`
+  (ponderisana prosečna cena — ista formula, testirana protiv iste legacy logike kao izvor),
+  `UlazService`, `TrebovanjeService`, `RobniBrutoBilansService` (u `ERPiData/Services`) +
+  `UlazEditWindow`, `TrebovanjeEditWindow`, `MaterijalnoDashboardView` (u
+  `ERPiApp/Views/Magacin`). Razlike od izvora: dele već otvoren `ErpiDbContext` (ne otvaraju
+  sopstvenu konekciju), grid kolona za materijal je pravi FK combo (ne slobodan tekst šifre),
+  "Knjiži"/"Rasknjiži" akcija je inline dugme na redu u dashboard-u (izvor je ima na posebnom
+  tabu u `MagacinView`, koji ovde NIJE portovan).
+- **Meni (05.08.2026, druga provera)**: korisnik je javio da nema stavku menija za "Robno" —
+  potvrđeno, `MainWindow.xaml`-ov sidebar je bio flat lista bez sekcijskih grupa (za razliku od
+  ERPiFinansije koje ima jasno odvojene sekcije FINANSIJE/ROBNO/MATERIJALNO/Šifarnici/
+  Administracija), a jedino `BtnMagacin` ("📦 Magacin i PDV") je pokrivao i Robno i Materijalno
+  odjednom kroz tabove. Ispravljeno: `BtnMagacin` preimenovan u "📦 Robno (Kalkulacije, Magacini,
+  Artikli)", i dodato novo `BtnMaterijalno` ("🏭 Materijalno (Ulazi, Trebovanja)") kao svoj
+  top-level nav item koji otvara `MaterijalnoDashboardView` direktno (ne kao tab unutar
+  `MagacinMainView` — probano prvo kao tab pa vraćeno, da IA liči na izvor gde su ROBNO i
+  MATERIJALNO odvojene sekcije, ne ugnježdene). Sekcijski header-i (vizuelno grupisanje kao u
+  izvoru) nisu dodati — samo dva nova/preimenovana dugmeta, manji zahvat. Nije vizuelno
+  provereno kroz UI (korisnik testira sam, vidi §4).
+- **Bag nađen i ispravljen (05.08.2026, prijavio korisnik uz screenshot)**:
+  `KarticaKontaView`'s `ChkSamoSaPrometom` je imao `IsChecked="True"` kao XAML literal —
+  isti obrazac bug kao `NaloziView`-ov `RadioButton` slučaj iz §2, samo ovde je žrtva bila
+  `_service`/`_db` polje umesto sibling kontrole: `Checked="Filter_Changed"` se okinuo
+  SINHRONO usred `InitializeComponent()`, pre nego što je `_service = new KarticaService(_db)`
+  uopšte izvršeno u telu konstruktora (dodeljuje se POSLE `InitializeComponent()` poziva) —
+  `NullReferenceException` na `_service` unutar `LoadKonta()`, uhvaćen u try/catch i prikazan
+  kao "Greška pri učitavanju kontnog plana: Object reference not set to an instance of an
+  object." Ovo je PRVI put da je neko realno otvorio ovaj ekran (§3d ga je već imenovao kao
+  "nije vizuelno proveren"). Ispravljeno: `IsChecked="True"` uklonjen iz XAML-a, postavlja se
+  u `Loaded` handleru (posle `InitializeComponent()` I posle prve dodele `_db`/`_service`),
+  zamenjujući eksplicitan `LoadKonta()` poziv (isti `Checked` handler ga ionako zove). Grep
+  cele `ERPiApp/Views` stabla za `IsChecked="True".*Checked=` nije našao drugih instanci ovog
+  obrasca — ovo je bio jedini slučaj.
+- **I dalje nedostaje**: `PrimopredajaService`+`PrimopredajaEditWindow` (interni transfer
+  između magacina — model već ispravljen na FK, servis/ekran ne postoje), `NivelacijaService`+
+  `NivelacijaEditWindow`, `MaloprodajnaKalkulacijaService`+`MaloprodajnaKalkulacijaEditWindow`,
+  `UvoznaKalkulacijaService`+ekran, `RacunOtpremnicaService`+ekran (model `RacunOtpremnica` ne
+  postoji uopšte u ERPi — mora se prvo kreirati), `MaterijalnaKarticaService`'s
+  `MaterijalneKarticeView`/`ProveraKarticaWindow` (pregled/provera same kartice — servisni sloj
+  postoji, ekran ne), `KEPKnjigaView`, `RobnoDashboardView` (Robna strana — Materijalna je
+  gotova). DMS (`DmsService`, `DmsOcrInvoiceParser`, `DmsOcrMatchingService`, `DmsWindow`,
+  `DmsOcrPreviewWindow`) nema nikakav trag — ni model, ni servis, ni ekran. Trgovina extra
+  ekrani bez pandana: `NarudzbenicaEditWindow`, `PonudaEditWindow`, `PoreskaTarifaEditWindow`.
+  Puna tabelarna lista Ulaza/Trebovanja/Primopredaja sa filterima (originalni `MagacinView`,
+  odvojen od `MaterijalnoDashboardView`) takođe nije portovana — dashboard pokriva poslednjih 8
+  + brze akcije, ne punu istoriju.
+
+**Finansije — ekrani koji postoje u ERPiFinansije a nemaju pandan u ERPi:**
+- **Korisnici/prava pristupa** — `KorisniciView`/`KorisnikEditWindow` nemaju NIKAKAV pandan;
+  ERPi ima samo `Auth/LoginWindow`, nema ekran za upravljanje korisnicima/ulogama iznutra.
+- **PDV evidencija** (`PdvEvidencijaView`, KIR/KPR knjige, PP-PDV XML export za ePorezi) —
+  nema pandan. Napomena: `ERPiData.Models.Finansije.PdvZapis` postoji, ali je modelovan kao
+  **perzistentni entitet** (upisuje se direktno), dok je ERPiFinansije-in `PdvZapis` **računat
+  DTO** izveden iz `RacuniOtpremnice`/`Kalkulacije`/`StavkeNaloga` (nikad se ne upisuje) —
+  oblik se ne poklapa, ne može se "samo prekopirati" servis nad postojećim ERPi modelom bez
+  redizajna ili prepravke `PdvZapis`-a. Takođe zavisi od `RacunOtpremnica` (Trgovina, vidi
+  gore — ne postoji), pa je makar MVP verzija (samo ručne stavke preko konta 4700/2700 na
+  `StavkaNaloga.Osnovica`/`StopaPdv`, koje već postoje kao kolone — vidi poznati nedostatak u
+  §3 "Nema UI za PDV Osnovica/StopaPdv") realniji prvi korak od punog 1:1 porta.
+- **Opšta Podešavanja** (`PodesavanjaView`) — ERPi ima samo `Podesavanja/UvozWizardView`
+  (uvoz), nema opšti ekran firme/konfiguracije.
+- **Backup** (`BackupView` + `BackupService`) — nema pandan za Finansije/celu bazu (Zarade ima
+  sopstveni `Services/Zarade/BackupService.cs`, ali generalni backup ekran ne postoji).
+- **Izveštaji hub** (`IzvestajiView` kao centralna stranica) i preview/štampa prozori:
+  `DnevnikPreviewWindow` (dnevnik knjiženja), `IosPreviewWindow`, `VrednovanjeZalihaPreviewWindow`,
+  `ZakljucniListPreviewWindow`, `BrutoBilansAnalitikePreviewWindow` — ERPi ima samo
+  `BrutoBilansView`/`KarticaKontaView`, bez zbirne stranice izveštaja i bez print-preview toka.
+- **Izvodi banke** — `IzvodiView` (lista/pregled izvoda) i `IzvodEditWindow` (ručna izmena)
+  nemaju pandan, ERPi ima samo `UvozIzvodaWindow` (uvoz) — posle uvoza nema gde da se izvod
+  pogleda/ispravi u samom ERPi.
+- **Kompenzacije** — `KompenzacijaEditWindow` (izmena pojedinačne kompenzacije) nema pandan,
+  `KompenzacijeView` verovatno radi inline unos (nije provereno da li je funkcionalno
+  ekvivalentno).
+- **Partneri** — `IstorijaZatvaranjaWindow` (istorijat zatvaranja stavki) i `KursnaListaWindow`
+  (pregled kursne liste — ERPi ima samo `DeviznoValviranjeWindow` za valorizaciju, ne i pregled
+  liste kurseva) nemaju pandan.
+- **Putni nalozi** — `IzvozZaZaradeWindow` (izvoz putnih naloga u Zarade) i
+  `PutniNalogEditWindow` (zaseban dijalog izmene) nemaju pandan.
+- **F1 Pomoc / help sistem za Finansije** — `Pomoc/PomocView`, `Pomoc/EditHelpWindow`,
+  `Pomoc/ChangelogWindow`, `Pomoc/DosImportWindow` nemaju pandan na Finansije strani (Zarade
+  ima svoj `Views/Zarade/Pomoc`, portovan u Fazi 5, ali Finansije nema ništa — isti nedostatak
+  već zabeležen kao opštiji u §3b, ovde potvrđen i za Finansije specifično).
+- **Napredna pretraga** (`Shared/NaprednaPretragaWindow` — globalna pretraga kroz više
+  entiteta) nema pandan.
+- **`KontoPickerWindow`** (F2 brza pretraga konta) — **urađeno u ovoj sesiji**: portovano u
+  `ERPiApp/Views/Finansije/Konta/KontoPickerWindow.xaml(.cs)`, ožičeno na F2 u
+  `NalogEditWindow` (`DgStavke_PreviewKeyDown`). Build čist, migracija nije bila potrebna
+  (koristi postojeći `Konto` model). Nije vizuelno provereno kroz UI (korisnik testira sam,
+  vidi §4).
+
+**Šta NIJE nedostatak** (provereno, postoji ekvivalent samo pod drugim imenom/rasporedom):
+`Bilansi` (razdvojeno na `BilansStanjaView`/`BilansUspehaView` umesto jedne `BilansiView` —
+funkcionalno ekvivalentno), `Kartice` (`KarticaKontaView`), `Dashboard` (`Shell/DashboardView`),
+`Firme` (`Firma/CompanySelectWindow`+`NovaFirmaWindow` — nije proveravano da li pokriva CRUD
+obim `FirmeView`-a).
+
+**Nije revidirano u ovoj sesiji** (nije stigla ruka, sledeći prolaz treba i ovo): potpuno
+poređenje `ERPiSredstva` naspram (još neuvedene) Faze 4, kao ni `PoreskiBilansWindow` (poreski
+bilans, odvojen od `BilansStanjaView`/`BilansUspehaView`).
+
+**Preporučeni redosled sledećeg rada** (po uticaju/riziku, ne apsolutno obavezujuće):
+1. **Ostatak Robno-materijalno servisa+ekrana** (§3g gore) — `UlazService`+`TrebovanjeService`
+   i njihovi ekrani su gotovi (ova sesija), nastaviti sa `PrimopredajaService`+ekran (model već
+   ima ispravan FK, isti obrazac kao Ulaz/Trebovanje — najbrži sledeći korak), zatim
+   `RacunOtpremnicaService`+ekran (model `RacunOtpremnica` prvo mora da se kreira — preduslov
+   za PDV evidenciju), pa ostatak (Nivelacija, MP/Uvozna kalkulacija ekrani, KEP knjiga, DMS).
+2. **PDV evidencija** (KIR/KPR) — zakonski bitno za srpsko knjigovodstvo, ali zavisi od #1
+   (`RacunOtpremnica`) za pun obim; MVP bez toga je moguć (samo ručne konto 4700/2700 stavke).
+3. **Korisnici/prava pristupa** — potpuno nedostaje, bezbednosno/operativno relevantno čim
+   firma dobije više od jednog korisnika.
+4. Ostatak §3g liste (Backup, opšta Podešavanja, Izveštaji hub, Izvodi lista/edit, DMS,
+   Trgovina extra ekrani, Pomoc/help, Napredna pretraga) — manji pojedinačni obim, raditi kad
+   se za njima ukaže potreba ili kad #1–#3 budu gotovi.
+
+**Napomena o obimu porta** — korisnik je u ovoj sesiji izričito tražio da se dalji rad radi kao
+blizak 1:1 klon (Views, servisi, testovi) umesto trimovanog MVP-a, prvenstveno zato što
+ERPiFinansije/ERPiZarade strukturu podataka treba da ostane što sličnija zbog budućeg DOS uvoza
+(Faza 7.2b). To ne menja pravilo string→FK iz `import-from-source-apps` skill-a (FK-ovi ostaju
+— DOS uvoznik već radi to razrešavanje za Konto/Partner, isti obrazac važi i ovde), već znači:
+manje trimovanja UI-ja/servisa/testova po "trim, don't transplant whole" default-u, više
+direktnog portovanja celih ekrana kao u §3g iznad.
+
+**Test podaci** — korisnik je naveo da se za vizuelnu proveru portovanih ekrana može koristiti
+`C:\Users\Admin\AppData\Local\ERPiFinansijeApp\Baze\firma_TESTNEW_ARHIBEL_NEW.db`, ista baza
+koja je već uvezena u ERPi kao AUTOTEST/ARHIBEL (vidi §7.1 gore) — znači da uvoz treba ponoviti
+(ili proveriti da je već ažuran) za bilo koje nove entitete čim njihov uvoz u
+`ErpiFinansijeImporter` bude dodat, pre nego što korisnik može vizuelno da proveri nove Robno
+ekrane sa realnim podacima.
+
+---
+
 ## Sledeći koraci
 
-Faze 3.5–3.12 su implementirane, commit-ovane i push-ovane na `origin/main` (05.08.2026).
-Sledeći rad treba da krene od §3d ("Poznati nedostaci u Fazi 3.5–3.12") pre nego što se ide
-dalje — najpre vizuelna provera novih ekrana (korisnik sam kroz UI, vidi §4), zatim čišćenje
-legacy kolona/dugmadi u `KontaView`. Tek posle toga: Faza 4 (Osnovna sredstva) i Faza 5
-(Obračun zarada).
+Faze 3.5–3.12 su implementirane, commit-ovane i push-ovane na `origin/main` (05.08.2026), ali
+**3.12 je delimično netačno označena** — videti §3g za ispravku. Sledeći rad treba da krene od
+§3g ("Preporučeni redosled sledećeg rada"): Robno-materijalno servisi/ekrani prvo, zatim PDV
+evidencija i Korisnici. §3d ("Poznati nedostaci u Fazi 3.5–3.12", vizuelna provera + čišćenje
+legacy kolona u `KontaView`) ostaje važeće uporedo. Tek posle toga: Faza 4 (Osnovna sredstva) i
+Faza 5 (Obračun zarada, već u toku — vidi §3e).
 

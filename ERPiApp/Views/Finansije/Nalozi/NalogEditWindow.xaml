@@ -41,10 +41,10 @@
 
                 <DataGrid x:Name="DgStavke" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal"
                           HeadersVisibility="Column" Background="Transparent" BorderThickness="0"
-                          CellEditEnding="DgStavke_CellEditEnding">
+                          CellEditEnding="DgStavke_CellEditEnding" PreviewKeyDown="DgStavke_PreviewKeyDown">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="R.br." Binding="{Binding RedniBroj}" Width="50" IsReadOnly="True"/>
-                        <DataGridComboBoxColumn x:Name="ColKonto" Header="Konto *"
+                        <DataGridComboBoxColumn x:Name="ColKonto" Header="Konto * (F2)"
                                                  SelectedValueBinding="{Binding KontoId}"
                                                  SelectedValuePath="KontoId"
                                                  DisplayMemberPath="Prikaz"

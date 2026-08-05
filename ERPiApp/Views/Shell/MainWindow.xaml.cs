@@ -124,8 +124,14 @@ public partial class MainWindow : Window
 
     private void NavMagacin_Click(object sender, RoutedEventArgs e)
     {
-        TxtHeaderTitle.Text = "📦 Magacin i PDV evidencija";
+        TxtHeaderTitle.Text = "📦 Robno — Kalkulacije, Magacini, Artikli";
         MainContentHost.Content = new MagacinMainView(_db);
+    }
+
+    private void NavMaterijalno_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏭 Materijalno — Ulazi i Trebovanja";
+        MainContentHost.Content = new ERPiApp.Views.Magacin.MaterijalnoDashboardView(_db);
     }
 
     private void NavSefPfr_Click(object sender, RoutedEventArgs e)

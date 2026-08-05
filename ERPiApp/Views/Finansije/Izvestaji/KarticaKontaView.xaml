@@ -15,7 +15,7 @@
             <DockPanel>
                 <TextBlock Text="📋 Kontni plan" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
                 <TextBox x:Name="TxtPretragaKonta" Style="{StaticResource SearchTextBoxStyle}" DockPanel.Dock="Top" Height="34" Margin="0,0,0,8" ToolTip="Pretraga po broju ili nazivu konta" TextChanged="TxtPretragaKonta_TextChanged"/>
-                <CheckBox x:Name="ChkSamoSaPrometom" Content="Samo konta sa knjiženjima" DockPanel.Dock="Top" Margin="0,0,0,12" IsChecked="True" Checked="Filter_Changed" Unchecked="Filter_Changed"/>
+                <CheckBox x:Name="ChkSamoSaPrometom" Content="Samo konta sa knjiženjima" DockPanel.Dock="Top" Margin="0,0,0,12" Checked="Filter_Changed" Unchecked="Filter_Changed"/>
                 <DataGrid x:Name="LstKonta" AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" SelectionChanged="LstKonta_SelectionChanged">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Konto" Binding="{Binding BrojKonta}" Width="80" IsReadOnly="True"/>

@@ -74,6 +74,23 @@ public partial class NalogEditWindow : Window
         Dispatcher.BeginInvoke(new Action(OsveziBalans));
     }
 
+    private void DgStavke_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key != System.Windows.Input.Key.F2) return;
+        if (DgStavke.SelectedItem is not StavkaNaloga stavka) return;
+
+        DgStavke.CommitEdit(DataGridEditingUnit.Row, true);
+
+        var picker = new Konta.KontoPickerWindow(_db) { Owner = this };
+        if (picker.ShowDialog() == true && picker.IzabraniKonto != null)
+        {
+            stavka.KontoId = picker.IzabraniKonto.KontoId;
+            OsveziGrid();
+        }
+
+        e.Handled = true;
+    }
+
     private void OsveziBalans()
     {
         var duguje = _stavke.Sum(s => s.Duguje);

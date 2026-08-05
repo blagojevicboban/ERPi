@@ -106,7 +106,8 @@
                             <RadioButton x:Name="BtnPutniNalozi" Content="🚗 Putni nalozi" Style="{StaticResource NavButtonStyle}" Click="NavPutniNalozi_Click" ToolTip="Evidencija i obračun službenih putovanja u zemlji i inostranstvu"/>
                             <RadioButton x:Name="BtnKompenzacije" Content="🤝 Kompenzacije" Style="{StaticResource NavButtonStyle}" Click="NavKompenzacije_Click" ToolTip="Dvojne i trojne kompenzacije sa pametnim skeniranjem"/>
                             <RadioButton x:Name="BtnDevizno" Content="💱 Devizno &amp; Valviranje" Style="{StaticResource NavButtonStyle}" Click="NavDevizno_Click" ToolTip="Valviranje deviznih konta i obračun kursnih razlika"/>
-                            <RadioButton x:Name="BtnMagacin" Content="📦 Magacin i PDV" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije, magacini, šifarnik artikala i PDV"/>
+                            <RadioButton x:Name="BtnMagacin" Content="📦 Robno (Kalkulacije, Magacini, Artikli)" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije veleprodaje, šifarnik magacina i artikala"/>
+                            <RadioButton x:Name="BtnMaterijalno" Content="🏭 Materijalno (Ulazi, Trebovanja)" Style="{StaticResource NavButtonStyle}" Click="NavMaterijalno_Click" ToolTip="Radna tabla materijalnog knjigovodstva — vrednost zaliha, ulazi, trebovanja"/>
                             <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
 
                             <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>

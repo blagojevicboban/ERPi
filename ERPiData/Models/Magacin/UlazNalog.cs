@@ -15,9 +15,9 @@ public class UlazNalog
 
     public DateTime Datum { get; set; } = DateTime.Now;
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraMagacina { get; set; } = string.Empty;
+    public int MagacinId { get; set; }
+    [ForeignKey(nameof(MagacinId))]
+    public Magacin? Magacin { get; set; }
 
     [MaxLength(30)]
     public string? BrojRacuna { get; set; }
@@ -40,9 +40,10 @@ public class UlazStavka
 
     public int RedniBroj { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraArtikla { get; set; } = string.Empty;
+    /// <summary>Materijalno (ne Robno) knjigovodstvo — FK na <see cref="Materijal"/>, ne na <see cref="Artikal"/>.</summary>
+    public int MaterijalId { get; set; }
+    [ForeignKey(nameof(MaterijalId))]
+    public Materijal? Materijal { get; set; }
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Kolicina { get; set; }
@@ -52,9 +53,6 @@ public class UlazStavka
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Iznos { get; set; }
-
-    [NotMapped]
-    public string? NazivArtikla { get; set; }
 }
 
 public class PrimopredajaNalog
@@ -66,13 +64,13 @@ public class PrimopredajaNalog
 
     public DateTime Datum { get; set; } = DateTime.Now;
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraMagacinaDaje { get; set; } = string.Empty;
+    public int MagacinIdDaje { get; set; }
+    [ForeignKey(nameof(MagacinIdDaje))]
+    public Magacin? MagacinDaje { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraMagacinaPrima { get; set; } = string.Empty;
+    public int MagacinIdPrima { get; set; }
+    [ForeignKey(nameof(MagacinIdPrima))]
+    public Magacin? MagacinPrima { get; set; }
 
     [Required]
     [MaxLength(30)]
@@ -101,9 +99,10 @@ public class PrimopredajaStavka
 
     public int RedniBroj { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraArtikla { get; set; } = string.Empty;
+    /// <summary>Materijalno (ne Robno) knjigovodstvo — FK na <see cref="Materijal"/>, ne na <see cref="Artikal"/>.</summary>
+    public int MaterijalId { get; set; }
+    [ForeignKey(nameof(MaterijalId))]
+    public Materijal? Materijal { get; set; }
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Kolicina { get; set; }
@@ -113,10 +112,4 @@ public class PrimopredajaStavka
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Iznos { get; set; }
-
-    [NotMapped]
-    public string? NazivArtikla { get; set; }
-
-    [NotMapped]
-    public string? JedinicaMere { get; set; }
 }

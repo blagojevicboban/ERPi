@@ -14,9 +14,9 @@ public class TrebovanjeNalog
 
     public DateTime Datum { get; set; } = DateTime.Now;
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraMagacina { get; set; } = string.Empty;
+    public int MagacinId { get; set; }
+    [ForeignKey(nameof(MagacinId))]
+    public Magacin? Magacin { get; set; }
 
     public bool IsKnjizen { get; set; }
 
@@ -34,9 +34,10 @@ public class TrebovanjeStavka
 
     public int RedniBroj { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraArtikla { get; set; } = string.Empty;
+    /// <summary>Materijalno (ne Robno) knjigovodstvo — FK na <see cref="Materijal"/>, ne na <see cref="Artikal"/>.</summary>
+    public int MaterijalId { get; set; }
+    [ForeignKey(nameof(MaterijalId))]
+    public Materijal? Materijal { get; set; }
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Kolicina { get; set; }

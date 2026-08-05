@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ERPiData.Models.Core;
 using ERPiData.Models.Finansije;
 
 namespace ERPiData.Models.Magacin;
@@ -11,20 +12,21 @@ public class MaloprodajnaKalkulacija
     [Key]
     public int MaloprodajnaKalkulacijaId { get; set; }
 
-    public int SifraProdavnice { get; set; }
-
     public int BrojKalkulacije { get; set; }
 
     public DateTime Datum { get; set; } = DateTime.Now;
 
-    [MaxLength(20)]
-    public string? SifraMagacinaPrima { get; set; }
+    public int MagacinIdPrima { get; set; }
+    [ForeignKey(nameof(MagacinIdPrima))]
+    public Magacin? MagacinPrima { get; set; }
 
-    [MaxLength(20)]
-    public string? SifraMagacinaDaje { get; set; }
+    public int? MagacinIdDaje { get; set; }
+    [ForeignKey(nameof(MagacinIdDaje))]
+    public Magacin? MagacinDaje { get; set; }
 
-    [MaxLength(20)]
-    public string? SifraDobavljaca { get; set; }
+    public int? DobavljacId { get; set; }
+    [ForeignKey(nameof(DobavljacId))]
+    public Partner? Dobavljac { get; set; }
 
     [MaxLength(30)]
     public string? BrojOtpremnice { get; set; }
@@ -100,9 +102,9 @@ public class MaloprodajnaKalkulacijaStavka
 
     public int RedniBroj { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string SifraArtikla { get; set; } = string.Empty;
+    public int ArtikalId { get; set; }
+    [ForeignKey(nameof(ArtikalId))]
+    public Artikal? Artikal { get; set; }
 
     [Column(TypeName = "decimal(18, 4)")]
     public decimal Kolicina { get; set; }
@@ -165,10 +167,4 @@ public class MaloprodajnaKalkulacijaStavka
 
     public bool IsKnjizen { get; set; }
     public bool IsTrgovinskiKnjizen { get; set; }
-
-    [NotMapped]
-    public string? NazivArtikla { get; set; }
-
-    [NotMapped]
-    public string? JedinicaMere { get; set; }
 }
