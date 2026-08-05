@@ -9,6 +9,12 @@
   <ItemGroup>
     <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
     <ProjectReference Include="..\..\ERPiFinansije\ERPiFinansijeData\ERPiFinansijeData.csproj" />
+    <ProjectReference Include="..\..\ERPiZarade\ERPiZaradeData\ERPiZaradeData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DbfDataReader" Version="2.2.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.10" />
   </ItemGroup>
 
 </Project>

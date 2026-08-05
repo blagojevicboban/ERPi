@@ -125,6 +125,15 @@ public partial class CompanySelectWindow : Window
             return;
         }
 
+        // Zarade ekrani (portovani iz samostalnog ERPiZaradeApp-a) svaki otvara SVOJ
+        // ErpiDbContext preko AppConfig.DbPath umesto da dele ovaj _db — nasleđe iz sveta
+        // gde je ERPiZaradeApp imao tačno jednu bazu. Bez ovoga AppConfig.DbPath ostaje
+        // nepostavljen i pada na svoj podrazumevani "prvi .db u %LocalAppData%\ERPiApp\Baze"
+        // koji nema nikakve veze sa izabranom firmom — svi Zarade ekrani deluju prazno bez
+        // obzira koja je firma zapravo aktivna. Mora se postaviti ovde, pre nego što se
+        // otvori ijedan Zarade ekran.
+        AppConfig.DbPath = selected.DbPath;
+
         var loginWindow = new LoginWindow(db);
         loginWindow.Show();
         Close();

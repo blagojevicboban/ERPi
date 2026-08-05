@@ -1,0 +1,295 @@
+using ERPiApp;
+using ERPiApp.Services.Zarade;
+using ERPiData.Seeds.Zarade;
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
+using ERPiData;
+using ERPiData.Models.Zarade;
+using ERPiApp.Views.Zarade.Radnici; // za RelayCommand
+
+namespace ERPiApp.Views.Zarade.Listici;
+
+public class ObracunSelektivni : INotifyPropertyChanged
+{
+    private bool _isSelected = true; // defaultno selektovano radi bržeg masovnog izvoza
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set { _isSelected = value; OnPropertyChanged(); }
+    }
+
+    public ObracunPlate Obracun { get; set; } = null!;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}
+
+public class ListiciViewModel : INotifyPropertyChanged
+{
+    private readonly ErpiDbContext _db;
+    private readonly ERPiApp.Services.Zarade.IsplataService _isplataService;
+    private ObservableCollection<ObracunSelektivni> _obracuni = [];
+    private ObservableCollection<Isplata> _isplate = [];
+    private Isplata? _izabranaIsplata;
+    private ObservableCollection<int> _godine = [];
+    private ObservableCollection<int> _meseci = [];
+    private int _selectedGodina;
+    private int _selectedMesec;
+    private string _searchText = "";
+    private string _statusText = "";
+    private bool _areAllSelected = true;
+
+    public ListiciViewModel()
+    {
+        _db = ErpiDbContext.Create(AppConfig.DbPath);
+        _isplataService = new ERPiApp.Services.Zarade.IsplataService(_db);
+
+        LoadCommand = new RelayCommand(async _ => await LoadObracuneAsync());
+        ClearFilterCommand = new RelayCommand(async _ => 
+        {
+            SearchText = "";
+            await LoadObracuneAsync();
+        });
+        ToggleSelectAllCommand = new RelayCommand(_ => ToggleSelectAll());
+
+        Meseci = new ObservableCollection<int>(Enumerable.Range(1, 12));
+        SelectedMesec = AppConfig.ActiveMesec ?? DateTime.Now.Month;
+
+        _ = InitAsync();
+    }
+
+    private async Task InitAsync()
+    {
+        try
+        {
+            var god = await _db.ObracuniPlata
+                .Select(o => o.Godina)
+                .Distinct()
+                .OrderByDescending(g => g)
+                .ToListAsync();
+
+            if (god.Count == 0)
+                god = [DateTime.Now.Year];
+
+            Godine = new ObservableCollection<int>(god);
+
+            if (AppConfig.ActiveGodina.HasValue && AppConfig.ActiveMesec.HasValue)
+            {
+                SelectedGodina = AppConfig.ActiveGodina.Value;
+                SelectedMesec = AppConfig.ActiveMesec.Value;
+            }
+            else
+            {
+                SelectedGodina = Godine.FirstOrDefault();
+
+                // Ako imamo aktivni mesec iz baze koji je pre Aprila 2026, postavi to
+                var latestPeriod = await _db.ObracuniPlata
+                    .OrderByDescending(o => o.Godina).ThenByDescending(o => o.Mesec)
+                    .FirstOrDefaultAsync();
+
+                if (latestPeriod != null)
+                {
+                    SelectedGodina = latestPeriod.Godina;
+                    SelectedMesec = latestPeriod.Mesec;
+                }
+            }
+
+            await LoadObracuneAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Greška prilikom inicijalizacije: {ex.Message}";
+        }
+    }
+
+    public ObservableCollection<ObracunSelektivni> Obracuni
+    {
+        get => _obracuni;
+        set { _obracuni = value; OnPropertyChanged(); }
+    }
+
+    public ObservableCollection<int> Godine
+    {
+        get => _godine;
+        set { _godine = value; OnPropertyChanged(); }
+    }
+
+    public ObservableCollection<int> Meseci
+    {
+        get => _meseci;
+        set { _meseci = value; OnPropertyChanged(); }
+    }
+
+    public int SelectedGodina
+    {
+        get => _selectedGodina;
+        set 
+        { 
+            _selectedGodina = value; 
+            OnPropertyChanged(); 
+            AppConfig.ActiveGodina = value;
+        }
+    }
+
+    public int SelectedMesec
+    {
+        get => _selectedMesec;
+        set 
+        { 
+            _selectedMesec = value; 
+            OnPropertyChanged(); 
+            AppConfig.ActiveMesec = value;
+        }
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set 
+        { 
+            _searchText = value; 
+            OnPropertyChanged(); 
+            _ = LoadObracuneAsync();
+        }
+    }
+
+    public string StatusText
+    {
+        get => _statusText;
+        set { _statusText = value; OnPropertyChanged(); }
+    }
+
+    public ICommand LoadCommand { get; }
+    public ICommand ClearFilterCommand { get; }
+    public ICommand ToggleSelectAllCommand { get; }
+
+    public async Task LoadObracuneAsync()
+    {
+        try
+        {
+            StatusText = "Učitavanje obračuna...";
+
+            UcitajIsplate();
+
+            // Stornirani obračun nije isplaćen — listić po njemu bi radniku pokazao platu
+            // koju nije primio. Isto važi i za obračun druge isplate u mesecu: listić se
+            // pravi za jednu isplatu, jer je to ono što je radnik jednom i dobio.
+            //
+            // Naknada van radnog odnosa se izostavlja: platni listić prikazuje sate, fond i
+            // obustave, a naknada po ugovoru nema nijedno od toga. Primaocu se izdaje
+            // obračun naknade, ne platni listić.
+            var query = ERPiApp.Services.Zarade.IsplataService
+                .Obuhvat(_db.ObracuniPlata.Include(o => o.Radnik), SelectedGodina, SelectedMesec, _izabranaIsplata)
+                .Where(o => !o.Storniran && o.UgovorId == null);
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                var lowerSearch = SearchText.ToLower();
+                query = query.Where(o => o.Radnik.ImeIPrezime.ToLower().Contains(lowerSearch));
+            }
+
+            var rawList = await query.OrderBy(o => o.Radnik.BrojRadnika).ToListAsync();
+            
+            var list = rawList.Select(o => new ObracunSelektivni 
+            { 
+                Obracun = o, 
+                IsSelected = _areAllSelected 
+            }).ToList();
+
+            Obracuni = new ObservableCollection<ObracunSelektivni>(list);
+
+            StatusText = _izabranaIsplata == null || _izabranaIsplata.JePrva
+                ? $"Pronađeno: {list.Count} obračuna za {SelectedMesec}.{SelectedGodina}."
+                : $"Pronađeno: {list.Count} obračuna za {SelectedMesec}.{SelectedGodina} — {_izabranaIsplata.Naziv}.";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Greška: {ex.Message}";
+        }
+    }
+
+    // ── Isplate u mesecu (Faza 2.2) ───────────────────────────────────
+    public ObservableCollection<Isplata> Isplate
+    {
+        get => _isplate;
+        private set { _isplate = value; OnPropertyChanged(); }
+    }
+
+    /// <summary>Isplata čiji se listići prave; prva je podrazumevana i jedina kad ih je jedna.</summary>
+    public Isplata? IzabranaIsplata
+    {
+        get => _izabranaIsplata;
+        set
+        {
+            if (ReferenceEquals(_izabranaIsplata, value)) return;
+
+            _izabranaIsplata = value;
+            OnPropertyChanged();
+            _ = LoadObracuneAsync();
+        }
+    }
+
+    /// <summary>Selektor isplate ima smisla tek kad ih mesec ima više od jedne.</summary>
+    public bool ImaViseIsplata => _isplate.Count > 1;
+
+    private void UcitajIsplate()
+    {
+        List<Isplata> isplate;
+
+        // Period se popunjava u dva koraka, pa se prvo učitavanje dešava pre nego što je
+        // godina poznata. Tada nema šta da se obezbedi.
+        if (SelectedGodina <= 0 || SelectedMesec is < 1 or > 12)
+        {
+            Isplate = [];
+            OnPropertyChanged(nameof(ImaViseIsplata));
+            return;
+        }
+
+        try
+        {
+            _isplataService.Obezbedi(SelectedGodina, SelectedMesec);
+            // Platni listić prikazuje sate, fond i obustave, kojih kod naknade nema — primalac
+            // po ugovoru listić i ne dobija. Zato samo isplate zarade.
+            isplate = _isplataService.Isplate(SelectedGodina, SelectedMesec, RodIsplate.Zarada).ToList();
+        }
+        catch (Exception ex)
+        {
+            // Baza starije verzije nema tabelu isplata — listići se prave nad celim periodom.
+            Serilog.Log.Warning(ex, "Isplate se ne mogu učitati za {Godina}/{Mesec}", SelectedGodina, SelectedMesec);
+            isplate = [];
+        }
+
+        if (_izabranaIsplata == null
+            || _izabranaIsplata.Godina != SelectedGodina
+            || _izabranaIsplata.Mesec != SelectedMesec)
+        {
+            _izabranaIsplata = isplate.FirstOrDefault();
+            OnPropertyChanged(nameof(IzabranaIsplata));
+        }
+
+        Isplate = new ObservableCollection<Isplata>(isplate);
+        OnPropertyChanged(nameof(ImaViseIsplata));
+    }
+
+    private void ToggleSelectAll()
+    {
+        _areAllSelected = !_areAllSelected;
+        foreach (var item in Obracuni)
+        {
+            item.IsSelected = _areAllSelected;
+        }
+        StatusText = _areAllSelected ? "Izabrani svi zaposleni." : "Deselektovani svi zaposleni.";
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using ERPiData;
 using ERPiFinansijeData;
+using ERPiZaradeData;
 using ERPiMigration.Importers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
@@ -113,6 +114,60 @@ public partial class UvozWizardView : UserControl
         }
         finally
         {
+            BtnPokreniUvoz.IsEnabled = true;
+            BtnAnaliziraj.IsEnabled = true;
+        }
+    }
+
+    private async void BtnPokreniUvozZarade_Click(object sender, RoutedEventArgs e)
+    {
+        var path = Environment.ExpandEnvironmentVariables(TxtPutanjaBaze.Text.Trim());
+        if (!File.Exists(path))
+        {
+            MessageBox.Show($"Datoteka baze ne postoji na putanji: {path}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        BtnPokreniUvozZarade.IsEnabled = false;
+        BtnPokreniUvoz.IsEnabled = false;
+        BtnAnaliziraj.IsEnabled = false;
+
+        try
+        {
+            var options = new DbContextOptionsBuilder<PlataDbContext>()
+                .UseSqlite($"Data Source={path}")
+                .Options;
+
+            using var srcDb = new PlataDbContext(options);
+
+            var importer = new ErpiZaradeProdukcijaImporter(_db);
+            var res = await importer.ImportFromDatabaseAsync(srcDb);
+
+            if (res.Uspesno)
+            {
+                MessageBox.Show($"Uvoz iz ERPiZarade je uspešan!\n\n" +
+                                $"• Uvezeno radnika: {res.UvezenoRadnika}\n" +
+                                $"• Uvezeno obračuna: {res.UvezenoObracuna}\n" +
+                                $"• Uvezeno isplata: {res.UvezenoIsplata}\n" +
+                                $"• Uvezeno ugovora: {res.UvezenoUgovora}\n" +
+                                $"• Uvezeno radnih sati: {res.UvezenoRadnihSati}\n" +
+                                $"• Uvezeno kredita: {res.UvezenoKredita}\n" +
+                                $"• Uvezeno PPP-PD prijava: {res.UvezenoPppPdPrijava}\n" +
+                                $"• Uvezeno bolovanja: {res.UvezenoBolovanja}",
+                                "Uvoz iz ERPiZarade uspešan", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show($"Greška pri uvozu: {res.Greska}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Neočekivana greška pri uvozu iz ERPiZarade: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            BtnPokreniUvozZarade.IsEnabled = true;
             BtnPokreniUvoz.IsEnabled = true;
             BtnAnaliziraj.IsEnabled = true;
         }

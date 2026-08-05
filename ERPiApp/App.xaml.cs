@@ -43,6 +43,7 @@ public partial class App : Application
             var registry = new CompanyRegistryService();
             var dbPath = Path.Combine(registry.DefaultDataDirectory, "AUTOTEST.db");
             var db = ErpiDbContext.Create(dbPath);
+            AppConfig.DbPath = dbPath; // vidi napomenu u CompanySelectWindow.Otvori()
 
             if (!db.Firme.Any())
             {

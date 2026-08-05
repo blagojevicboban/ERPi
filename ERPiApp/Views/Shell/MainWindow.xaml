@@ -17,8 +17,8 @@
         <Border Grid.Column="0">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="{StaticResource SidebarStartColor}" Offset="0"/>
-                    <GradientStop Color="{StaticResource SidebarEndColor}" Offset="1"/>
+                    <GradientStop x:Name="GradStopSidebar1" Color="{StaticResource SidebarStartColor}" Offset="0"/>
+                    <GradientStop x:Name="GradStopSidebar2" Color="{StaticResource SidebarEndColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
 
@@ -50,6 +50,21 @@
 
                 <Separator DockPanel.Dock="Top" Background="#334155" Margin="16,0,16,10"/>
 
+                <!-- Modul Switcher -->
+                <Grid DockPanel.Dock="Top" Margin="16,0,16,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton x:Name="TabModulFinansije" Grid.Column="0" Content="📊 Finansije" IsChecked="True"
+                                 Style="{StaticResource NavButtonStyle}" Click="TabModulFinansije_Click" ToolTip="Glavna knjiga, magacin, SEF"/>
+                    <RadioButton x:Name="TabModulZarade" Grid.Column="1" Content="👥 Zarade"
+                                 Style="{StaticResource NavButtonStyle}" Click="TabModulZarade_Click" ToolTip="Obračun zarada, ugovori, PPP-PD"/>
+                    <RadioButton x:Name="TabModulSredstva" Grid.Column="2" Content="🏛️ Sredstva"
+                                 Style="{StaticResource NavButtonStyle}" Click="TabModulSredstva_Click" ToolTip="Osnovna sredstva"/>
+                </Grid>
+
                 <!-- Korisnik + Odjava -->
                 <Border DockPanel.Dock="Bottom" Margin="16,0,16,12" Background="#1E293B" CornerRadius="8" Padding="12,10">
                     <Grid>
@@ -71,35 +86,91 @@
                            FontSize="11" Foreground="#38BDF8" TextAlignment="Center" Margin="0,0,0,12"/>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="PnlNavigation">
-                        <TextBlock Text="OPŠTE" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
-                        <RadioButton x:Name="BtnDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyle}" IsChecked="True" Click="NavDashboard_Click" ToolTip="Pregled stanja Core šeme"/>
+                    <Grid>
+                        <!-- FINANSIJE I MAGACIN MODUL -->
+                        <StackPanel x:Name="PnlNavFinansije" Visibility="Visible">
+                            <TextBlock Text="OPŠTE" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyle}" IsChecked="True" Click="NavDashboard_Click" ToolTip="Pregled stanja Core šeme"/>
 
-                        <TextBlock Text="FINANSIJE I MAGACIN" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
-                        <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Dnevnik glavne knjige — nalozi i stavke"/>
-                        <RadioButton x:Name="BtnPartneri" Content="👥 Partneri" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Partneri i otvorene stavke po kontu"/>
-                        <RadioButton x:Name="BtnKonta" Content="📋 Kontni plan" Style="{StaticResource NavButtonStyle}" Click="NavKonta_Click" ToolTip="Šifarnik konta (sintetika i analitika)"/>
-                        <RadioButton x:Name="BtnMestaTroska" Content="🎯 Mesta troška &amp; Projekti" Style="{StaticResource NavButtonStyle}" Click="NavMestaTroska_Click" ToolTip="Šifarnik mesta troška i analitika profitabilnosti"/>
-                        <RadioButton x:Name="BtnKarticaKonta" Content="💳 Kartice konta" Style="{StaticResource NavButtonStyle}" Click="NavKarticaKonta_Click" ToolTip="Pregled kartica konta sa kumulativnim saldom"/>
-                        <RadioButton x:Name="BtnBrutoBilans" Content="📊 Bruto bilans" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans po kontima sa prometom"/>
-                        <RadioButton x:Name="BtnBilansStanja" Content="🏛️ Bilans stanja" Style="{StaticResource NavButtonStyle}" Click="NavBilansStanja_Click" ToolTip="Zvanični Bilans Stanja sa AOP pozicijama"/>
-                        <RadioButton x:Name="BtnBilansUspeha" Content="📈 Bilans uspeha" Style="{StaticResource NavButtonStyle}" Click="NavBilansUspeha_Click" ToolTip="Zvanični Bilans Uspeha sa AOP pozicijama"/>
-                        <RadioButton x:Name="BtnIzvodi" Content="🏦 Uvoz izvoda banke" Style="{StaticResource NavButtonStyle}" Click="NavIzvodi_Click" ToolTip="Uvoz Halcom/Asseco/CAMT/MT940 izvoda i automatsko knjiženje"/>
-                        <RadioButton x:Name="BtnBlagajna" Content="💰 Blagajna (243/244)" Style="{StaticResource NavButtonStyle}" Click="NavBlagajna_Click" ToolTip="Dinarska i devizna blagajna sa dnevnikom"/>
-                        <RadioButton x:Name="BtnPutniNalozi" Content="🚗 Putni nalozi" Style="{StaticResource NavButtonStyle}" Click="NavPutniNalozi_Click" ToolTip="Evidencija i obračun službenih putovanja u zemlji i inostranstvu"/>
-                        <RadioButton x:Name="BtnKompenzacije" Content="🤝 Kompenzacije" Style="{StaticResource NavButtonStyle}" Click="NavKompenzacije_Click" ToolTip="Dvojne i trojne kompenzacije sa pametnim skeniranjem"/>
-                        <RadioButton x:Name="BtnDevizno" Content="💱 Devizno &amp; Valviranje" Style="{StaticResource NavButtonStyle}" Click="NavDevizno_Click" ToolTip="Valviranje deviznih konta i obračun kursnih razlika"/>
-                        <RadioButton x:Name="BtnMagacin" Content="📦 Magacin i PDV" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije, magacini, šifarnik artikala i PDV"/>
-                        <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
+                            <TextBlock Text="FINANSIJE I MAGACIN" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
+                            <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Dnevnik glavne knjige — nalozi i stavke"/>
+                            <RadioButton x:Name="BtnPartneri" Content="👥 Partneri" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Partneri i otvorene stavke po kontu"/>
+                            <RadioButton x:Name="BtnKonta" Content="📋 Kontni plan" Style="{StaticResource NavButtonStyle}" Click="NavKonta_Click" ToolTip="Šifarnik konta (sintetika i analitika)"/>
+                            <RadioButton x:Name="BtnMestaTroska" Content="🎯 Mesta troška &amp; Projekti" Style="{StaticResource NavButtonStyle}" Click="NavMestaTroska_Click" ToolTip="Šifarnik mesta troška i analitika profitabilnosti"/>
+                            <RadioButton x:Name="BtnKarticaKonta" Content="💳 Kartice konta" Style="{StaticResource NavButtonStyle}" Click="NavKarticaKonta_Click" ToolTip="Pregled kartica konta sa kumulativnim saldom"/>
+                            <RadioButton x:Name="BtnBrutoBilans" Content="📊 Bruto bilans" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans po kontima sa prometom"/>
+                            <RadioButton x:Name="BtnBilansStanja" Content="🏛️ Bilans stanja" Style="{StaticResource NavButtonStyle}" Click="NavBilansStanja_Click" ToolTip="Zvanični Bilans Stanja sa AOP pozicijama"/>
+                            <RadioButton x:Name="BtnBilansUspeha" Content="📈 Bilans uspeha" Style="{StaticResource NavButtonStyle}" Click="NavBilansUspeha_Click" ToolTip="Zvanični Bilans Uspeha sa AOP pozicijama"/>
+                            <RadioButton x:Name="BtnIzvodi" Content="🏦 Uvoz izvoda banke" Style="{StaticResource NavButtonStyle}" Click="NavIzvodi_Click" ToolTip="Uvoz Halcom/Asseco/CAMT/MT940 izvoda i automatsko knjiženje"/>
+                            <RadioButton x:Name="BtnBlagajna" Content="💰 Blagajna (243/244)" Style="{StaticResource NavButtonStyle}" Click="NavBlagajna_Click" ToolTip="Dinarska i devizna blagajna sa dnevnikom"/>
+                            <RadioButton x:Name="BtnPutniNalozi" Content="🚗 Putni nalozi" Style="{StaticResource NavButtonStyle}" Click="NavPutniNalozi_Click" ToolTip="Evidencija i obračun službenih putovanja u zemlji i inostranstvu"/>
+                            <RadioButton x:Name="BtnKompenzacije" Content="🤝 Kompenzacije" Style="{StaticResource NavButtonStyle}" Click="NavKompenzacije_Click" ToolTip="Dvojne i trojne kompenzacije sa pametnim skeniranjem"/>
+                            <RadioButton x:Name="BtnDevizno" Content="💱 Devizno &amp; Valviranje" Style="{StaticResource NavButtonStyle}" Click="NavDevizno_Click" ToolTip="Valviranje deviznih konta i obračun kursnih razlika"/>
+                            <RadioButton x:Name="BtnMagacin" Content="📦 Magacin i PDV" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije, magacini, šifarnik artikala i PDV"/>
+                            <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
 
-                        <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
-                        <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz stare baza.db baze ERPiFinansije"/>
+                            <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
+                            <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz stare baza.db baze ERPiFinansije"/>
+                        </StackPanel>
 
-                        <!-- Ostatak Finansija (SEF) i moduli Sredstva/Zarade dolaze u narednim podfazama -->
-                        <TextBlock Text="USKORO" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="24,14,0,3"/>
-                        <TextBlock Text="Osnovna sredstva" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
-                        <TextBlock Text="Obračun zarada" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
-                    </StackPanel>
+                        <!-- ZARADE MODUL (KLONIRANO IZ ERPiZarade) -->
+                        <StackPanel x:Name="PnlNavZarade" Visibility="Collapsed">
+                            <TextBlock Text="OBRAČUNI" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,6,0,3"/>
+                            <RadioButton x:Name="BtnZaradeObracuni" Content="📁 Obračunski periodi" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeObracuni_Click"/>
+
+                            <TextBlock Text="EVIDENCIJA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>
+                            <RadioButton x:Name="BtnZaradeRadnici" Content="👤 Radnici" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeRadnici_Click"/>
+                            <RadioButton x:Name="BtnZaradeRadniSati" Content="⏱️ Radni sati" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeRadniSati_Click"/>
+                            <RadioButton x:Name="BtnZaradePrimanja" Content="🎁 Ostala primanja" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePrimanja_Click"/>
+                            <RadioButton x:Name="BtnZaradePorezi" Content="⚖️ Porezi i parametri" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePorezi_Click"/>
+                            <RadioButton x:Name="BtnZaradeDoprinosi" Content="📈 Doprinosi" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeDoprinosi_Click"/>
+                            <RadioButton x:Name="BtnZaradePlatniRazredi" Content="📊 Platni razredi" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePlatniRazredi_Click"/>
+
+                            <TextBlock Text="ISPLATE ZARADA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>
+                            <RadioButton x:Name="BtnZaradeIsplate" Content="💸 Isplate u mesecu" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeIsplate_Click"/>
+                            <RadioButton x:Name="BtnZaradeObracunPlate" Content="📊 Obračun plate" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeObracunPlate_Click"/>
+                            <RadioButton x:Name="BtnZaradeListici" Content="🧾 Platni listići" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeListici_Click"/>
+                            <RadioButton x:Name="BtnZaradeBolovanja" Content="🏥 Bolovanja i RFZO" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeBolovanja_Click"/>
+                            <RadioButton x:Name="BtnZaradePppPd" Content="📋 PPP-PD — zarade" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePppPd_Click"/>
+                            <RadioButton x:Name="BtnZaradeNalozi" Content="🏦 Nalozi za prenos" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeNalozi_Click"/>
+                            <RadioButton x:Name="BtnZaradeKnjizenje" Content="📒 Nalog za knjiženje" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeKnjizenje_Click"/>
+
+                            <TextBlock Text="VAN RADNOG ODNOSA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>
+                            <RadioButton x:Name="BtnZaradePrimaoci" Content="👤 Primaoci po ugovoru" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePrimaoci_Click"/>
+                            <RadioButton x:Name="BtnZaradeIsplateNaknada" Content="💸 Isplate naknada" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeIsplateNaknada_Click"/>
+                            <RadioButton x:Name="BtnZaradeUgovori" Content="📝 Ugovori i naknade" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeUgovori_Click"/>
+                            <RadioButton x:Name="BtnZaradeVrsteUgovora" Content="📄 Vrste ugovora" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeVrsteUgovora_Click"/>
+                            <RadioButton x:Name="BtnZaradeSabloniUgovora" Content="🖋️ Šabloni ugovora" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeSabloniUgovora_Click"/>
+                            <RadioButton x:Name="BtnZaradePppPdNaknade" Content="📋 PPP-PD — naknade" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePppPdNaknade_Click"/>
+
+                            <TextBlock Text="IZVEŠTAJI" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>
+                            <RadioButton x:Name="BtnZaradeStampe" Content="📑 Izveštaji &amp; rekapit." Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeStampe_Click"/>
+                            <RadioButton x:Name="BtnZaradePppPo" Content="🧾 PPP-PO (godišnja)" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePppPo_Click"/>
+
+                            <TextBlock Text="ŠIFARNICI ZARADA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>
+                            <RadioButton x:Name="BtnZaradeKrediti" Content="💳 Krediti" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeKrediti_Click"/>
+                            <RadioButton x:Name="BtnZaradeBanke" Content="🏦 Banke" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeBanke_Click"/>
+                            <RadioButton x:Name="BtnZaradePraznici" Content="📅 Kalendar praznika" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePraznici_Click"/>
+                            <RadioButton x:Name="BtnZaradeVrstePrimanja" Content="💰 Vrste primanja" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeVrstePrimanja_Click"/>
+                            <RadioButton x:Name="BtnZaradeOlaksice" Content="🏷️ Poreske olakšice" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeOlaksice_Click"/>
+                            <RadioButton x:Name="BtnZaradeKontaKnjizenja" Content="📗 Konta za knjiženje" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeKontaKnjizenja_Click"/>
+
+                            <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,14,0,3"/>
+                            <RadioButton x:Name="BtnZaradePodesavanja" Content="⚙️ Podešavanja" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePodesavanja_Click" ToolTip="Uvoz podataka iz ERPiZarade i DOS/DBF fajlova"/>
+                        </StackPanel>
+
+                        <!-- SREDSTVA MODUL (FAZA 6 - USKORO) -->
+                        <StackPanel x:Name="PnlNavSredstva" Visibility="Collapsed">
+                            <TextBlock Text="OSNOVNA SREDSTVA" FontSize="10" FontWeight="SemiBold" Foreground="#52B788" Margin="24,6,0,3"/>
+                            <Border Margin="20,12,20,0" Background="#15000000" CornerRadius="8" Padding="14">
+                                <StackPanel>
+                                    <TextBlock Text="🏛️ Modul Osnovna sredstva" FontSize="13" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock Text="Integracija modula ERPiSredstva dolazi u narednoj Fazi 6 (registar sredstava, amortizacija, popis i inventar)."
+                                               FontSize="11" Foreground="#A8D5C2" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
                 </ScrollViewer>
             </DockPanel>
         </Border>
@@ -123,7 +194,7 @@
                            FontSize="12" Foreground="#92400E" TextWrapping="Wrap"/>
             </Border>
 
-            <ContentControl x:Name="MainContentHost" Grid.Row="2" Margin="24"/>
+            <Frame x:Name="MainContentHost" Grid.Row="2" Margin="24" NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
 </Window>

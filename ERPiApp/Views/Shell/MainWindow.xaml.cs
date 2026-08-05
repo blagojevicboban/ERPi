@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using ERPiApp.Views.Finansije.Nalozi;
 using ERPiApp.Views.Finansije.Partneri;
 using ERPiApp.Views.Firma;
@@ -149,4 +150,242 @@ public partial class MainWindow : Window
         new CompanySelectWindow().Show();
         Close();
     }
+
+    // ── Preklopnik modula ─────────────────────────────────────────────
+
+    private void TabModulFinansije_Click(object sender, RoutedEventArgs e)
+    {
+        PnlNavFinansije.Visibility = Visibility.Visible;
+        PnlNavZarade.Visibility = Visibility.Collapsed;
+        PnlNavSredstva.Visibility = Visibility.Collapsed;
+        PostaviBojuSidebara((Color)FindResource("SidebarStartColor"), (Color)FindResource("SidebarEndColor"));
+        TxtHeaderTitle.Text = "📊 Radna tabla";
+        MainContentHost.Content = new DashboardView(_db);
+    }
+
+    private void TabModulZarade_Click(object sender, RoutedEventArgs e)
+    {
+        PnlNavFinansije.Visibility = Visibility.Collapsed;
+        PnlNavZarade.Visibility = Visibility.Visible;
+        PnlNavSredstva.Visibility = Visibility.Collapsed;
+        PostaviBojuSidebara((Color)FindResource("ZaradeSidebarStartColor"), (Color)FindResource("ZaradeSidebarEndColor"));
+        TxtHeaderTitle.Text = "📁 Obračunski periodi zarada";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Obracuni.ObracuniPage();
+    }
+
+    private void TabModulSredstva_Click(object sender, RoutedEventArgs e)
+    {
+        PnlNavFinansije.Visibility = Visibility.Collapsed;
+        PnlNavZarade.Visibility = Visibility.Collapsed;
+        PnlNavSredstva.Visibility = Visibility.Visible;
+        PostaviBojuSidebara((Color)FindResource("SredstvaSidebarStartColor"), (Color)FindResource("SredstvaSidebarEndColor"));
+        TxtHeaderTitle.Text = "🏛️ Osnovna sredstva";
+    }
+
+    /// <summary>
+    /// Menja gradijent pozadine sidebar-a prema aktivnom modulu — svaki modul zadržava
+    /// prepoznatljivu boju svog izvornog samostalnog app-a (Finansije = plavo/teget,
+    /// Zarade = ljubičasto, Sredstva = zeleno).
+    /// </summary>
+    private void PostaviBojuSidebara(Color start, Color end)
+    {
+        GradStopSidebar1.Color = start;
+        GradStopSidebar2.Color = end;
+    }
+
+    // ── Navigacija Zarade ─────────────────────────────────────────────
+
+    private void NavZaradeObracuni_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📁 Obračunski periodi zarada";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Obracuni.ObracuniPage();
+    }
+
+    private void NavZaradeRadnici_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "👤 Radnici i ugovori o radu";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Radnici.RadniciPage();
+    }
+
+    private void NavZaradeRadniSati_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "⏱️ Radni sati";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.RadniSati.RadniSatiPage();
+    }
+
+    private void NavZaradePrimanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🎁 Ostala primanja";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Primanja.PrimanjaPage();
+    }
+
+    private void NavZaradePorezi_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "⚖️ Poreske stope i parametri";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Porezi.PoreziPage();
+    }
+
+    private void NavZaradeDoprinosi_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📈 Stope doprinosa";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Doprinosi.DoprinosiPage();
+    }
+
+    private void NavZaradePlatniRazredi_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Platni razredi";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.PlatniRazredi.PlatniRazrediPage();
+    }
+
+    private void NavZaradeIsplate_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💸 Isplate zarada u mesecu";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Isplate.IsplatePage();
+    }
+
+    private void NavZaradeObracunPlate_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Mesečni obračun plate";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Obracun.ObracunPage();
+    }
+
+    private void NavZaradeListici_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🧾 Platni listići (slanje e-mailom)";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Listici.ListiciPage();
+    }
+
+    private void NavZaradeBolovanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏥 Bolovanja i RFZO refundacije";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Bolovanja.BolovanjaPage();
+    }
+
+    private void NavZaradePppPd_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📋 PPP-PD prijava za zarade";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.PppPd.PppPdPage();
+    }
+
+    private void NavZaradeNalozi_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏦 Nalozi za prenos (Halcom / ePP)";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Nalozi.NaloziPage();
+    }
+
+    private void NavZaradeKnjizenje_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📒 Nalog za knjiženje zarada";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Knjizenje.KnjizenjePage();
+    }
+
+    private void NavZaradePrimaoci_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "👤 Primaoci po ugovoru";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Ugovori.PrimaociPage();
+    }
+
+    private void NavZaradeIsplateNaknada_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💸 Isplate naknada van radnog odnosa";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Isplate.IsplatePage();
+    }
+
+    private void NavZaradeUgovori_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📝 Ugovori i honorari";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Ugovori.UgovoriPage();
+    }
+
+    private void NavZaradeVrsteUgovora_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📄 Vrste ugovora van radnog odnosa";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.VrsteUgovora.VrsteUgovoraPage();
+    }
+
+    private void NavZaradeSabloniUgovora_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🖋️ Šabloni ugovora";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.SabloniUgovora.SabloniUgovoraPage();
+    }
+
+    private void NavZaradePppPdNaknade_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📋 PPP-PD prijava za naknade";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.PppPd.PppPdPage();
+    }
+
+    private void NavZaradeStampe_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📑 Izveštaji i rekapitulacije";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Stampe.StampePage();
+    }
+
+    private void NavZaradePppPo_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🧾 PPP-PO godišnje potvrde";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.PppPo.PppPoPage();
+    }
+
+    private void NavZaradeKrediti_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💳 Krediti i obustave";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Krediti.KreditiPage();
+    }
+
+    private void NavZaradeBanke_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏦 Šifarnik banaka";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Banke.BankePage();
+    }
+
+    private void NavZaradePraznici_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📅 Kalendar državnih praznika";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Praznici.PrazniciPage();
+    }
+
+    private void NavZaradeVrstePrimanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💰 Šifarnik vrsta primanja";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.VrstePrimanja.VrstePrimanjaPage();
+    }
+
+    private void NavZaradeOlaksice_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏷️ Poreske olakšice";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Olaksice.OlaksicePage();
+    }
+
+    private void NavZaradeKontaKnjizenja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📗 Konta za knjiženje zarada";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.KontaKnjizenja.KontaKnjizenjaPage();
+    }
+
+    private void NavZaradePodesavanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "⚙️ Podešavanja — Zarade";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Podesavanja.PodesavanjaZaradeView(_db);
+    }
+
+    /// <summary>Osvežava prikaz aktivnog perioda (godina/mesec) u zaglavlju.</summary>
+    public void OsveziAktivniPeriodPrikaz() { /* placeholder for Zarade views */ }
+
+    /// <summary>Otvara stranicu Porezi — poziva je NoviObracunWindow kad nema podataka.</summary>
+    public void OtvoriPorezi()
+    {
+        TxtHeaderTitle.Text = "🏦 Porezi";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Porezi.PoreziPage();
+    }
+
+    /// <summary>Navigates to the Obracun page — called by ObracuniPage.</summary>
+    public void NavigateToObracun(int godina, int mesec)
+    {
+        AppConfig.ActiveGodina = godina;
+        AppConfig.ActiveMesec = mesec;
+        TxtHeaderTitle.Text = $"📋 Obračun zarada {mesec}/{godina}";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Obracun.ObracunPage();
+    }
 }
+

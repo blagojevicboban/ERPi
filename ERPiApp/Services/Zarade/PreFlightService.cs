@@ -1,0 +1,448 @@
+using ERPiApp.Services.Zarade;
+using ERPiData.Seeds.Zarade;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using ERPiData;
+using ERPiData.Models.Zarade;
+using ERPiData;
+
+namespace ERPiApp.Services.Zarade;
+
+/// <summary>Težina nalaza pre-flight provere.</summary>
+public enum TezinaNalaza
+{
+    /// <summary>Obračun je upotrebljiv, ali nešto nedostaje za kasnije korake (npr. e-mail).</summary>
+    Upozorenje = 0,
+
+    /// <summary>Prijava ili isplata bi pala — zaključavanje se ne dozvoljava bez potvrde administratora.</summary>
+    Greska = 1
+}
+
+/// <summary>Jedan nalaz kontrolne provere.</summary>
+public sealed class NalazProvere
+{
+    public TezinaNalaza Tezina { get; init; }
+    public int? BrojRadnika { get; init; }
+    public string Radnik { get; init; } = "";
+    public string Provera { get; init; } = "";
+    public string Opis { get; init; } = "";
+
+    public string TezinaTekst => Tezina == TezinaNalaza.Greska ? "Greška" : "Upozorenje";
+}
+
+/// <summary>Zbirni rezultat pre-flight provere jednog obračunskog perioda.</summary>
+public sealed class RezultatProvere
+{
+    public int Godina { get; init; }
+    public int Mesec { get; init; }
+    public int BrojObracuna { get; init; }
+    public IReadOnlyList<NalazProvere> Nalazi { get; init; } = [];
+
+    public int BrojGresaka => Nalazi.Count(n => n.Tezina == TezinaNalaza.Greska);
+    public int BrojUpozorenja => Nalazi.Count(n => n.Tezina == TezinaNalaza.Upozorenje);
+    public bool JeCist => Nalazi.Count == 0;
+
+    /// <summary>Da li period sme da se zaključa bez izričite potvrde administratora.</summary>
+    public bool SmeSeZakljucati => BrojGresaka == 0;
+}
+
+/// <summary>
+/// Kontrolne provere koje se izvršavaju PRE zaključavanja obračuna, PPP-PD prijave i naloga
+/// za prenos. Ispravka posle podnošenja prijave košta izmenjenu prijavu i storniranje, pa je
+/// smisao ovog servisa da se svi poznati problemi vide na jednom mestu dok su još jeftini.
+///
+/// Provere su namerno samo za čitanje — ništa ne menjaju i ne popravljaju.
+/// </summary>
+public class PreFlightService
+{
+    private readonly ErpiDbContext _db;
+
+    public PreFlightService(ErpiDbContext db) => _db = db;
+
+    public RezultatProvere Proveri(int godina, int mesec)
+    {
+        // Stornirani obračun se ne prijavljuje ni ne isplaćuje, pa nema svrhe da njegov
+        // nedostatak (npr. neuneta banka) zaustavlja zaključavanje ostalih.
+        var obracuni = _db.ObracuniPlata
+            .AsNoTracking()
+            .Include(o => o.Radnik)
+            .Include(o => o.Isplata)
+            .Where(o => o.Godina == godina && o.Mesec == mesec && !o.Storniran)
+            .ToList();
+
+        // Naknade van radnog odnosa prolaze kroz iste prijave i naloge, ali ne kroz iste
+        // provere: nemaju sate, fond, olakšicu ni najnižu osnovicu doprinosa. Njihove provere
+        // stoje u UgovorObracunService i dodaju se zasebno.
+        var ugovorne = obracuni.Where(o => o.JeVanRadnogOdnosa).ToList();
+        var zarade = obracuni.Where(o => !o.JeVanRadnogOdnosa).ToList();
+
+        var nalazi = new List<NalazProvere>();
+
+        // Ide PRE praznog-perioda izlaza: baš kad obračuna uopšte nema je najčešći slučaj kad
+        // je uvoz prekoračenja dnevnice zaboravljen da se pretoči u platu.
+        ProveriPutneNalogeBezObracuna(godina, mesec, obracuni, nalazi);
+
+        if (obracuni.Count == 0)
+        {
+            nalazi.Add(new NalazProvere
+            {
+                Tezina = TezinaNalaza.Greska,
+                Provera = "Prazan period",
+                Opis = $"Za period {mesec:D2}/{godina} ne postoji nijedan obračun."
+            });
+
+            return new RezultatProvere { Godina = godina, Mesec = mesec, BrojObracuna = 0, Nalazi = nalazi };
+        }
+
+        decimal najnizaOsnovica = _db.Doprinosi
+            .AsNoTracking()
+            .Where(d => d.Godina == godina && d.Mesec == mesec)
+            .Select(d => d.NajnizaOsnovica)
+            .FirstOrDefault();
+
+        foreach (var o in zarade)
+        {
+            nalazi.AddRange(ProveriObracun(o, najnizaOsnovica));
+        }
+
+        foreach (var o in ugovorne)
+        {
+            nalazi.AddRange(ProveriNaknaduVanRadnogOdnosa(o));
+        }
+
+        ProveriDuplikate(obracuni, nalazi);
+        ProveriNeoporezivePrimanja(godina, mesec, nalazi);
+        ProveriOlaksice(zarade, nalazi);
+        nalazi.AddRange(new UgovorObracunService(_db).Proveri(godina, mesec));
+
+        return new RezultatProvere
+        {
+            Godina = godina,
+            Mesec = mesec,
+            BrojObracuna = obracuni.Count,
+            Nalazi = nalazi
+        };
+    }
+
+    private static IEnumerable<NalazProvere> ProveriObracun(ObracunPlate o, decimal najnizaOsnovica)
+    {
+        var radnik = o.Radnik;
+        string ime = radnik?.ImeIPrezime ?? $"(radnik #{o.RadnikId})";
+        int? broj = radnik?.BrojRadnika;
+
+        NalazProvere Nalaz(TezinaNalaza tezina, string provera, string opis) => new()
+        {
+            Tezina = tezina,
+            BrojRadnika = broj,
+            Radnik = ime,
+            Provera = provera,
+            Opis = opis
+        };
+
+        // 1. Negativan neto — po pravilu previsoke obustave ili pogrešan unos sati.
+        if (o.NetoIsplata < 0)
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Negativan neto",
+                $"Neto za isplatu je {o.NetoIsplata:N2}. Obustave verovatno premašuju zaradu.");
+        }
+
+        // 2. Bruto ispod najniže osnovice doprinosa — PPP-PD bi bio odbijen.
+        decimal bruto = o.BrutoZarada + o.BrutoBolovanje;
+        if (najnizaOsnovica > 0 && bruto > 0 && bruto < najnizaOsnovica)
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Bruto ispod najniže osnovice",
+                $"Bruto {bruto:N2} je ispod najniže osnovice doprinosa {najnizaOsnovica:N2}.");
+        }
+
+        if (radnik == null)
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Radnik ne postoji",
+                "Obračun nije vezan ni za jedan karton radnika.");
+            yield break;
+        }
+
+        // 3. JMBG — bez njega radnik ispada iz PPP-PD prijave, i to nečujno.
+        if (string.IsNullOrWhiteSpace(radnik.Jmbg))
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Nedostaje JMBG",
+                "Radnik bez JMBG-a se izostavlja iz PPP-PD prijave.");
+        }
+        else if (!JmbgValidator.Validate(radnik.Jmbg, out string jmbgGreska))
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Neispravan JMBG", jmbgGreska);
+        }
+
+        // 4. Tekući račun — bez njega nema naloga za prenos ni spiska za isplatu.
+        if (string.IsNullOrWhiteSpace(radnik.BankovniRacun))
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Nedostaje tekući račun",
+                "Radnik nema tekući račun, pa se ne može uvrstiti u nalog za prenos.");
+        }
+
+        // 5. E-mail — smeta samo slanju listića, obračun je i bez njega ispravan.
+        if (string.IsNullOrWhiteSpace(radnik.Email))
+        {
+            yield return Nalaz(TezinaNalaza.Upozorenje, "Nedostaje e-mail",
+                "Radnik nema e-mail adresu, pa mu se platni listić ne može poslati.");
+        }
+
+        // 6. Sati veći od mesečnog fonda — prekovremeni se vode odvojeno, pa ovo znači grešku u unosu.
+        int fond = (int)Math.Round(o.FondSatiMesecni);
+        int satiBezPrekovremenih = o.UkupnoSati - o.PrekovremeneSati;
+        if (fond > 0 && satiBezPrekovremenih > fond)
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Sati veći od fonda",
+                $"Uneto {satiBezPrekovremenih} sati (bez prekovremenih) uz mesečni fond od {fond}.");
+        }
+
+        // 7. Istekla poreska olakšica koja se i dalje primenjuje.
+        bool primenjujeOlaksicu = radnik.ProcenatPovracajaPoreza > 0 || radnik.ProcenatPovracajaDoprinosa > 0;
+        if (primenjujeOlaksicu && radnik.OlaksicaVaziDo.HasValue)
+        {
+            var krajPerioda = new DateTime(o.Godina, o.Mesec, DateTime.DaysInMonth(o.Godina, o.Mesec));
+            if (radnik.OlaksicaVaziDo.Value < krajPerioda)
+            {
+                yield return Nalaz(TezinaNalaza.Greska, "Istekla poreska olakšica",
+                    $"Olakšica je važila do {radnik.OlaksicaVaziDo.Value:dd.MM.yyyy}, a i dalje se primenjuje.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Provere koje naknada van radnog odnosa deli sa zaradom: bez JMBG-a ispada iz prijave,
+    /// bez tekućeg računa se ne može isplatiti. Sve ostalo — sati, fond, najniža osnovica,
+    /// olakšice, e-mail za listić — na nju se ne odnosi.
+    /// </summary>
+    private static IEnumerable<NalazProvere> ProveriNaknaduVanRadnogOdnosa(ObracunPlate o)
+    {
+        var radnik = o.Radnik;
+        string ime = radnik?.ImeIPrezime ?? $"(primalac #{o.RadnikId})";
+
+        NalazProvere Nalaz(TezinaNalaza tezina, string provera, string opis) => new()
+        {
+            Tezina = tezina,
+            BrojRadnika = radnik?.BrojRadnika,
+            Radnik = ime,
+            Provera = provera,
+            Opis = opis
+        };
+
+        if (o.NetoIsplata < 0)
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Negativna naknada",
+                $"Neto naknada je {o.NetoIsplata:N2}. Proverite stope u šifarniku vrsta ugovora.");
+        }
+
+        if (radnik == null)
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Primalac ne postoji",
+                "Obračun po ugovoru nije vezan ni za jedan karton primaoca.");
+            yield break;
+        }
+
+        if (string.IsNullOrWhiteSpace(radnik.Jmbg))
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Nedostaje JMBG",
+                "Primalac bez JMBG-a se izostavlja iz PPP-PD prijave.");
+        }
+        else if (!JmbgValidator.Validate(radnik.Jmbg, out string jmbgGreska))
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Neispravan JMBG", jmbgGreska);
+        }
+
+        if (string.IsNullOrWhiteSpace(radnik.BankovniRacun))
+        {
+            yield return Nalaz(TezinaNalaza.Greska, "Nedostaje tekući račun",
+                "Primalac nema tekući račun, pa se naknada ne može uvrstiti u nalog za prenos.");
+        }
+    }
+
+    /// <summary>
+    /// Radnik nosi OL oznaku u SVP šifri, a olakšice nema u šifarniku ili je nepotpuna.
+    /// U oba slučaja prijava prolazi, ali bez umanjenja koje bi trebalo da nosi — a to se
+    /// otkriva tek kad Poreska uprava utvrdi razliku.
+    /// </summary>
+    private void ProveriOlaksice(List<ObracunPlate> obracuni, List<NalazProvere> nalazi)
+    {
+        var trazene = obracuni
+            .Select(o => new
+            {
+                Oznaka = OlaksicaService.OznakaIzSvp(o.Radnik?.Radno_Mesto),
+                o.Radnik
+            })
+            .Where(x => x.Oznaka.Length > 0)
+            .ToList();
+
+        if (trazene.Count == 0) return;
+
+        List<PoreskaOlaksica> sifarnik;
+        try
+        {
+            sifarnik = _db.PoreskeOlaksice
+                .AsNoTracking()
+                .Include(o => o.MfpDeklaracije)
+                .ToList();
+        }
+        catch
+        {
+            return;   // baza starije verzije nema šifarnik olakšica
+        }
+
+        foreach (var grupa in trazene.GroupBy(x => x.Oznaka))
+        {
+            var prvi = grupa.First().Radnik;
+            var olaksica = sifarnik.FirstOrDefault(o => o.Sifra == grupa.Key);
+
+            if (olaksica is not { Aktivna: true })
+            {
+                nalazi.Add(new NalazProvere
+                {
+                    Tezina = TezinaNalaza.Greska,
+                    BrojRadnika = prvi?.BrojRadnika,
+                    Radnik = prvi?.ImeIPrezime ?? "",
+                    Provera = "Olakšica nije u šifarniku",
+                    Opis = $"{grupa.Count()} radnika nosi oznaku olakšice „{grupa.Key}“ u SVP šifri, " +
+                           "a te olakšice nema u šifarniku ili je isključena — umanjenje se neće primeniti."
+                });
+                continue;
+            }
+
+            // Oslobođenje se prijavljuje kroz MFP; bez deklaracije umanjenje ostaje neprijavljeno.
+            if (olaksica.Mehanizam == MehanizamOlaksice.Oslobodjenje && olaksica.MfpDeklaracije.Count == 0)
+            {
+                nalazi.Add(new NalazProvere
+                {
+                    Tezina = TezinaNalaza.Greska,
+                    Provera = "Olakšica bez MFP deklaracije",
+                    Opis = $"„{olaksica.Naziv}“ umanjuje uplatu, a nema nijedno MFP polje — " +
+                           "umanjenje se neće prijaviti u PPP-PD."
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Neoporezivo primanje bez unetog limita se isplaćuje u punom iznosu bez poreza. To je
+    /// ispravno kad gornje granice zaista nema, ali je najčešće znak da limit iz propisa nije
+    /// unet u šifarnik — pa se prijavljuje, umesto da prođe nezapaženo.
+    /// </summary>
+    private void ProveriNeoporezivePrimanja(int godina, int mesec, List<NalazProvere> nalazi)
+    {
+        List<string> bezLimita;
+        try
+        {
+            bezLimita = _db.UnetaPrimanja
+                .AsNoTracking()
+                .Include(p => p.VrstaPrimanja)
+                .Where(p => p.Godina == godina && p.Mesec == mesec && p.Iznos != 0m)
+                .Select(p => p.VrstaPrimanja)
+                .Where(v => !v.Oporezivo && v.NeoporeziviLimit == 0m)
+                .Select(v => v.Naziv)
+                .Distinct()
+                .ToList();
+        }
+        catch
+        {
+            return;   // baza starije verzije nema tabelu unetih primanja
+        }
+
+        foreach (string naziv in bezLimita)
+        {
+            nalazi.Add(new NalazProvere
+            {
+                Tezina = TezinaNalaza.Upozorenje,
+                Provera = "Neoporezivo primanje bez limita",
+                Opis = $"„{naziv}“ se isplaćuje bez poreza u punom iznosu jer neoporezivi limit nije unet u šifarnik."
+            });
+        }
+    }
+
+    /// <summary>
+    /// Uvezeno prekoračenje dnevnice (Faza 3.2) ulazi u zaradu tek kad se obračun ponovo
+    /// pokrene — sam uvoz ne dira postojeći <c>ObracunPlate</c>. Bez ove provere bi uvoz posle
+    /// zaboravljenog ponovnog obračuna prošao nezapaženo, a radnikova zarada ostala kratka za
+    /// tačno taj iznos.
+    /// </summary>
+    private void ProveriPutneNalogeBezObracuna(
+        int godina, int mesec, List<ObracunPlate> obracuni, List<NalazProvere> nalazi)
+    {
+        List<UnetoPrimanje> dnp;
+        try
+        {
+            dnp = _db.UnetaPrimanja
+                .AsNoTracking()
+                .Include(p => p.VrstaPrimanja)
+                .Include(p => p.Radnik)
+                .Where(p => p.Godina == godina && p.Mesec == mesec && p.Iznos != 0m
+                         && p.VrstaPrimanja.Sifra == VrstePrimanjaSeed.DnevnicaPrekoracenje)
+                .ToList();
+        }
+        catch
+        {
+            return;   // baza starije verzije nema kolonu IsplataId na unetim primanjima
+        }
+
+        if (dnp.Count == 0) return;
+
+        var isplate = _db.Isplate
+            .Where(i => i.Godina == godina && i.Mesec == mesec)
+            .ToDictionary(i => i.IsplataId);
+
+        foreach (var p in dnp)
+        {
+            var isplata = p.IsplataId.HasValue && isplate.TryGetValue(p.IsplataId.Value, out var i) ? i : null;
+
+            bool imaObracun = IsplataService
+                .Obuhvat(obracuni.AsQueryable(), godina, mesec, isplata)
+                .Any(o => o.RadnikId == p.RadnikId);
+
+            if (!imaObracun)
+            {
+                nalazi.Add(new NalazProvere
+                {
+                    Tezina = TezinaNalaza.Upozorenje,
+                    BrojRadnika = p.Radnik?.BrojRadnika,
+                    Radnik = p.Radnik?.ImeIPrezime ?? $"(radnik #{p.RadnikId})",
+                    Provera = "Prekoračenje dnevnice bez obračuna",
+                    Opis = "Uvezeno je prekoračenje dnevnice, ali obračun te isplate još ne postoji ili " +
+                           "nije osvežen. Pokrenite ponovni obračun da iznos uđe u zaradu."
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Dva obračuna za isti JMBG u istoj <b>isplati</b> daju dva reda u PPP-PD prijavi za isto
+    /// lice — Poreska uprava to odbija.
+    ///
+    /// Grupiše se po isplati, a ne po periodu: od Faze 2.2 mesec može imati akontaciju i
+    /// konačnu isplatu, i tada radnik ima po jedan obračun u svakoj. To su dve prijave, svaka
+    /// sa po jednim redom za njega, pa duplikata nema.
+    /// </summary>
+    private static void ProveriDuplikate(List<ObracunPlate> obracuni, List<NalazProvere> nalazi)
+    {
+        var duplikati = obracuni
+            .Where(o => o.Radnik != null && !string.IsNullOrWhiteSpace(o.Radnik.Jmbg))
+            .GroupBy(o => new { o.IsplataId, o.Radnik!.Jmbg })
+            .Where(g => g.Count() > 1);
+
+        foreach (var grupa in duplikati)
+        {
+            var prvi = grupa.First();
+            string obuhvat = prvi.Isplata == null || prvi.Isplata.JePrva
+                ? "u istom periodu"
+                : $"u isplati „{prvi.Isplata.Naziv}“";
+
+            nalazi.Add(new NalazProvere
+            {
+                Tezina = TezinaNalaza.Greska,
+                BrojRadnika = prvi.Radnik!.BrojRadnika,
+                Radnik = prvi.Radnik.ImeIPrezime,
+                Provera = "Dupli obračun",
+                Opis = $"Za JMBG {grupa.Key.Jmbg} postoji {grupa.Count()} obračuna {obuhvat}."
+            });
+        }
+    }
+}

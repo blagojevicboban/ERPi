@@ -1933,6 +1933,2233 @@ namespace ERPiData.Migrations
                     b.ToTable("UvozneStavke");
                 });
 
+            modelBuilder.Entity("ERPiData.Models.Zarade.Banka", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ZiroRacun")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Banke");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Bolovanje", b =>
+                {
+                    b.Property<int>("BolovanjeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BrojDoznake")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BrojRadnika")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DatumDo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumOd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumPocetkaSprecenosti")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumUnosa")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Osnov")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("PrvaIsplata")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("BolovanjeId");
+
+                    b.HasIndex("Godina", "Mesec", "BrojRadnika");
+
+                    b.HasIndex("BrojRadnika", "Godina", "Mesec", "DatumOd")
+                        .IsUnique();
+
+                    b.ToTable("Bolovanja");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Doprinos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("B60ProcP")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("B60ProcR")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("Bp60FProcP")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("Bp60ProcP")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("InvProcP")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("NajnizaOsnovica")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NajvisaOsnovica")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("NepProcP")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("PorProcP")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("PozivNa2")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PozivNaB")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Primalac1")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Primalac2")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ProcPosl")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<decimal>("ProcRadn")
+                        .HasColumnType("decimal(6,3)");
+
+                    b.Property<int>("RedniBroj")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SifPlac")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SifPlacP")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svrha1")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svrha2")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ZiroRacP")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ZiroRacun")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Doprinosi");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.DoprinosiPoslodavca", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("B601")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B602")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B603")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B604")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B605")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B606")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B607")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B608")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B609")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("B60F9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Bol9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Inv1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Inv9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Nak1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nak9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Nep9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Por9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Zar1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Zar9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RadnikId", "Godina", "Mesec");
+
+                    b.ToTable("DoprinosiPoslodavca");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Isplata", b =>
+                {
+                    b.Property<int>("IsplataId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DatumIsplate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumKreiranja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Opis")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RedniBroj")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Rod")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Vrsta")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("IsplataId");
+
+                    b.HasIndex("Godina", "Mesec", "RedniBroj")
+                        .IsUnique();
+
+                    b.ToTable("Isplate");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Kategorija", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Koeficijent")
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("StopaPio")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.Property<decimal>("StopaZdravstvo")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Kategorije");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.KontoKnjizenja", b =>
+                {
+                    b.Property<int>("KontoKnjizenjaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Kljuc")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Konto")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Redosled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Strana")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("KontoKnjizenjaId");
+
+                    b.HasIndex("Kljuc")
+                        .IsUnique();
+
+                    b.ToTable("KontaKnjizenja");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Kredit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Aktivan")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BrojRata")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DatumPocetka")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumZavrsetka")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MesecnaRata")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<string>("ModelPozivaNaBroj")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Opis")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("OstatakDuga")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("PlateneRate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PozivNaBroj")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PrimalacNaziv")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PrimalacRacun")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RedosledNaplate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Tip")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UkupanIznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RadnikId");
+
+                    b.ToTable("Krediti");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Normativ", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<char>("Tip")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("VrednostBoda")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Normativi");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunAudit", b =>
+                {
+                    b.Property<int>("ObracunAuditId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Akcija")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("BrojRadnika")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Detalji")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ImeRadnika")
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KorisnickoIme")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("KorisnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Vreme")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ObracunAuditId");
+
+                    b.HasIndex("Godina", "Mesec", "Vreme");
+
+                    b.ToTable("ObracunAuditi");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunPlate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Bolovanje100SatiLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BolovanjePreko60SatiLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("BolovanjeSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BrojRadneJedinice")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("BrutoBolovanje")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BrutoMinuliRad")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BrutoNaknade")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BrutoOsnovica")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BrutoPioOsnovica")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BrutoStimulacija")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("BrutoZarada")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("CenaSataMinuliRad")
+                        .HasColumnType("decimal(14,5)");
+
+                    b.Property<decimal>("CenaSataRedovan")
+                        .HasColumnType("decimal(14,5)");
+
+                    b.Property<DateTime>("DatumObracuna")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumStorniranja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DodaciLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DodatakNaM1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DodatakNaM2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DodatakNaM3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosNezaposlenostPoslodavac")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosNezaposlenostRadnik")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosPioPoslodavac")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosPioRadnik")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosZdravstvoPoslodavac")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosZdravstvoRadnik")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("DrzavniPraznikSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("FondSatiMesecni")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GodisnjioOdmorSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("IsplataId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Kategorija")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Koeficijent")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("KorDod")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("KorDod1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("KreditObustava")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Kumul")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("LicniOdbitak")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("MinimalnaPlataOsnovica")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("MinuliRadGodine")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("NedeljaSati")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Neto")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoB100")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoBezPoreza")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoBol")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoDrza")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoGOd")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoIsplata")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoNaknadeLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoNede")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoNerd")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoNocni")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoPlZ")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoPlac")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoPorez")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoPrek")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoReg")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoTer")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoTo")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoVezba")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("NetoZar")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("NocniRadPraznikomSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NocniSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("OlaksicaDoprinosi")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<string>("OlaksicaOznaka")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("OlaksicaPorez")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<bool>("OlaksicaUmanjujeUplatu")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Operativni")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("OsnovicaDoprinosa")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("OstaliOdbici")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<string>("Oznaka")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PlacenoOdsustvoSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("PlacenoOdsustvoSatiLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("PlacenoZakonskiSatiLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("PoreskaOsnovica")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("PorezNaDohodak")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("PorodiljskoOdsustvoSatiLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("PosebanPorez")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("PrekovremeneSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Prosek")
+                        .HasColumnType("decimal(14,4)");
+
+                    b.Property<int>("RadPraznikomSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RazlogStorniranja")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RedovniSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Samodoprinosi")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("SifraSamodoprinosa1")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SifraSamodoprinosa2")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SmenskiSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Storniran")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("TopliObrokIznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int?>("UgovorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UkupnoRadnihSatiLegacy")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Varijabila")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Verzija")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Zakljucan")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsplataId");
+
+                    b.HasIndex("UgovorId");
+
+                    b.HasIndex("RadnikId", "Godina", "Mesec");
+
+                    b.ToTable("ObracuniPlata");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunStavka", b =>
+                {
+                    b.Property<int>("ObracunStavkaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Iznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("ObracunPlateId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("OporeziviDeo")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Sati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VrstaPrimanjaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ObracunStavkaId");
+
+                    b.HasIndex("VrstaPrimanjaId");
+
+                    b.HasIndex("ObracunPlateId", "VrstaPrimanjaId")
+                        .IsUnique();
+
+                    b.ToTable("ObracunStavke");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunVerzija", b =>
+                {
+                    b.Property<int>("ObracunVerzijaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("BioStorniran")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("BioZakljucan")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BrojRadnika")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Bruto")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosiPoslodavac")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("DoprinosiRadnik")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ImeRadnika")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("IsplataId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("KorisnickoIme")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("NetoIsplata")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("PorezNaDohodak")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Razlog")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Snimak")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Verzija")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Vreme")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ObracunVerzijaId");
+
+                    b.HasIndex("Godina", "Mesec", "BrojRadnika", "Verzija");
+
+                    b.ToTable("ObracunVerzije");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.OlaksicaMfp", b =>
+                {
+                    b.Property<int>("OlaksicaMfpId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("FiksnaVrednost")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Izvor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Oznaka")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PoreskaOlaksicaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OlaksicaMfpId");
+
+                    b.HasIndex("PoreskaOlaksicaId", "Oznaka")
+                        .IsUnique();
+
+                    b.ToTable("OlaksicaMfp");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.PlatniRazred", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("P1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("P9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R1")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R2")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R4")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R5")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R6")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R7")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R8")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("R9")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PlatniRazredi");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.PoreskaOlaksica", b =>
+                {
+                    b.Property<int>("PoreskaOlaksicaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Aktivna")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mehanizam")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PravniOsnov")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ProcenatDoprinosa")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcenatPoreza")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("VaziDo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("VaziOd")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PoreskaOlaksicaId");
+
+                    b.HasIndex("Sifra")
+                        .IsUnique();
+
+                    b.ToTable("PoreskeOlaksice");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Porezi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("AkPorez")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("AkPorez2")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("AkPorez3")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("AkPorez4")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("Akont")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CasZaOb")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Drugast")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("FondCasova")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("LinPorez3")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("PosPorez")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("PozivNa1")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PozivNa2")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PozivNa3")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PozivNa4")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Primalac1")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Primalac2")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Primalac3")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Primalac4")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ProcBolov")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcDrzav")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcInval")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcIzdrz")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcMinul")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcNedel")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcNocni")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcPlZa")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcPlac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcPreko")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProsBrut")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Prvast")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("RedniBroj")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SifPlac1")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SifPlac2")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svrha1")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svrha2")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svrha3")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svrha4")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TopliObrokCena")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("Trecast")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("VrBoda")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<decimal>("Zarada")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<string>("ZiroR1")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ZiroR2")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Porezi");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.PoreznaStopa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("FiksniIznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("GodisnjuVazenja")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("GranicaDo")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("GranjaOd")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("MesecVazenja")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RedniBroj")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Stopa")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PoreskeStope");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.PppPdPrijava", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Bop")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BrojResenja")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BrojZaposlenih")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DatumKreiranja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumPlacanja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumPodnosenja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumStatusa")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("IznosZaUplatu")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<string>("Jipd")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("JipdKojiSeMenja")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KlijentskaOznaka")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ModelPozivaNaBroj")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OsnovIzmene")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PutanjaFajla")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RacunZaUplatu")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RedniBroj")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SvrhaUplate")
+                        .IsRequired()
+                        .HasMaxLength(140)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VrstaIzmene")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("VrstaPrijave")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ZbirDoprinosa")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<decimal>("ZbirPoreza")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Godina", "Mesec", "RedniBroj")
+                        .IsUnique();
+
+                    b.ToTable("PppPdPrijave");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Praznik", b =>
+                {
+                    b.Property<int>("PraznikId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Datum")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Neradni")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("RucniUnos")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PraznikId");
+
+                    b.HasIndex("Datum")
+                        .IsUnique();
+
+                    b.ToTable("Praznici");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.RadniSat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Bolovanje100Sati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BolovanjePreko60Sati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BolovanjeSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DrzavniPraznikSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GodisnjiOdmorSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("IsplataId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NocniRadPraznikomSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NocniSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlacenoOdsustvoSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlacenoZakonskiSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PorodiljskoOdsustvoSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PrekovremeneSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Prosek")
+                        .HasColumnType("decimal(14,4)");
+
+                    b.Property<int>("RadNedeljomSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RadPraznikomSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RedovniSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("RegresIznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("SmenskiSati")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Stimulacija")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("TopliObrokDani")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Varijabila")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsplataId");
+
+                    b.HasIndex("RadnikId", "Godina", "Mesec", "IsplataId")
+                        .IsUnique();
+
+                    b.ToTable("RadniSati");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Radnik", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AdresaStanovanja")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Aktivan")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BankovniRacun")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BrojRadneJedinice")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BrojRadnika")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DatumIzmene")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumPrestanka")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumRodjenja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumUnosa")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumZaposlenja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ImeIPrezime")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Jmbg")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kategorija")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Koeficijent")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<decimal>("Koeficijent1")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<string>("Lbo")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("LicniOslobodjenje")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<string>("MaticniBroj")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Mesto")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MestoRodjenja")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("MestoTroskaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MinuliRadGodine")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NazivBanke")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("OlaksicaVaziDo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Operativni")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("OsnovnaPlata")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<int?>("PartnerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("ProcenatPovracajaDoprinosa")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("ProcenatPovracajaPoreza")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("Radno_Mesto")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SifraMestaTroska")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SifraOpstine")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("StopaNezaposlenost")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.Property<decimal>("StopaPio")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.Property<decimal>("StopaZdravstvo")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.Property<bool>("VanRadnogOdnosa")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrojRadnika");
+
+                    b.HasIndex("Jmbg");
+
+                    b.HasIndex("MestoTroskaId");
+
+                    b.HasIndex("PartnerId");
+
+                    b.HasIndex("Godina", "Mesec");
+
+                    b.HasIndex("BrojRadnika", "Godina", "Mesec")
+                        .IsUnique();
+
+                    b.ToTable("Radnici");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.SablonUgovora", b =>
+                {
+                    b.Property<int>("SablonUgovoraId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Aktivan")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("JeSistemski")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Redosled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tekst")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("VrstaUgovoraId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("SablonUgovoraId");
+
+                    b.HasIndex("Sifra")
+                        .IsUnique();
+
+                    b.HasIndex("VrstaUgovoraId");
+
+                    b.ToTable("SabloniUgovora");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Samodoprinosi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Iznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Opis")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RadnikId");
+
+                    b.ToTable("Samodoprinosi");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.SlanjeListica", b =>
+                {
+                    b.Property<int>("SlanjeListicaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BrojRadnika")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ImeRadnika")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Ishod")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("KorisnickoIme")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("KorisnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Vreme")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ZasticenLozinkom")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("SlanjeListicaId");
+
+                    b.HasIndex("Godina", "Mesec", "BrojRadnika");
+
+                    b.ToTable("SlanjaListica");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Ugovor", b =>
+                {
+                    b.Property<int>("UgovorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Aktivan")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Broj")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BrojRadnika")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DatumDo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumOd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DatumTeksta")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumUnosa")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DatumZakljucenja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IznosJeNeto")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Predmet")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tekst")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TipPrimaoca")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UgovorenIznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("VrstaUgovoraId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UgovorId");
+
+                    b.HasIndex("BrojRadnika");
+
+                    b.HasIndex("VrstaUgovoraId");
+
+                    b.ToTable("Ugovori");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.UnetoPrimanje", b =>
+                {
+                    b.Property<int>("UnetoPrimanjeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Godina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("IsplataId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Iznos")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<int>("Mesec")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RadnikId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VrstaPrimanjaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UnetoPrimanjeId");
+
+                    b.HasIndex("IsplataId");
+
+                    b.HasIndex("VrstaPrimanjaId");
+
+                    b.HasIndex("RadnikId", "Godina", "Mesec", "VrstaPrimanjaId", "IsplataId")
+                        .IsUnique();
+
+                    b.ToTable("UnetaPrimanja");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.VrstaPrimanja", b =>
+                {
+                    b.Property<int>("VrstaPrimanjaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Aktivna")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("JeSistemska")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Konto")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("NaTeretFonda")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("NeoporeziviLimit")
+                        .HasColumnType("decimal(14,2)");
+
+                    b.Property<bool>("Oporezivo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Redosled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Svp")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("UlaziUOsnovicuDoprinosa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("VecIsplacenoVanObracuna")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("VrstaPrimanjaId");
+
+                    b.HasIndex("Sifra")
+                        .IsUnique();
+
+                    b.ToTable("VrstePrimanja");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.VrstaUgovora", b =>
+                {
+                    b.Property<int>("VrstaUgovoraId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Aktivna")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Konto")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Napomena")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("NormiraniTroskoviProcenat")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("Ovp")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Redosled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Sifra")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SifraPlacanja")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("StopaNezaposlenostIsplatilac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("StopaNezaposlenostPrimalac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("StopaPioIsplatilac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("StopaPioPrimalac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("StopaPoreza")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("StopaZdravstvoIsplatilac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal>("StopaZdravstvoPrimalac")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.HasKey("VrstaUgovoraId");
+
+                    b.HasIndex("Sifra")
+                        .IsUnique();
+
+                    b.ToTable("VrsteUgovora");
+                });
+
             modelBuilder.Entity("ERPiData.Models.Finansije.KompenzacijaStavka", b =>
                 {
                     b.HasOne("ERPiData.Models.Finansije.Kompenzacija", "Kompenzacija")
@@ -2222,6 +4449,176 @@ namespace ERPiData.Migrations
                     b.Navigation("UvoznaKalkulacija");
                 });
 
+            modelBuilder.Entity("ERPiData.Models.Zarade.DoprinosiPoslodavca", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.Radnik", "Radnik")
+                        .WithMany()
+                        .HasForeignKey("RadnikId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Radnik");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Kredit", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.Radnik", "Radnik")
+                        .WithMany("Krediti")
+                        .HasForeignKey("RadnikId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Radnik");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunPlate", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.Isplata", "Isplata")
+                        .WithMany("Obracuni")
+                        .HasForeignKey("IsplataId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ERPiData.Models.Zarade.Radnik", "Radnik")
+                        .WithMany("Obracuni")
+                        .HasForeignKey("RadnikId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ERPiData.Models.Zarade.Ugovor", "Ugovor")
+                        .WithMany("Obracuni")
+                        .HasForeignKey("UgovorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Isplata");
+
+                    b.Navigation("Radnik");
+
+                    b.Navigation("Ugovor");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunStavka", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.ObracunPlate", "Obracun")
+                        .WithMany("Stavke")
+                        .HasForeignKey("ObracunPlateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERPiData.Models.Zarade.VrstaPrimanja", "VrstaPrimanja")
+                        .WithMany("Stavke")
+                        .HasForeignKey("VrstaPrimanjaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Obracun");
+
+                    b.Navigation("VrstaPrimanja");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.OlaksicaMfp", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.PoreskaOlaksica", "Olaksica")
+                        .WithMany("MfpDeklaracije")
+                        .HasForeignKey("PoreskaOlaksicaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Olaksica");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.RadniSat", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.Isplata", "Isplata")
+                        .WithMany()
+                        .HasForeignKey("IsplataId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ERPiData.Models.Zarade.Radnik", "Radnik")
+                        .WithMany("RadniSati")
+                        .HasForeignKey("RadnikId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Isplata");
+
+                    b.Navigation("Radnik");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Radnik", b =>
+                {
+                    b.HasOne("ERPiData.Models.Core.MestoTroska", "MestoTroska")
+                        .WithMany()
+                        .HasForeignKey("MestoTroskaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ERPiData.Models.Core.Partner", "Partner")
+                        .WithMany()
+                        .HasForeignKey("PartnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("MestoTroska");
+
+                    b.Navigation("Partner");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.SablonUgovora", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.VrstaUgovora", "VrstaUgovora")
+                        .WithMany()
+                        .HasForeignKey("VrstaUgovoraId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("VrstaUgovora");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Samodoprinosi", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.Radnik", "Radnik")
+                        .WithMany()
+                        .HasForeignKey("RadnikId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Radnik");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Ugovor", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.VrstaUgovora", "VrstaUgovora")
+                        .WithMany("Ugovori")
+                        .HasForeignKey("VrstaUgovoraId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("VrstaUgovora");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.UnetoPrimanje", b =>
+                {
+                    b.HasOne("ERPiData.Models.Zarade.Isplata", "Isplata")
+                        .WithMany()
+                        .HasForeignKey("IsplataId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ERPiData.Models.Zarade.Radnik", "Radnik")
+                        .WithMany()
+                        .HasForeignKey("RadnikId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERPiData.Models.Zarade.VrstaPrimanja", "VrstaPrimanja")
+                        .WithMany()
+                        .HasForeignKey("VrstaPrimanjaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Isplata");
+
+                    b.Navigation("Radnik");
+
+                    b.Navigation("VrstaPrimanja");
+                });
+
             modelBuilder.Entity("ERPiData.Models.Finansije.Kompenzacija", b =>
                 {
                     b.Navigation("Stavke");
@@ -2270,6 +4667,45 @@ namespace ERPiData.Migrations
             modelBuilder.Entity("ERPiData.Models.Magacin.UvoznaKalkulacija", b =>
                 {
                     b.Navigation("Stavke");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Isplata", b =>
+                {
+                    b.Navigation("Obracuni");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.ObracunPlate", b =>
+                {
+                    b.Navigation("Stavke");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.PoreskaOlaksica", b =>
+                {
+                    b.Navigation("MfpDeklaracije");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Radnik", b =>
+                {
+                    b.Navigation("Krediti");
+
+                    b.Navigation("Obracuni");
+
+                    b.Navigation("RadniSati");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.Ugovor", b =>
+                {
+                    b.Navigation("Obracuni");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.VrstaPrimanja", b =>
+                {
+                    b.Navigation("Stavke");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Zarade.VrstaUgovora", b =>
+                {
+                    b.Navigation("Ugovori");
                 });
 #pragma warning restore 612, 618
         }
