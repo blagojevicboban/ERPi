@@ -28,7 +28,9 @@ public class ErpiFinansijeImporter
         {
             // 1. Konta
             var srcKonta = await srcDb.Konta.AsNoTracking().ToListAsync();
-            var existingKonta = await _destDb.Konta.ToDictionaryAsync(k => k.BrojKonta.Trim());
+            var existingKonta = (await _destDb.Konta.ToListAsync())
+                .GroupBy(k => k.BrojKonta.Trim())
+                .ToDictionary(g => g.Key, g => g.First());
 
             foreach (var sk in srcKonta)
             {

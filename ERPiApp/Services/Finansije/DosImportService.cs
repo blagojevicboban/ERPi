@@ -152,31 +152,36 @@ public class DosImportService
             // 1. Čišćenje izabranih modula ako je brisiPostojece == true
             if (brisiPostojece)
             {
+                Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih podataka iz baze pre uvoza...");
+
+                await destDb.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys = OFF;");
+
                 if (importFinansijsko)
                 {
                     Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Finansijskih podataka (Nalozi, Partneri, Konta)...");
-                    destDb.StavkeNaloga.RemoveRange(destDb.StavkeNaloga);
-                    destDb.Nalozi.RemoveRange(destDb.Nalozi);
-                    destDb.Partneri.RemoveRange(destDb.Partneri);
-                    destDb.Konta.RemoveRange(destDb.Konta);
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM StavkeNaloga;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Nalozi;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Partneri;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Konta;");
                 }
 
                 if (importRobno)
                 {
-                    Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Robnih podataka (Stavke kalkulacije, Kalkulacije, Artikli, Magacini)...");
-                    destDb.StavkeKalkulacije.RemoveRange(destDb.StavkeKalkulacije);
-                    destDb.Kalkulacije.RemoveRange(destDb.Kalkulacije);
-                    destDb.Artikli.RemoveRange(destDb.Artikli);
-                    destDb.Magacini.RemoveRange(destDb.Magacini);
+                    Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Robnih podataka (Kalkulacije, Artikli, Magacini)...");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM RobnaKretanja;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM StavkeKalkulacije;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Kalkulacije;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Artikli;");
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Magacini;");
                 }
 
                 if (importMaterijalno)
                 {
                     Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Materijalnih podataka...");
-                    destDb.Materijali.RemoveRange(destDb.Materijali);
+                    await destDb.Database.ExecuteSqlRawAsync("DELETE FROM Materijali;");
                 }
 
-                await destDb.SaveChangesAsync();
+                await destDb.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys = ON;");
                 Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "   --> Izabrani moduli su uspešno očišćeni u bazi!");
             }
 

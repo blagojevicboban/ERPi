@@ -139,7 +139,8 @@ public partial class DosImportWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Greška pri uvozu podataka:\n{ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            string errDetails = ex.InnerException?.Message ?? ex.Message;
+            MessageBox.Show($"Greška pri uvozu podataka:\n{ex.Message}\n\nDetalji: {errDetails}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {
