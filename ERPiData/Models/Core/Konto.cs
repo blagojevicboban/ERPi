@@ -31,6 +31,18 @@ public class Konto
     [MaxLength(20)]
     public string? StariKonto { get; set; }
 
+    [MaxLength(50)]
+    public string? Ulica { get; set; }
+
+    [MaxLength(50)]
+    public string? Mesto { get; set; }
+
+    [MaxLength(50)]
+    public string? ZiroRacun { get; set; }
+
+    [MaxLength(50)]
+    public string? Telefon { get; set; }
+
     /// <summary>"broj - naziv" za padajuće liste i pretragu konta.</summary>
     [NotMapped]
     public string Prikaz => $"{BrojKonta} - {NazivKonta}";

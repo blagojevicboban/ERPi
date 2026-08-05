@@ -55,6 +55,72 @@ public partial class MainWindow : Window
         MainContentHost.Content = new PartneriView(_db);
     }
 
+    private void NavKonta_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📋 Kontni plan";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Konta.KontaView(_db);
+    }
+
+    private void NavMestaTroska_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🎯 Mesta troška i projekti";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.MestaTroska.MestaTroskaView(_db);
+    }
+
+    private void NavKarticaKonta_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💳 Kartice konta";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.KarticaKontaView(_db);
+    }
+
+    private void NavBrutoBilans_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Bruto bilans";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.BrutoBilansView(_db);
+    }
+
+    private void NavBilansStanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏛️ Bilans Stanja";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Bilansi.BilansStanjaView(_db);
+    }
+
+    private void NavBilansUspeha_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📈 Bilans Uspeha";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Bilansi.BilansUspehaView(_db);
+    }
+
+    private void NavIzvodi_Click(object sender, RoutedEventArgs e)
+    {
+        var win = new ERPiApp.Views.Finansije.Izvodi.UvozIzvodaWindow(_db) { Owner = this };
+        win.ShowDialog();
+    }
+
+    private void NavBlagajna_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💰 Dinarska i Devizna Blagajna";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Blagajna.BlagajnaView(_db);
+    }
+
+    private void NavPutniNalozi_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🚗 Službena putovanja i Putni nalozi";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.PutniNalozi.PutniNaloziView(_db);
+    }
+
+    private void NavKompenzacije_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🤝 Dvojne i Trojne Kompenzacije";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Kompenzacije.KompenzacijeView(_db);
+    }
+
+    private void NavDevizno_Click(object sender, RoutedEventArgs e)
+    {
+        var win = new ERPiApp.Views.Finansije.Devizno.DeviznoValviranjeWindow(_db) { Owner = this };
+        win.ShowDialog();
+    }
+
     private void NavMagacin_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "📦 Magacin i PDV evidencija";

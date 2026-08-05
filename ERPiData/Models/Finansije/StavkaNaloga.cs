@@ -54,6 +54,12 @@ public class StavkaNaloga
     [Column(TypeName = "decimal(18, 4)")]
     public decimal KursValute { get; set; } = 1.0m;
 
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal DevizniDuguje { get; set; }
+
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal DevizniPotrazuje { get; set; }
+
     // Popunjava se samo za PDV-relevantne linije (konto 4700 izlazni PDV / 2700 ulazni PDV) —
     // PDV evidencija (kasnija podfaza) odavde čita poresku osnovicu i stopu.
     [Column(TypeName = "decimal(18, 2)")]

@@ -26,10 +26,32 @@ public class ErpiDbContext : DbContext
     public DbSet<ZatvaranjeStavke> ZatvaranjaStavki => Set<ZatvaranjeStavke>();
     public DbSet<KamatnaStopa> KamatneStope => Set<KamatnaStopa>();
 
+    public DbSet<BlagajnickiNalog> BlagajnickiNalozi => Set<BlagajnickiNalog>();
+    public DbSet<PutniNalog> PutniNalozi => Set<PutniNalog>();
+    public DbSet<PutniNalogTrosakStavka> PutniNaloziTroskoviStavke => Set<PutniNalogTrosakStavka>();
+    public DbSet<NeoporeziviIznosDnevnice> NeoporeziviIznosiDnevnice => Set<NeoporeziviIznosDnevnice>();
+    public DbSet<Kompenzacija> Kompenzacije => Set<Kompenzacija>();
+    public DbSet<KompenzacijaStavka> KompenzacijeStavke => Set<KompenzacijaStavka>();
+    public DbSet<KursnaListaStavka> KursneListeStavke => Set<KursnaListaStavka>();
+
     public DbSet<Magacin> Magacini => Set<Magacin>();
     public DbSet<Artikal> Artikli => Set<Artikal>();
     public DbSet<Kalkulacija> Kalkulacije => Set<Kalkulacija>();
     public DbSet<StavkaKalkulacije> StavkeKalkulacije => Set<StavkaKalkulacije>();
+    public DbSet<MaloprodajnaKalkulacija> MaloprodajneKalkulacije => Set<MaloprodajnaKalkulacija>();
+    public DbSet<MaloprodajnaKalkulacijaStavka> MaloprodajneKalkulacijeStavke => Set<MaloprodajnaKalkulacijaStavka>();
+    public DbSet<UvoznaKalkulacija> UvozneKalkulacije => Set<UvoznaKalkulacija>();
+    public DbSet<UvoznaStavka> UvozneStavke => Set<UvoznaStavka>();
+    public DbSet<NivelacijaCena> NivelacijeCena => Set<NivelacijaCena>();
+    public DbSet<NivelacijaStavka> NivelacijeStavke => Set<NivelacijaStavka>();
+    public DbSet<Materijal> Materijali => Set<Materijal>();
+    public DbSet<MaterijalnaKartica> MaterijalneKartice => Set<MaterijalnaKartica>();
+    public DbSet<TrebovanjeNalog> TrebovanjeNalozi => Set<TrebovanjeNalog>();
+    public DbSet<TrebovanjeStavka> TrebovanjeStavke => Set<TrebovanjeStavka>();
+    public DbSet<UlazNalog> UlazNalozi => Set<UlazNalog>();
+    public DbSet<UlazStavka> UlazStavke => Set<UlazStavka>();
+    public DbSet<PrimopredajaNalog> PrimopredajaNalozi => Set<PrimopredajaNalog>();
+    public DbSet<PrimopredajaStavka> PrimopredajaStavke => Set<PrimopredajaStavka>();
     public DbSet<PdvZapis> PdvZapisi => Set<PdvZapis>();
     public DbSet<SefDokument> SefDokumenti => Set<SefDokument>();
     public DbSet<PfrRacun> PfrRacuni => Set<PfrRacun>();

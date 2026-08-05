@@ -28,21 +28,22 @@ public class ErpiFinansijeImporter
         {
             // 1. Konta
             var srcKonta = await srcDb.Konta.AsNoTracking().ToListAsync();
-            var existingKonta = await _destDb.Konta.ToDictionaryAsync(k => k.BrojKonta);
+            var existingKonta = await _destDb.Konta.ToDictionaryAsync(k => k.BrojKonta.Trim());
 
             foreach (var sk in srcKonta)
             {
-                if (!existingKonta.ContainsKey(sk.BrojKonta))
+                string brojKontaClean = sk.BrojKonta.Trim();
+                if (!existingKonta.ContainsKey(brojKontaClean))
                 {
                     var nk = new ERPiData.Models.Core.Konto
                     {
-                        BrojKonta = sk.BrojKonta,
+                        BrojKonta = brojKontaClean,
                         NazivKonta = sk.NazivKonta,
                         IsSintetika = sk.IsSintetika,
                         VrstaKonta = sk.VrstaKonta
                     };
                     _destDb.Konta.Add(nk);
-                    existingKonta[sk.BrojKonta] = nk;
+                    existingKonta[brojKontaClean] = nk;
                     result.UvezenoKonta++;
                 }
             }
@@ -50,7 +51,10 @@ public class ErpiFinansijeImporter
 
             // 2. Partneri
             var srcPartneri = await srcDb.Partneri.AsNoTracking().ToListAsync();
-            var partneriBySifra = await _destDb.Partneri.ToDictionaryAsync(p => p.SifraPartnera);
+            var partneriBySifra = (await _destDb.Partneri.Where(p => p.SifraPartnera != null && p.SifraPartnera != "").ToListAsync())
+                .GroupBy(p => p.SifraPartnera)
+                .ToDictionary(g => g.Key, g => g.First());
+
             var partneriByIdSrcMap = new Dictionary<int, ERPiData.Models.Core.Partner>();
             var existingPartneriByPib = (await _destDb.Partneri.Where(p => p.Pib != null && p.Pib != "").ToListAsync())
                 .GroupBy(p => p.Pib!)
@@ -60,7 +64,7 @@ public class ErpiFinansijeImporter
             {
                 ERPiData.Models.Core.Partner? targetPartner = null;
 
-                if (partneriBySifra.TryGetValue(sp.SifraPartnera, out var p1))
+                if (!string.IsNullOrWhiteSpace(sp.SifraPartnera) && partneriBySifra.TryGetValue(sp.SifraPartnera, out var p1))
                 {
                     targetPartner = p1;
                 }
@@ -89,7 +93,10 @@ public class ErpiFinansijeImporter
                     result.UvezenoPartnera++;
                 }
 
-                partneriBySifra[sp.SifraPartnera] = targetPartner;
+                if (!string.IsNullOrWhiteSpace(sp.SifraPartnera))
+                {
+                    partneriBySifra[sp.SifraPartnera] = targetPartner;
+                }
                 partneriByIdSrcMap[sp.PartnerId] = targetPartner;
                 if (!string.IsNullOrWhiteSpace(sp.Pib))
                 {
@@ -100,7 +107,9 @@ public class ErpiFinansijeImporter
 
             // 3. Magacini
             var srcMagacini = await srcDb.Magacini.AsNoTracking().ToListAsync();
-            var magaciniDict = await _destDb.Magacini.ToDictionaryAsync(m => m.SifraMagacina);
+            var magaciniDict = (await _destDb.Magacini.Where(m => m.SifraMagacina != null && m.SifraMagacina != "").ToListAsync())
+                .GroupBy(m => m.SifraMagacina)
+                .ToDictionary(g => g.Key, g => g.First());
 
             foreach (var sm in srcMagacini)
             {
@@ -119,11 +128,15 @@ public class ErpiFinansijeImporter
                 }
             }
             await _destDb.SaveChangesAsync();
-            magaciniDict = await _destDb.Magacini.ToDictionaryAsync(m => m.SifraMagacina);
+            magaciniDict = (await _destDb.Magacini.Where(m => m.SifraMagacina != null && m.SifraMagacina != "").ToListAsync())
+                .GroupBy(m => m.SifraMagacina)
+                .ToDictionary(g => g.Key, g => g.First());
 
             // 4. Artikli
             var srcArtikli = await srcDb.Artikli.AsNoTracking().ToListAsync();
-            var artikliDict = await _destDb.Artikli.ToDictionaryAsync(a => a.SifraArtikla);
+            var artikliDict = (await _destDb.Artikli.Where(a => a.SifraArtikla != null && a.SifraArtikla != "").ToListAsync())
+                .GroupBy(a => a.SifraArtikla)
+                .ToDictionary(g => g.Key, g => g.First());
 
             foreach (var sa in srcArtikli)
             {
@@ -145,15 +158,18 @@ public class ErpiFinansijeImporter
                 }
             }
             await _destDb.SaveChangesAsync();
-            artikliDict = await _destDb.Artikli.ToDictionaryAsync(a => a.SifraArtikla);
+            artikliDict = (await _destDb.Artikli.Where(a => a.SifraArtikla != null && a.SifraArtikla != "").ToListAsync())
+                .GroupBy(a => a.SifraArtikla)
+                .ToDictionary(g => g.Key, g => g.First());
 
-            // 5. Nalozi i Stavke
+            // 5. Nalozi i Stavke (Kompozitni ključ VrstaNaloga + BrojNaloga za sprecavanje preskakanja razlicitih vrsta naloga sa istim brojem)
             var srcNalozi = await srcDb.Nalozi.Include(n => n.Stavke).AsNoTracking().ToListAsync();
-            var existingNaloziBrojevi = (await _destDb.Nalozi.Select(n => n.BrojNaloga).ToListAsync()).ToHashSet();
+            var existingNaloziKeys = (await _destDb.Nalozi.Select(n => $"{n.VrstaNaloga}_{n.BrojNaloga}").ToListAsync()).ToHashSet();
 
             foreach (var sn in srcNalozi)
             {
-                if (existingNaloziBrojevi.Contains(sn.BrojNaloga)) continue;
+                string nalogKey = $"{sn.VrstaNaloga}_{sn.BrojNaloga}";
+                if (existingNaloziKeys.Contains(nalogKey)) continue;
 
                 var nn = new ERPiData.Models.Finansije.Nalog
                 {
@@ -169,7 +185,7 @@ public class ErpiFinansijeImporter
 
                 foreach (var st in sn.Stavke)
                 {
-                    existingKonta.TryGetValue(st.BrojKonta, out var konto);
+                    existingKonta.TryGetValue(st.BrojKonta.Trim(), out var konto);
                     ERPiData.Models.Core.Partner? partner = null;
                     if (st.PartnerId.HasValue)
                     {
@@ -193,6 +209,7 @@ public class ErpiFinansijeImporter
                 }
 
                 _destDb.Nalozi.Add(nn);
+                existingNaloziKeys.Add(nalogKey);
                 result.UvezenoNaloga++;
             }
             await _destDb.SaveChangesAsync();
@@ -252,7 +269,14 @@ public class ErpiFinansijeImporter
             await _destDb.SaveChangesAsync();
 
             result.Success = true;
-            result.Message = $"Uspešno uvezeno iz ERPiFinansije: {result.UvezenoPartnera} partnera, {result.UvezenoKonta} konta, {result.UvezenoNaloga} naloga, {result.UvezenoKalkulacija} kalkulacija.";
+            if (result.UvezenoPartnera == 0 && result.UvezenoNaloga == 0 && result.UvezenoArtikala == 0 && result.UvezenoMagacina == 0)
+            {
+                result.Message = $"Podaci iz baze su već ranije uvezeni u vašu bazu (baza sadrži sve naloge, konta, artikle i partnere: {srcPartneri.Count} partnera, {srcNalozi.Count} naloga). Nema novih zapisa za uvoz.";
+            }
+            else
+            {
+                result.Message = $"Uspešno uvezeno iz ERPiFinansije:\n• Partnera: {result.UvezenoPartnera}\n• Konta: {result.UvezenoKonta}\n• Magacina: {result.UvezenoMagacina}\n• Artikala: {result.UvezenoArtikala}\n• Naloga u GK: {result.UvezenoNaloga}\n• Kalkulacija: {result.UvezenoKalkulacija}";
+            }
         }
         catch (Exception ex)
         {

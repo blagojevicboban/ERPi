@@ -18,8 +18,17 @@
 | **3.2** | Partneri — CRUD (`PartneriView`/`PartnerEditWindow`) + otvorene stavke po kontu (MVP) | ✅ |
 | **3.2b** | `ZatvaranjeStavke` — ručno parovanje Duguje/Potražuje stavki, delimična zatvaranja, `ZatvoriStavkeWindow` | ✅ |
 | **3.2c** | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ✅ |
-| **3.3** | Magacin (kalkulacije, šifarnici magacina/artikala, kalkulacija editor) i PDV evidencija (`PdvZapis`) | ✅ |
+| **3.3a** | Magacin Osnovno (VP Kalkulacije, Šifarnik magacina/artikala, PDV zapisi) | ✅ |
+| **3.3b / 3.12** | Robno & Materijalno poslovanje (Materijalne/Robne kartice, Ulazi, Trebovanja, MP/Uvozne kalkulacije, Nivelacije, KEP knjiga, Bruto bilansi robe/materijala) | ✅ |
 | **3.4** | SEF e-Fakture (UBL 2.1 API) i e-Fiskalizacija (`PfrRacun`) | ✅ |
+| **3.5** | Šifarnici Konta & Mesta troška (`KontaView`/`KontoEditWindow`/`MestaTroskaView`/`MestoTroskaEditWindow`) | ✅ |
+| **3.6** | Izveštaji Glavne knjige & Bilansi (`BrutoBilansView`, `KarticaKontaView`, `BilansStanjaView`, `BilansUspehaView`, `AprProsireniIzvestajiService`) | ✅ |
+| **3.7** | Izvodi banke & Auto-knjiženje (`UvozIzvodaWindow`, `BankIzvodService`, Parsers/MatchingEngine) | ✅ |
+| **3.8** | Blagajničko poslovanje (`BlagajnaView`, `BlagajnickiNalogEditWindow`, `BlagajnaService`) | ✅ |
+| **3.9** | Devizno knjigovodstvo & Kursne liste (`DeviznoValviranjeWindow`, `DeviznoKnjigovodstvoService`, `KursnaListaService`, `NbsApiClient`) | ✅ |
+| **3.10**| Putni nalozi (`PutniNaloziView`, `PutniNalogModels`, `PutniNalogService`) | ✅ |
+| **3.11**| Kompenzacije (`KompenzacijeView`, `KompenzacijaModels`, `KompenzacijaService`, Pametno skeniranje) | ✅ |
+| **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, EF Migracija `DodajRobnoIMaterijalno`) | ✅ |
 | **4** | Osnovna sredstva | ⬜ |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | ⬜ |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
@@ -129,8 +138,51 @@
 
 ---
 
+## 3c. Plan kloniranja preostalih funkcionalnosti iz ERPiFinansije (Faze 3.5 – 3.12)
+
+Da bi `ERPi` u potpunosti zamenio `ERPiFinansije`, sve preostale funkcionalnosti iz `ERPiFinansije` (ERPiFinansijeData / ERPiFinansijeApp) se sinhronizovano prenose i prilagođavaju novom `ErpiDbContext` sa pravim FK relacijama i modernim WPF UI-jem:
+
+1. **Faza 3.5 — Šifarnici Konta & Mesta troška**
+   - Servisi: `KontaService`, `MestaTroskaService`
+   - Pogledi: `KontaView`, `KontoEditWindow`, `UvozKontnogPlanaWindow`, `MestaTroskaView`, `MestoTroskaEditWindow`
+2. **Faza 3.6 — Izveštaji Glavne knjige & Bilansi**
+   - Servisi: `BrutoBilansService`, `KarticaService`, `BilansService`, `AprProsireniIzvestajiService`
+   - Pogledi: `BrutoBilansView`, `KarticaKontaView`, `DnevnikView`, `BilansStanjaView`, `BilansUspehaView`
+3. **Faza 3.7 — Bankarski izvodi & Automatsko knjiženje**
+   - Modeli & Servisi: `BankIzvodModels` (`BankIzvod`, `StavkaBankIzvoda`), `BankIzvodService`, `BankIzvodParsers` (Halcom TXT, Asseco XML, ISO 20022), `BankIzvodMatchingEngine`
+   - Pogledi: `IzvodiView`, `IzvodEditWindow`, `UvozIzvodaWindow`
+4. **Faza 3.8 — Blagajničko poslovanje**
+   - Modeli & Servisi: `BlagajnaModels` (`Blagajna`, `BlagajnickiNalog`, `StavkaBlagajnickogNaloga`), `BlagajnaService`
+   - Pogledi: `BlagajneView`, `BlagajnaEditWindow`, `BlagajnickiNalogWindow`
+5. **Faza 3.9 — Devizno knjigovodstvo & Kursne liste**
+   - Modeli & Servisi: `KursnaListaStavka`, `DeviznoKnjigovodstvoService`, `KursnaListaService`, `NbsApiClient`
+   - Pogledi: `DevizniNaloziView`, `KursnaListaView`
+6. **Faza 3.10 — Putni nalozi**
+   - Modeli & Servisi: `PutniNalogModels` (`PutniNalog`, `StavkaPutnogNaloga`), `PutniNalogService`
+   - Pogledi: `PutniNaloziView`, `PutniNalogEditWindow`
+7. **Faza 3.11 — Kompenzacije**
+   - Modeli & Servisi: `KompenzacijaModels` (`Kompenzacija`, `StavkaKompenzacije`), `KompenzacijaService`
+   - Pogledi: `KompenzacijeView`, `KompenzacijaEditWindow`
+8. **Faza 3.12 — Robno & Materijalno poslovanje, Komercijala, Trgovina & DMS**
+   - Modeli: `MaterijalnaKartica`, `Materijal`, `UlazNalog`, `TrebovanjeNalog`, `PrimopredajaNalog`, `MaloprodajnaKalkulacija`, `UvoznaKalkulacija`, `NivelacijaCena`, `RacunOtpremnica`, `DokumentPrilog`
+   - Servisi: `MaterijalnaKarticaService`, `RobniBrutoBilansService`, `UlazService`, `TrebovanjeService`, `PrimopredajaService`, `MaloprodajnaKalkulacijaService`, `UvoznaKalkulacijaService`, `NivelacijaService`, `RacunOtpremnicaService`, `DmsService`
+   - Pogledi: `MaterijalneKarticeView`, `RobniBrutoBilansView`, `UlaziView`, `TrebovanjaView`, `MaloprodajneKalkulacijeView`, `NivelacijeView`, `KEPKnjigaView`, `RacuniOtpremniceView`, `DmsView`
+
+---
+
+## 4. Testiranje
+
+- **`run-erpi-app`** (`ERPiApp/.claude/skills` i `.agents/skills`, mora ostati sinhronizovano
+  u oba) — UI Automation driver, `--autologin` kroz fiksnu `AUTOTEST` firmu
+  (`%LocalAppData%\ERPi\Baze\AUTOTEST.db`). Screenshot ide preko UIA `BoundingRectangle`, ne
+  golog `GetWindowRect` — na skaliranom ekranu (125%/150%) ovaj drugi tiho seče desnu/donju
+  ivicu prozora bez greške; koštalo je vremena da se otkrije, ne vraćati taj "pojednostavljeni"
+  pristup.
+- **`ERPiData.Tests`** (xUnit) — automatizovani unit i integracioni testovi po uzoru na `ERPiFinansijeData.Tests` (EF Core In-Memory baza) za provere proračuna kalkulacija, uravnoteženosti naloga, zatvaranja stavki i modela.
+
+---
+
 ## Sledeći koraci
 
-Faza 3.2c (IOS izveštaj za sve partnere, kamate) zaokružuje Partnere, ili se može preskočiti na
-Fazu 3.3 (Magacin/PDV) ili napred na Fazu 5 (Zarade, jedini modul sa stvarnim korisnicima danas)
-— odluka je na korisniku, ne pretpostavljati.
+Nastavak razvoja po podfazama 3.5 do 3.12 za potpunu integraciju svih funkcionalnosti iz ERPiFinansije uERP-i, nakon čega sledi Faza 4 (Osnovna sredstva) i Faza 5 (Obračun zarada).
+

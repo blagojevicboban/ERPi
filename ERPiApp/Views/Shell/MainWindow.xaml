@@ -78,6 +78,17 @@
                         <TextBlock Text="FINANSIJE I MAGACIN" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
                         <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Dnevnik glavne knjige — nalozi i stavke"/>
                         <RadioButton x:Name="BtnPartneri" Content="👥 Partneri" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Partneri i otvorene stavke po kontu"/>
+                        <RadioButton x:Name="BtnKonta" Content="📋 Kontni plan" Style="{StaticResource NavButtonStyle}" Click="NavKonta_Click" ToolTip="Šifarnik konta (sintetika i analitika)"/>
+                        <RadioButton x:Name="BtnMestaTroska" Content="🎯 Mesta troška &amp; Projekti" Style="{StaticResource NavButtonStyle}" Click="NavMestaTroska_Click" ToolTip="Šifarnik mesta troška i analitika profitabilnosti"/>
+                        <RadioButton x:Name="BtnKarticaKonta" Content="💳 Kartice konta" Style="{StaticResource NavButtonStyle}" Click="NavKarticaKonta_Click" ToolTip="Pregled kartica konta sa kumulativnim saldom"/>
+                        <RadioButton x:Name="BtnBrutoBilans" Content="📊 Bruto bilans" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans po kontima sa prometom"/>
+                        <RadioButton x:Name="BtnBilansStanja" Content="🏛️ Bilans stanja" Style="{StaticResource NavButtonStyle}" Click="NavBilansStanja_Click" ToolTip="Zvanični Bilans Stanja sa AOP pozicijama"/>
+                        <RadioButton x:Name="BtnBilansUspeha" Content="📈 Bilans uspeha" Style="{StaticResource NavButtonStyle}" Click="NavBilansUspeha_Click" ToolTip="Zvanični Bilans Uspeha sa AOP pozicijama"/>
+                        <RadioButton x:Name="BtnIzvodi" Content="🏦 Uvoz izvoda banke" Style="{StaticResource NavButtonStyle}" Click="NavIzvodi_Click" ToolTip="Uvoz Halcom/Asseco/CAMT/MT940 izvoda i automatsko knjiženje"/>
+                        <RadioButton x:Name="BtnBlagajna" Content="💰 Blagajna (243/244)" Style="{StaticResource NavButtonStyle}" Click="NavBlagajna_Click" ToolTip="Dinarska i devizna blagajna sa dnevnikom"/>
+                        <RadioButton x:Name="BtnPutniNalozi" Content="🚗 Putni nalozi" Style="{StaticResource NavButtonStyle}" Click="NavPutniNalozi_Click" ToolTip="Evidencija i obračun službenih putovanja u zemlji i inostranstvu"/>
+                        <RadioButton x:Name="BtnKompenzacije" Content="🤝 Kompenzacije" Style="{StaticResource NavButtonStyle}" Click="NavKompenzacije_Click" ToolTip="Dvojne i trojne kompenzacije sa pametnim skeniranjem"/>
+                        <RadioButton x:Name="BtnDevizno" Content="💱 Devizno &amp; Valviranje" Style="{StaticResource NavButtonStyle}" Click="NavDevizno_Click" ToolTip="Valviranje deviznih konta i obračun kursnih razlika"/>
                         <RadioButton x:Name="BtnMagacin" Content="📦 Magacin i PDV" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije, magacini, šifarnik artikala i PDV"/>
                         <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
 

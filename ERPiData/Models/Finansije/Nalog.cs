@@ -32,6 +32,8 @@ public class Nalog
 
     public StatusNaloga Status { get; set; } = StatusNaloga.Nacrt;
     public DateTime? DatumKnjizenja { get; set; }
+    [NotMapped]
+    public bool IsKnjizen => Status == StatusNaloga.Proknjizen;
 
     /// <summary>Modul koji je nalog automatski kreirao (npr. "Zarade", "Sredstva"); null za ručni unos ovde.</summary>
     [MaxLength(30)]
