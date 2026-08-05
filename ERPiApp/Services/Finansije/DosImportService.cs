@@ -28,7 +28,7 @@ public class DbfFirmaDto : INotifyPropertyChanged
     public string ZiroRacun { get; set; } = "";
     public string FolderPath { get; set; } = "";
 
-    private bool _isSelected = true;
+    private bool _isSelected = false;
     public bool IsSelected
     {
         get => _isSelected;
@@ -103,7 +103,7 @@ public class DosImportService
                             Telefon = tel,
                             ZiroRacun = ziro,
                             FolderPath = folderPath,
-                            IsSelected = true
+                            IsSelected = false
                         });
                     }
                 }
@@ -124,153 +124,125 @@ public class DosImportService
                         Sifra = folderName,
                         Naziv = $"Firma {folderName}",
                         FolderPath = dir,
-                        IsSelected = true
+                        IsSelected = false
                     });
                 }
             }
         }
 
+        if (firme.Any())
+        {
+            firme[0].IsSelected = true;
+        }
+
         return firme;
     }
 
-    public async Task UveziFirmeAsync(ErpiDbContext destDb, List<DbfFirmaDto> izabraneFirme, bool brisiPostojece, IProgress<DosImportProgress> progress)
+    public async Task UveziJednuFirmuAsync(
+        ErpiDbContext destDb,
+        DbfFirmaDto firmaDto,
+        bool importFinansijsko,
+        bool importRobno,
+        bool importMaterijalno,
+        bool brisiPostojece,
+        IProgress<DosImportProgress> progress)
     {
         await Task.Run(async () =>
         {
+            // 1. Čišćenje izabranih modula ako je brisiPostojece == true
             if (brisiPostojece)
             {
-                Report(progress, "Baza", "Čišćenje baze", 0, "🗑️ Brisanje postojećih podataka iz baze pre uvoza...");
-                destDb.StavkeNaloga.RemoveRange(destDb.StavkeNaloga);
-                destDb.Nalozi.RemoveRange(destDb.Nalozi);
-                destDb.StavkeKalkulacije.RemoveRange(destDb.StavkeKalkulacije);
-                destDb.Kalkulacije.RemoveRange(destDb.Kalkulacije);
-                destDb.Artikli.RemoveRange(destDb.Artikli);
-                destDb.Magacini.RemoveRange(destDb.Magacini);
-                destDb.Partneri.RemoveRange(destDb.Partneri);
-                destDb.Konta.RemoveRange(destDb.Konta);
+                if (importFinansijsko)
+                {
+                    Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Finansijskih podataka (Nalozi, Partneri, Konta)...");
+                    destDb.StavkeNaloga.RemoveRange(destDb.StavkeNaloga);
+                    destDb.Nalozi.RemoveRange(destDb.Nalozi);
+                    destDb.Partneri.RemoveRange(destDb.Partneri);
+                    destDb.Konta.RemoveRange(destDb.Konta);
+                }
+
+                if (importRobno)
+                {
+                    Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Robnih podataka (Stavke kalkulacije, Kalkulacije, Artikli, Magacini)...");
+                    destDb.StavkeKalkulacije.RemoveRange(destDb.StavkeKalkulacije);
+                    destDb.Kalkulacije.RemoveRange(destDb.Kalkulacije);
+                    destDb.Artikli.RemoveRange(destDb.Artikli);
+                    destDb.Magacini.RemoveRange(destDb.Magacini);
+                }
+
+                if (importMaterijalno)
+                {
+                    Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "🗑️ Brisanje postojećih Materijalnih podataka...");
+                    destDb.Materijali.RemoveRange(destDb.Materijali);
+                }
+
                 await destDb.SaveChangesAsync();
-                Report(progress, "Baza", "Čišćenje baze", 0, "   --> Baza uspešno očišćena!");
+                Report(progress, firmaDto.Naziv, "Čišćenje baze", 0, "   --> Izabrani moduli su uspešno očišćeni u bazi!");
             }
 
-            int totalFirme = izabraneFirme.Count;
-            int currentFirmaIdx = 0;
+            Report(progress, firmaDto.Naziv, "Inicijalizacija", 10, $"🚀 Uvoz DOS podataka za izabranu firmu: {firmaDto.Naziv} ({firmaDto.Sifra})...");
 
             string tempDir = Path.Combine(Path.GetTempPath(), "ERPiDosImport");
             Directory.CreateDirectory(tempDir);
+            string tempDbPath = Path.Combine(tempDir, $"temp_{Guid.NewGuid():N}.db");
 
-            foreach (var firmaDto in izabraneFirme)
+            try
             {
-                currentFirmaIdx++;
-                int basePercent = (int)(((double)(currentFirmaIdx - 1) / totalFirme) * 100);
-
-                Report(progress, firmaDto.Naziv, "Inicijalizacija", basePercent, $"🚀 Uvoz DOS podataka za firmu: {firmaDto.Naziv} ({firmaDto.Sifra})...");
-
-                string tempDbPath = Path.Combine(tempDir, $"temp_{Guid.NewGuid():N}.db");
-
-                try
+                using (var firmDb = AccountingDbContext.Create(tempDbPath))
                 {
-                    using (var firmDb = AccountingDbContext.Create(tempDbPath))
+                    // Unos osnovne Firme
+                    var dbFirma = new ERPiFinansijeData.Models.Firma
                     {
-                        // 1. Unos Firme
-                        var dbFirma = new ERPiFinansijeData.Models.Firma
-                        {
-                            Sifra = firmaDto.Sifra,
-                            Naziv = firmaDto.Naziv,
-                            Pib = firmaDto.Pib,
-                            MaticniBroj = firmaDto.MaticniBroj,
-                            Adresa = firmaDto.Adresa,
-                            PttIMesto = firmaDto.PttIMesto,
-                            Telefon = firmaDto.Telefon,
-                            ZiroRacun = firmaDto.ZiroRacun,
-                            IsActive = true
-                        };
-                        firmDb.Firme.Add(dbFirma);
-                        await firmDb.SaveChangesAsync();
+                        Sifra = firmaDto.Sifra,
+                        Naziv = firmaDto.Naziv,
+                        Pib = firmaDto.Pib,
+                        MaticniBroj = firmaDto.MaticniBroj,
+                        Adresa = firmaDto.Adresa,
+                        PttIMesto = firmaDto.PttIMesto,
+                        Telefon = firmaDto.Telefon,
+                        ZiroRacun = firmaDto.ZiroRacun,
+                        IsActive = true
+                    };
+                    firmDb.Firme.Add(dbFirma);
+                    await firmDb.SaveChangesAsync();
 
-                        // 2. Kontni plan
+                    // 1. FINANSIJSKO KNJIGOVODSTVO
+                    if (importFinansijsko)
+                    {
                         var kontplanFile = Path.Combine(firmaDto.FolderPath, "KONTPLAN.DBF");
                         if (File.Exists(kontplanFile))
                         {
-                            Report(progress, firmaDto.Naziv, "Kontni plan", basePercent + 5, "📋 Uvoz Kontnog plana (KONTPLAN.DBF)...");
+                            Report(progress, firmaDto.Naziv, "Kontni plan", 20, "📋 Uvoz Kontnog plana (KONTPLAN.DBF)...");
                             var rows = DbfImportService.ReadRows(kontplanFile);
                             int count = 0;
                             foreach (var r in rows)
                             {
                                 var konto = DbfImportService.MapKonto(r);
-                                if (konto != null)
-                                {
-                                    firmDb.Konta.Add(konto);
-                                    count++;
-                                }
+                                if (konto != null) { firmDb.Konta.Add(konto); count++; }
                             }
                             await firmDb.SaveChangesAsync();
-                            Report(progress, firmaDto.Naziv, "Kontni plan", basePercent + 10, $"   --> Uvezeno {count} konta!");
+                            Report(progress, firmaDto.Naziv, "Kontni plan", 30, $"   --> Uvezeno {count} konta!");
                         }
 
-                        // 3. Partneri
                         var ankontFile = Path.Combine(firmaDto.FolderPath, "ANKONT.DBF");
                         if (File.Exists(ankontFile))
                         {
-                            Report(progress, firmaDto.Naziv, "Partneri", basePercent + 15, "👥 Uvoz Partnera (ANKONT.DBF)...");
+                            Report(progress, firmaDto.Naziv, "Partneri", 40, "👥 Uvoz Partnera (ANKONT.DBF)...");
                             var rows = DbfImportService.ReadRows(ankontFile);
                             int count = 0;
                             foreach (var r in rows)
                             {
                                 var partner = DbfImportService.MapPartner(r, count + 1);
-                                if (partner != null)
-                                {
-                                    firmDb.Partneri.Add(partner);
-                                    count++;
-                                }
+                                if (partner != null) { firmDb.Partneri.Add(partner); count++; }
                             }
                             await firmDb.SaveChangesAsync();
-                            Report(progress, firmaDto.Naziv, "Partneri", basePercent + 25, $"   --> Uvezeno {count} partnera!");
+                            Report(progress, firmaDto.Naziv, "Partneri", 50, $"   --> Uvezeno {count} partnera!");
                         }
 
-                        // 4. Magacini i Artikli
-                        var magacinFile = Path.Combine(firmaDto.FolderPath, "MAGACIN.DBF");
-                        if (File.Exists(magacinFile))
-                        {
-                            Report(progress, firmaDto.Naziv, "Magacini", basePercent + 30, "📦 Uvoz Magacina (MAGACIN.DBF)...");
-                            var rows = DbfImportService.ReadRows(magacinFile);
-                            int count = 0;
-                            foreach (var r in rows)
-                            {
-                                var magacin = DbfImportService.MapMagacin(r);
-                                if (magacin != null)
-                                {
-                                    firmDb.Magacini.Add(magacin);
-                                    count++;
-                                }
-                            }
-                            await firmDb.SaveChangesAsync();
-                            Report(progress, firmaDto.Naziv, "Magacini", basePercent + 35, $"   --> Uvezeno {count} magacina!");
-                        }
-
-                        var artikliFile = Path.Combine(firmaDto.FolderPath, "ARTIKLI.DBF");
-                        if (File.Exists(artikliFile))
-                        {
-                            Report(progress, firmaDto.Naziv, "Artikli", basePercent + 38, "🛒 Uvoz Artikala (ARTIKLI.DBF)...");
-                            var rows = DbfImportService.ReadRows(artikliFile);
-                            int count = 0;
-                            foreach (var r in rows)
-                            {
-                                var artikal = DbfImportService.MapArtikal(r);
-                                if (artikal != null)
-                                {
-                                    firmDb.Artikli.Add(artikal);
-                                    count++;
-                                }
-                            }
-                            await firmDb.SaveChangesAsync();
-                            Report(progress, firmaDto.Naziv, "Artikli", basePercent + 47, $"   --> Uvezeno {count} artikala!");
-                        }
-
-                        // 5. Nalozi
                         var nalogFile = Path.Combine(firmaDto.FolderPath, "NALOG.DBF");
                         if (File.Exists(nalogFile))
                         {
-                            Report(progress, firmaDto.Naziv, "Nalozi", basePercent + 50, "📖 Uvoz Naloga glavne knjige (NALOG.DBF)...");
+                            Report(progress, firmaDto.Naziv, "Nalozi", 60, "📖 Uvoz Naloga glavne knjige (NALOG.DBF)...");
                             var nalogRows = DbfImportService.ReadRows(nalogFile);
                             var naloziGroups = DbfImportService.GroupNalogRows(nalogRows);
 
@@ -278,30 +250,79 @@ public class DosImportService
                             foreach (var (brNaloga, redovi) in naloziGroups)
                             {
                                 var nalog = DbfImportService.MapNalogGrupa(brNaloga, redovi);
-                                if (nalog != null)
-                                {
-                                    firmDb.Nalozi.Add(nalog);
-                                    countNaloga++;
-                                }
+                                if (nalog != null) { firmDb.Nalozi.Add(nalog); countNaloga++; }
                             }
 
                             await firmDb.SaveChangesAsync();
-                            Report(progress, firmaDto.Naziv, "Nalozi", basePercent + 80, $"   --> Uvezeno {countNaloga} naloga!");
+                            Report(progress, firmaDto.Naziv, "Nalozi", 75, $"   --> Uvezeno {countNaloga} naloga!");
+                        }
+                    }
+
+                    // 2. ROBNO KNJIGOVODSTVO
+                    if (importRobno)
+                    {
+                        var magacinFile = Path.Combine(firmaDto.FolderPath, "MAGACIN.DBF");
+                        if (File.Exists(magacinFile))
+                        {
+                            Report(progress, firmaDto.Naziv, "Magacini", 40, "📦 Uvoz Magacina (MAGACIN.DBF)...");
+                            var rows = DbfImportService.ReadRows(magacinFile);
+                            int count = 0;
+                            foreach (var r in rows)
+                            {
+                                var magacin = DbfImportService.MapMagacin(r);
+                                if (magacin != null) { firmDb.Magacini.Add(magacin); count++; }
+                            }
+                            await firmDb.SaveChangesAsync();
+                            Report(progress, firmaDto.Naziv, "Magacini", 50, $"   --> Uvezeno {count} magacina!");
                         }
 
-                        // 6. Prebacivanje iz privremene baze u ErpiDbContext preko ErpiFinansijeImporter
-                        Report(progress, firmaDto.Naziv, "Spajanje baze", basePercent + 85, "🔄 Konverzija u ujedinjenu ERPi bazu...");
-                        var importer = new ErpiFinansijeImporter(destDb);
-                        var importRes = await importer.ImportFromDatabaseAsync(firmDb);
-
-                        Report(progress, firmaDto.Naziv, "Završeno", basePercent + 100,
-                            $"✅ Firma '{firmaDto.Naziv}' uspešno uvežena! (Konta: {importRes.UvezenoKonta}, Partneri: {importRes.UvezenoPartnera}, Nalozi: {importRes.UvezenoNaloga}, Magacini: {importRes.UvezenoMagacina}, Artikli: {importRes.UvezenoArtikala})");
+                        var artikliFile = Path.Combine(firmaDto.FolderPath, "ARTIKLI.DBF");
+                        if (File.Exists(artikliFile))
+                        {
+                            Report(progress, firmaDto.Naziv, "Artikli", 60, "🛒 Uvoz Artikala robe (ARTIKLI.DBF)...");
+                            var rows = DbfImportService.ReadRows(artikliFile);
+                            int count = 0;
+                            foreach (var r in rows)
+                            {
+                                var artikal = DbfImportService.MapArtikal(r);
+                                if (artikal != null) { firmDb.Artikli.Add(artikal); count++; }
+                            }
+                            await firmDb.SaveChangesAsync();
+                            Report(progress, firmaDto.Naziv, "Artikli", 70, $"   --> Uvezeno {count} artikala!");
+                        }
                     }
+
+                    // 3. MATERIJALNO KNJIGOVODSTVO
+                    if (importMaterijalno)
+                    {
+                        var msifrFile = Path.Combine(firmaDto.FolderPath, "M_SIFR.DBF");
+                        if (File.Exists(msifrFile))
+                        {
+                            Report(progress, firmaDto.Naziv, "Materijali", 60, "🧱 Uvoz Šifarnika materijala (M_SIFR.DBF)...");
+                            var rows = DbfImportService.ReadRows(msifrFile);
+                            int count = 0;
+                            foreach (var r in rows)
+                            {
+                                var materijal = DbfImportService.MapMaterijal(r);
+                                if (materijal != null) { firmDb.Materijali.Add(materijal); count++; }
+                            }
+                            await firmDb.SaveChangesAsync();
+                            Report(progress, firmaDto.Naziv, "Materijali", 70, $"   --> Uvezeno {count} materijala!");
+                        }
+                    }
+
+                    // Prenos u ujedinjenu bazu destDb preko ErpiFinansijeImporter
+                    Report(progress, firmaDto.Naziv, "Spajanje baze", 85, "🔄 Konverzija u aktivnu ERPi bazu...");
+                    var importer = new ErpiFinansijeImporter(destDb);
+                    var importRes = await importer.ImportFromDatabaseAsync(firmDb);
+
+                    Report(progress, firmaDto.Naziv, "Završeno", 100,
+                        $"✅ Firma '{firmaDto.Naziv}' uspešno uvežena u aktivnu bazu! (Konta: {importRes.UvezenoKonta}, Partneri: {importRes.UvezenoPartnera}, Nalozi: {importRes.UvezenoNaloga}, Magacini: {importRes.UvezenoMagacina}, Artikli: {importRes.UvezenoArtikala})");
                 }
-                finally
-                {
-                    try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }
-                }
+            }
+            finally
+            {
+                try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }
             }
         });
     }

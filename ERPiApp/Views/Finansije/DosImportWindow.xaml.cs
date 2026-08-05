@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using ERPiData;
 using ERPiApp.Services.Finansije;
 
@@ -36,6 +37,12 @@ public partial class DosImportWindow : Window
             _pronadjeneFirme = DosImportService.Instance.SkenirajRadniDirektorijum(folderPath);
             DgFirme.ItemsSource = _pronadjeneFirme;
             TxtFirmCount.Text = $"Pronađeno: {_pronadjeneFirme.Count} firmi";
+            
+            if (_pronadjeneFirme.Any())
+            {
+                DgFirme.SelectedItem = _pronadjeneFirme[0];
+            }
+
             AppendLog($"Skeniran folder '{folderPath}'. Pronađeno {_pronadjeneFirme.Count} firmi.");
         }
         catch (Exception ex)
@@ -59,22 +66,34 @@ public partial class DosImportWindow : Window
         }
     }
 
-    private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
+    private void DgFirme_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        foreach (var f in _pronadjeneFirme) f.IsSelected = true;
-    }
-
-    private void BtnDeselectAll_Click(object sender, RoutedEventArgs e)
-    {
-        foreach (var f in _pronadjeneFirme) f.IsSelected = false;
+        if (DgFirme.SelectedItem is DbfFirmaDto izabrana)
+        {
+            foreach (var f in _pronadjeneFirme)
+            {
+                f.IsSelected = (f == izabrana);
+            }
+            TxtStatus.Text = $"Izabrana firma: {izabrana.Naziv} ({izabrana.Sifra})";
+        }
     }
 
     private async void BtnStartImport_Click(object sender, RoutedEventArgs e)
     {
-        var izabrane = _pronadjeneFirme.Where(f => f.IsSelected).ToList();
-        if (!izabrane.Any())
+        var izabranaFirma = DgFirme.SelectedItem as DbfFirmaDto ?? _pronadjeneFirme.FirstOrDefault(f => f.IsSelected);
+        if (izabranaFirma == null)
         {
-            MessageBox.Show("Molimo štiklirajte bar jednu firmu za uvoz.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Molimo izaberite firmu iz tabele za uvoz.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        bool importFinansijsko = ChkFinansijsko.IsChecked == true;
+        bool importRobno = ChkRobno.IsChecked == true;
+        bool importMaterijalno = ChkMaterijalno.IsChecked == true;
+
+        if (!importFinansijsko && !importRobno && !importMaterijalno)
+        {
+            MessageBox.Show("Molimo štiklirajte bar jedan modul za uvoz (Finansijsko, Robno ili Materijalno).", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -82,7 +101,7 @@ public partial class DosImportWindow : Window
         if (brisiPostojece)
         {
             var res = MessageBox.Show(
-                "UPOZORENJE: Izabrali ste opciju za BRISANJE postojećih Finansije podataka (konta, partneri, nalozi, magacini, artikli).\n\nDa li ste sigurni da želite trajno obrisati trenutne podatke u bazi i izvršiti čisti uvoz iz DOS-a?",
+                $"UPOZORENJE: Izabrali ste opciju za BRISANJE postojećih podataka u izabranim modulima pre uvoza.\n\nDa li ste sigurni da želite obrisati postojeće podatke u aktivnoj bazi za izabrane module i izvršiti čisti uvoz iz firme '{izabranaFirma.Naziv}'?",
                 "Potvrda brisanja", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (res != MessageBoxResult.Yes) return;
@@ -90,7 +109,7 @@ public partial class DosImportWindow : Window
 
         BtnStartImport.IsEnabled = false;
         TxtLog.Text = "";
-        AppendLog($"Započet uvoz za {izabrane.Count} izabranih firmi...");
+        AppendLog($"Započet uvoz firme '{izabranaFirma.Naziv}' ({izabranaFirma.Sifra}) u aktivnu bazu...");
 
         var progressHandler = new Progress<DosImportProgress>(p =>
         {
@@ -105,8 +124,16 @@ public partial class DosImportWindow : Window
 
         try
         {
-            await DosImportService.Instance.UveziFirmeAsync(_db, izabrane, brisiPostojece, progressHandler);
-            MessageBox.Show($"Uvoz je uspešno završen za {izabrane.Count} firmi!\n\nPodaci o kontima, partnerima, nalozima glavne knjige, magacinima i artiklima su uveženi u ujedinjenu ERPi bazu.",
+            await DosImportService.Instance.UveziJednuFirmuAsync(
+                _db,
+                izabranaFirma,
+                importFinansijsko,
+                importRobno,
+                importMaterijalno,
+                brisiPostojece,
+                progressHandler);
+
+            MessageBox.Show($"Uvoz je uspešno završen za firmu '{izabranaFirma.Naziv}'!\n\nIzabrani moduli su uspešno zavedeni u aktivnu ERPi bazu.",
                 "Uspeh", MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
         }
