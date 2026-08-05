@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using ERPiApp.Views.Finansije.Nalozi;
 using ERPiApp.Views.Firma;
 using ERPiData;
 
@@ -31,6 +32,18 @@ public partial class MainWindow : Window
     public void PrikaziUpozorenjeODefaultLozinci()
     {
         PnlUpozorenjeLozinka.Visibility = Visibility.Visible;
+    }
+
+    private void NavDashboard_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Radna tabla";
+        MainContentHost.Content = new DashboardView(_db);
+    }
+
+    private void NavNalozi_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📖 Glavna knjiga i Nalozi";
+        MainContentHost.Content = new NaloziView(_db);
     }
 
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using ERPiData.Models.Core;
+using ERPiData.Models.Finansije;
 
 namespace ERPiData;
 
@@ -18,6 +19,9 @@ public class ErpiDbContext : DbContext
     public DbSet<Partner> Partneri => Set<Partner>();
     public DbSet<Konto> Konta => Set<Konto>();
     public DbSet<MestoTroska> MestaTroska => Set<MestoTroska>();
+
+    public DbSet<Nalog> Nalozi => Set<Nalog>();
+    public DbSet<StavkaNaloga> StavkeNaloga => Set<StavkaNaloga>();
 
     /// <summary>
     /// Kreira DbContext nad zadatom SQLite bazom (jedna baza po firmi) i primenjuje EF Core
@@ -53,6 +57,32 @@ public class ErpiDbContext : DbContext
         modelBuilder.Entity<MestoTroska>()
             .HasIndex(m => m.Sifra)
             .IsUnique();
+
+        modelBuilder.Entity<Nalog>()
+            .HasMany(n => n.Stavke)
+            .WithOne(s => s.Nalog)
+            .HasForeignKey(s => s.NalogId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Restrict, ne Cascade: konto/partner/mesto troška korišćeno u knjiženju se ne sme
+        // obrisati ispod naloga koji na njega ukazuje (i istorijski nalozi moraju ostati čitljivi).
+        modelBuilder.Entity<StavkaNaloga>()
+            .HasOne(s => s.Konto)
+            .WithMany()
+            .HasForeignKey(s => s.KontoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<StavkaNaloga>()
+            .HasOne(s => s.Partner)
+            .WithMany()
+            .HasForeignKey(s => s.PartnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<StavkaNaloga>()
+            .HasOne(s => s.MestoTroska)
+            .WithMany()
+            .HasForeignKey(s => s.MestoTroskaId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Podrazumevani administratorski nalog — isti obrazac (i ista lozinka "admin123") kao
         // u ERPiFinansije/ERPiZarade, da alati za pokretanje/testiranje rade bez izmene.

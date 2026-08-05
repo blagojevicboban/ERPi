@@ -1,0 +1,73 @@
+<UserControl x:Class="ERPiApp.Views.Finansije.Nalozi.NaloziView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1.2*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOOLBAR -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16,12" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Pretraga:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                    <TextBox x:Name="TxtPretraga" Width="180" Height="34" VerticalContentAlignment="Center" Padding="8,0" TextChanged="TxtPretraga_TextChanged" Margin="0,0,16,0"/>
+
+                    <RadioButton x:Name="RbSvi" Content="Svi" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,8,0" Checked="Filter_Changed"/>
+                    <RadioButton x:Name="RbNacrt" Content="Nacrt" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,8,0" Checked="Filter_Changed"/>
+                    <RadioButton x:Name="RbProknjizeni" Content="Proknjiženi" GroupName="StatusFilter" VerticalAlignment="Center" Checked="Filter_Changed"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BtnNoviNalog" Content="➕" Style="{StaticResource IconButtonStyle}" ToolTip="Nov nalog" Click="BtnNoviNalog_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnIzmeniNalog" Content="✏️" Style="{StaticResource IconButtonStyle}" ToolTip="Izmeni izabrani nalog (samo nacrt)" Click="BtnIzmeniNalog_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnObrisiNalog" Content="🗑️" Style="{StaticResource IconButtonStyle}" ToolTip="Obriši izabrani nalog (samo nacrt)" Click="BtnObrisiNalog_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnProknjizi" Content="✅" Style="{StaticResource IconButtonStyle}" ToolTip="Proknjiži izabrani nalog" Click="BtnProknjizi_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnRasknjizi" Content="🔓" Style="{StaticResource IconButtonStyle}" ToolTip="Rasknjiži izabrani nalog" Click="BtnRasknjizi_Click"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- LISTA NALOGA -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel>
+                <TextBlock Text="📖 Nalozi za knjiženje (Glavna knjiga)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
+                <DataGrid x:Name="DgNalozi" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column" Background="Transparent" BorderThickness="0"
+                          SelectionChanged="DgNalozi_SelectionChanged" MouseDoubleClick="DgNalozi_MouseDoubleClick">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Br. naloga" Binding="{Binding BrojNaloga}" Width="100"/>
+                        <DataGridTextColumn Header="Datum" Binding="{Binding DatumNaloga, StringFormat=\{0:dd.MM.yyyy\}}" Width="110"/>
+                        <DataGridTextColumn Header="Vrsta" Binding="{Binding VrstaNaloga}" Width="120"/>
+                        <DataGridTextColumn Header="Opis" Binding="{Binding Opis}" Width="*"/>
+                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding UkupnoDuguje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding UkupnoPotrazuje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="#E2E8F0"/>
+
+        <!-- STAVKE IZABRANOG NALOGA -->
+        <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="16" Margin="0,16,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel>
+                <TextBlock Text="📋 Stavke naloga" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
+                <DataGrid x:Name="DgStavke" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="R.br." Binding="{Binding RedniBroj}" Width="60"/>
+                        <DataGridTextColumn Header="Konto" Binding="{Binding Konto.Prikaz}" Width="220"/>
+                        <DataGridTextColumn Header="Partner" Binding="{Binding Partner.Naziv}" Width="160"/>
+                        <DataGridTextColumn Header="Opis" Binding="{Binding Opis}" Width="*"/>
+                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding Duguje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding Potrazuje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>
