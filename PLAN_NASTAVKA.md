@@ -61,6 +61,20 @@
   `NullReferenceException` usred `InitializeComponent()` (uhvaćeno u `NaloziView`, isti obrazac
   bug kao u ERPiFinansije). Postavi `IsChecked = true` u code-behind, posle
   `InitializeComponent()`.
+- **Loader koji na kraju radi `DataGrid.SelectedIndex = 0` (auto-izbor prvog reda) se NIKAD
+  ne zove direktno iz konstruktora** — mora ići kroz `Loaded += (_, _) => LoadXxx();`. Razlog
+  je specifičan za ERPi (ne postoji u ERPiFinansije): ERPi ekrani dele već otvoren
+  `ErpiDbContext _db`, pa upit ume da se završi *sinhrono*, i ceo lanac
+  učitavanje→SelectedIndex→SelectionChanged odradi se još unutar konstruktora, pre nego što je
+  kontrola u vizuelnom stablu — `NullReferenceException` u WPF `DataGrid`-u. Uhvaćeno u
+  `KarticaKontaView` (Faza 3.6); `KompenzacijeView`/`PutniNaloziView` su to već radile ispravno.
+  Pun opis i primer u `import-from-source-apps` skill fajlu.
+- **Pre nego što se otvori novoportovan ekran, proveri da li `ERPiApp/App.xaml` ima svaki
+  `StaticResource` koji ekran koristi** — App.xaml nije prenet 1:1 iz izvornih app-ova, pa
+  ekrani mogu graditi čisto (`dotnet build` ne hvata ovo) i puknuti tek pri otvaranju
+  (`XamlParseException: Cannot find resource named '...'`). Nađeno i ispravljeno za
+  `SearchTextBoxStyle`/`PrimaryButton` u Fazi 3.5–3.12 (i prateći `Helpers/SearchInputHelper.cs`
+  koji `SearchTextBoxStyle` zahteva). Detalji u `import-from-source-apps` skill fajlu.
 
 ---
 
@@ -126,6 +140,32 @@
   provereni čisti; sam čin obračuna/knjiženja kamate i IOS grupisanja kroz UI još nije vizuelno
   potvrđen — prvi sledeći rad na Partnerima/Finansijama neka to proveri.
 
+## 3d. Poznati nedostaci u Fazi 3.5–3.12 (primećeno u sesiji od 05.08.2026, ne blokira)
+
+- **`KontaView` još prikazuje legacy DBF kolone** (Stari konto, Ulica, Mesto, Žiro račun,
+  Telefon) preko cele širine grida — `import-from-source-apps` skill izričito kaže da se ova
+  polja izostave osim ako novoj šemi zaista trebaju (§ "Trim, don't transplant whole"). Nisu
+  uklonjena, samo primećena — sledeći rad na Kontnom planu neka proveri da li se ijedno od
+  njih zapravo koristi pre nego što ih ukloni ili svesno ostavi.
+- **`KontaView`'s toolbar dugmad ("+ Novi konto", "✏ Izmeni", "🗑 Obriši") su ikona+tekst**, što
+  je suprotno standardnom obrascu ovog projekta (toolbar akcije su ikona-samo + `ToolTip`, vidi
+  `IconButtonStyle` u `import-from-source-apps` skill fajlu). Primećeno vizuelno, nije
+  ispravljeno — proveriti i ostale novoportovane ekrane (Bilansi, Blagajna, Devizno, Izvodi,
+  Kompenzacije, MestaTroska, PutniNalozi) za isto odstupanje pre sledećeg rada na njima.
+- **Kartice konta, Bruto bilans, Bilans stanja/uspeha, Izvodi banke, Blagajna, Devizno,
+  Putni nalozi, Kompenzacije nisu vizuelno provereni end-to-end kroz UI** sa stvarnim
+  proknjiženim podacima — isti razlog kao napomena za `ZatvoriStavkeWindow`/`KamataWindow` u
+  §3a/§3b. Build je čist i `KarticaKontaView`-ov crash od otvaranja je ispravljen (vidi §2),
+  ali niko od ovih ekrana nije proveren dugme-po-dugme.
+- **Uvoz je testiran samo za osnovne entitete** (Konta, Partneri, Magacini, Artikli, Nalozi/
+  Stavke, Kalkulacije) — `ErpiFinansijeImporter` ne uvozi još Izvode/Blagajnu/Devizno/Putne
+  naloge/Kompenzacije/Robno-materijalno iz stare baze. Prava produkciona baza
+  (`firma_TESTNEW_ARHIBEL_NEW.db`) je uvezena u AUTOTEST i brojevi potvrđeni upitom nad bazom
+  (3207 konta, 4 partnera, 340 naloga, 5609 stavki, 134 magacina, 1369 artikala, 0 kalkulacija —
+  sve se poklapa sa izvorom), ali samo za taj osnovni skup.
+
+---
+
 ## 4. Testiranje
 
 - **`run-erpi-app`** (`ERPiApp/.claude/skills` i `.agents/skills`, mora ostati sinhronizovano
@@ -133,7 +173,9 @@
   (`%LocalAppData%\ERPi\Baze\AUTOTEST.db`). Screenshot ide preko UIA `BoundingRectangle`, ne
   golog `GetWindowRect` — na skaliranom ekranu (125%/150%) ovaj drugi tiho seče desnu/donju
   ivicu prozora bez greške; koštalo je vremena da se otkrije, ne vraćati taj "pojednostavljeni"
-  pristup.
+  pristup. **Korisnik sam testira kroz UI od avgusta 2026. — ne pokretati/voziti ovaj driver
+  samoinicijativno da bi se "prošetalo" kroz ekrane; koristiti ga samo ako korisnik izričito
+  traži screenshot ili automatizovan prolaz.**
 - **`ERPiData.Tests`** (xUnit) — automatizovani unit i integracioni testovi po uzoru na `ERPiFinansijeData.Tests` (EF Core In-Memory baza) za provere proračuna kalkulacija, uravnoteženosti naloga, zatvaranja stavki i modela.
 
 ---
@@ -170,19 +212,11 @@ Da bi `ERPi` u potpunosti zamenio `ERPiFinansije`, sve preostale funkcionalnosti
 
 ---
 
-## 4. Testiranje
-
-- **`run-erpi-app`** (`ERPiApp/.claude/skills` i `.agents/skills`, mora ostati sinhronizovano
-  u oba) — UI Automation driver, `--autologin` kroz fiksnu `AUTOTEST` firmu
-  (`%LocalAppData%\ERPi\Baze\AUTOTEST.db`). Screenshot ide preko UIA `BoundingRectangle`, ne
-  golog `GetWindowRect` — na skaliranom ekranu (125%/150%) ovaj drugi tiho seče desnu/donju
-  ivicu prozora bez greške; koštalo je vremena da se otkrije, ne vraćati taj "pojednostavljeni"
-  pristup.
-- **`ERPiData.Tests`** (xUnit) — automatizovani unit i integracioni testovi po uzoru na `ERPiFinansijeData.Tests` (EF Core In-Memory baza) za provere proračuna kalkulacija, uravnoteženosti naloga, zatvaranja stavki i modela.
-
----
-
 ## Sledeći koraci
 
-Nastavak razvoja po podfazama 3.5 do 3.12 za potpunu integraciju svih funkcionalnosti iz ERPiFinansije uERP-i, nakon čega sledi Faza 4 (Osnovna sredstva) i Faza 5 (Obračun zarada).
+Faze 3.5–3.12 su implementirane, commit-ovane i push-ovane na `origin/main` (05.08.2026).
+Sledeći rad treba da krene od §3d ("Poznati nedostaci u Fazi 3.5–3.12") pre nego što se ide
+dalje — najpre vizuelna provera novih ekrana (korisnik sam kroz UI, vidi §4), zatim čišćenje
+legacy kolona/dugmadi u `KontaView`. Tek posle toga: Faza 4 (Osnovna sredstva) i Faza 5
+(Obračun zarada).
 

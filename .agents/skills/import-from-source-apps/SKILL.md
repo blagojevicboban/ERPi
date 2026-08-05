@@ -67,6 +67,19 @@ ERPiFinansije's, same palette): `NavButtonStyle`, `ActionButtonStyle`, `Secondar
   IconButtonStyle}"`, `Content="➕"` etc.) — not icon+text like the source apps'
   `ActionButtonStyle` buttons. This is a standing preference for this project, not
   specific to one screen.
+- **`ERPiApp/App.xaml` does not yet carry every style the source apps' `App.xaml` defines** —
+  only what earlier phases actually needed got ported. If a copied screen's XAML references a
+  `StaticResource` key (e.g. `SearchTextBoxStyle`, `PrimaryButton`), grep `ERPiApp/App.xaml`
+  for that `x:Key` before assuming it exists; if missing, port the style (and any code-behind
+  helper it needs, e.g. `SearchTextBoxStyle` needs `Helpers/SearchInputHelper.cs` too, under
+  `ERPiApp.Helpers`) from the source app's `App.xaml`/`Helpers/` rather than reinventing it.
+  A missing resource throws `XamlParseException` ("Cannot find resource named '...'") the
+  moment the screen is opened — a clean `dotnet build` says nothing about it, only actually
+  opening the screen does. Caught in Faza 3.5–3.12 (`KontaView`, `KarticaKontaView`,
+  `BlagajnaView`, `UvozIzvodaWindow`); worth a quick
+  `grep -rohE 'StaticResource [A-Za-z0-9_]+' ERPiApp/Views | sort -u` vs `App.xaml`'s
+  `x:Key`s across the whole `Views` tree after any porting batch, not just the screen you're
+  testing by hand.
 - Master-detail list screens follow `NaloziView`'s layout: toolbar Border → list DataGrid
   Border → GridSplitter → detail DataGrid Border.
 - Edit dialogs follow `NalogEditWindow`'s layout: header fields Border → editable stavke
@@ -90,6 +103,21 @@ exist yet — `NullReferenceException`, crashes the whole app on first click. Se
 initial checked state in code-behind, after `InitializeComponent()`, instead. (Caught live
 in `NaloziView` while building Faza 3.1 — same bug class documented in ERPiFinansije's
 `run-accounting-app` skill.)
+
+**Never call a `LoadXxx()`/`Ucitaj()` loader directly from the constructor if it ends by
+setting `SomeDataGrid.SelectedIndex = 0`** (the common "auto-select the first row" pattern
+after populating a master list). Always defer it via `Loaded += (_, _) => LoadXxx();`
+instead. Reason it matters *more* here than in the source apps: the source apps'
+screens each open a **fresh** `AccountingDbContext`/connection inside the loader, which is
+slow enough that the `await` always genuinely suspends — by the time the continuation runs
+`SelectedIndex = 0`, the control is already attached to the visual tree. ERPi's screens
+instead reuse the single already-open `ErpiDbContext _db` passed into the constructor, so
+the same query can complete **synchronously**, meaning the whole chain
+(`LoadXxx → ApplyFilter → SelectedIndex = 0 → SelectionChanged → …`) can run to completion
+*while still inside the constructor*, before the `UserControl` is attached anywhere —
+`DataGrid.SelectedIndex` NREs internally in WPF when that happens. Caught live in
+`KarticaKontaView` (Faza 3.6); `KompenzacijeView` and `PutniNaloziView` already used the
+`Loaded +=` form correctly — copy their pattern, don't call the loader inline.
 
 ## After the model changes: migration, then build, then actually run it
 
