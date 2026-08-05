@@ -18,8 +18,8 @@
 | **3.2** | Partneri — CRUD (`PartneriView`/`PartnerEditWindow`) + otvorene stavke po kontu (MVP) | ✅ |
 | **3.2b** | `ZatvaranjeStavke` — ručno parovanje Duguje/Potražuje stavki, delimična zatvaranja, `ZatvoriStavkeWindow` | ✅ |
 | **3.2c** | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ✅ |
-| 3.3 | Magacin (kalkulacije, nivelacije, fakture) i PDV evidencija | ⬜ |
-| 3.4 | SEF e-Fakture i e-Fiskalizacija (PFR) | ⬜ |
+| **3.3** | Magacin (kalkulacije, šifarnici magacina/artikala, kalkulacija editor) i PDV evidencija (`PdvZapis`) | ✅ |
+| **3.4** | SEF e-Fakture (UBL 2.1 API) i e-Fiskalizacija (`PfrRacun`) | ✅ |
 | **4** | Osnovna sredstva | ⬜ |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | ⬜ |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
@@ -124,8 +124,7 @@
   golog `GetWindowRect` — na skaliranom ekranu (125%/150%) ovaj drugi tiho seče desnu/donju
   ivicu prozora bez greške; koštalo je vremena da se otkrije, ne vraćati taj "pojednostavljeni"
   pristup.
-- Nema još automatizovanih (xUnit) testova — `ERPiData.Tests` projekat tek treba napraviti, kad
-  se pojavi prvi netrivijalan servis vredan testiranja (npr. knjiženje ili uvoz).
+- **`ERPiData.Tests`** (xUnit) — automatizovani unit i integracioni testovi po uzoru na `ERPiFinansijeData.Tests` (EF Core In-Memory baza) za provere proračuna kalkulacija, uravnoteženosti naloga, zatvaranja stavki i modela.
 
 ---
 

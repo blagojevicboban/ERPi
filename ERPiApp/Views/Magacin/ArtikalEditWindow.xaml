@@ -1,0 +1,48 @@
+<Window x:Class="ERPiApp.Views.Magacin.ArtikalEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Artikal" Height="420" Width="480" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="130"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Šifra artikla:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtSifra" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Naziv artikla:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtNaziv" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Jedinica mere:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtJM" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10" Text="kom"/>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Barkod:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="3" Grid.Column="1" x:Name="TxtBarkod" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Nabavna cena:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtNabavnaCena" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10" Text="0.00"/>
+
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Prodajna cena:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtProdajnaCena" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10" Text="0.00"/>
+
+        <TextBlock Grid.Row="6" Grid.Column="0" Text="PDV stopa %:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="6" Grid.Column="1" x:Name="TxtPdvStopa" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10" Text="20"/>
+
+        <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="BtnSacuvaj" Content="Sačuvaj" Width="100" Height="34" Margin="0,0,10,0" Style="{StaticResource ActionButtonStyle}" Click="BtnSacuvaj_Click"/>
+            <Button x:Name="BtnOtkazi" Content="Otkaži" Width="90" Height="34" Style="{StaticResource SecondaryButton}" Click="BtnOtkazi_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

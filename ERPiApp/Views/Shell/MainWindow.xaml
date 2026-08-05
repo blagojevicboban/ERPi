@@ -78,10 +78,11 @@
                         <TextBlock Text="FINANSIJE I MAGACIN" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
                         <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Dnevnik glavne knjige — nalozi i stavke"/>
                         <RadioButton x:Name="BtnPartneri" Content="👥 Partneri" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Partneri i otvorene stavke po kontu"/>
+                        <RadioButton x:Name="BtnMagacin" Content="📦 Magacin i PDV" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije, magacini, šifarnik artikala i PDV"/>
+                        <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
 
-                        <!-- Ostatak Finansija (Magacin, PDV, SEF) i moduli Sredstva/Zarade dolaze u narednim podfazama -->
+                        <!-- Ostatak Finansija (SEF) i moduli Sredstva/Zarade dolaze u narednim podfazama -->
                         <TextBlock Text="USKORO" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="24,14,0,3"/>
-                        <TextBlock Text="Magacin i PDV" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
                         <TextBlock Text="Osnovna sredstva" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
                         <TextBlock Text="Obračun zarada" Foreground="#475569" FontSize="13" Margin="26,6,0,0"/>
                     </StackPanel>

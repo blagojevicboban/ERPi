@@ -3,6 +3,8 @@ using System.Windows.Input;
 using ERPiApp.Views.Finansije.Nalozi;
 using ERPiApp.Views.Finansije.Partneri;
 using ERPiApp.Views.Firma;
+using ERPiApp.Views.Magacin;
+using ERPiApp.Views.SefPfr;
 using ERPiData;
 
 namespace ERPiApp.Views.Shell;
@@ -51,6 +53,18 @@ public partial class MainWindow : Window
     {
         TxtHeaderTitle.Text = "👥 Partneri";
         MainContentHost.Content = new PartneriView(_db);
+    }
+
+    private void NavMagacin_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📦 Magacin i PDV evidencija";
+        MainContentHost.Content = new MagacinMainView(_db);
+    }
+
+    private void NavSefPfr_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📄 SEF e-Fakture i e-Fiskalizacija (PFR)";
+        MainContentHost.Content = new SefPfrMainView(_db);
     }
 
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();

@@ -1,0 +1,14 @@
+<UserControl x:Class="ERPiApp.Views.SefPfr.SefPfrMainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <TabControl x:Name="TabMainSefPfr" BorderThickness="0" Background="Transparent" SelectionChanged="TabMainSefPfr_SelectionChanged">
+            <TabItem Header="📄 SEF e-Fakture (UBL 2.1 API)">
+                <ContentControl x:Name="HostSefFakture"/>
+            </TabItem>
+            <TabItem Header="🧾 e-Fiskalizacija (PFR računi)">
+                <ContentControl x:Name="HostPfrRacuni"/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

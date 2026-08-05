@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using ERPiData.Models.Core;
 using ERPiData.Models.Finansije;
+using ERPiData.Models.Magacin;
 
 namespace ERPiData;
 
@@ -24,6 +25,14 @@ public class ErpiDbContext : DbContext
     public DbSet<StavkaNaloga> StavkeNaloga => Set<StavkaNaloga>();
     public DbSet<ZatvaranjeStavke> ZatvaranjaStavki => Set<ZatvaranjeStavke>();
     public DbSet<KamatnaStopa> KamatneStope => Set<KamatnaStopa>();
+
+    public DbSet<Magacin> Magacini => Set<Magacin>();
+    public DbSet<Artikal> Artikli => Set<Artikal>();
+    public DbSet<Kalkulacija> Kalkulacije => Set<Kalkulacija>();
+    public DbSet<StavkaKalkulacije> StavkeKalkulacije => Set<StavkaKalkulacije>();
+    public DbSet<PdvZapis> PdvZapisi => Set<PdvZapis>();
+    public DbSet<SefDokument> SefDokumenti => Set<SefDokument>();
+    public DbSet<PfrRacun> PfrRacuni => Set<PfrRacun>();
 
     /// <summary>
     /// Kreira DbContext nad zadatom SQLite bazom (jedna baza po firmi) i primenjuje EF Core
@@ -59,6 +68,38 @@ public class ErpiDbContext : DbContext
         modelBuilder.Entity<MestoTroska>()
             .HasIndex(m => m.Sifra)
             .IsUnique();
+
+        modelBuilder.Entity<Magacin>()
+            .HasIndex(m => m.SifraMagacina)
+            .IsUnique();
+
+        modelBuilder.Entity<Artikal>()
+            .HasIndex(a => a.SifraArtikla)
+            .IsUnique();
+
+        modelBuilder.Entity<Kalkulacija>()
+            .HasMany(k => k.Stavke)
+            .WithOne(s => s.Kalkulacija)
+            .HasForeignKey(s => s.KalkulacijaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Kalkulacija>()
+            .HasOne(k => k.Magacin)
+            .WithMany()
+            .HasForeignKey(k => k.MagacinId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Kalkulacija>()
+            .HasOne(k => k.Partner)
+            .WithMany()
+            .HasForeignKey(k => k.PartnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<StavkaKalkulacije>()
+            .HasOne(s => s.Artikal)
+            .WithMany()
+            .HasForeignKey(s => s.ArtikalId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Nalog>()
             .HasMany(n => n.Stavke)

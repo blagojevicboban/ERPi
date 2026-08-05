@@ -1,0 +1,17 @@
+<UserControl x:Class="ERPiApp.Views.Magacin.MagacinMainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <TabControl x:Name="TabMainMagacin" BorderThickness="0" Background="Transparent" SelectionChanged="TabMainMagacin_SelectionChanged">
+            <TabItem Header="📊 Ulazne kalkulacije">
+                <ContentControl x:Name="HostKalkulacije"/>
+            </TabItem>
+            <TabItem Header="📦 Šifarnik artikala">
+                <ContentControl x:Name="HostArtikli"/>
+            </TabItem>
+            <TabItem Header="🏭 Šifarnik magacina">
+                <ContentControl x:Name="HostMagacini"/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

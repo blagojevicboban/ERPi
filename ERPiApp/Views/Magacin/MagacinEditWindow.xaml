@@ -1,0 +1,40 @@
+<Window x:Class="ERPiApp.Views.Magacin.MagacinEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Magacin" Height="320" Width="450" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="130"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Šifra magacina:" VerticalAlignment="Center" Margin="0,0,0,12" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtSifra" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,12"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Naziv magacina:" VerticalAlignment="Center" Margin="0,0,0,12" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtNaziv" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,12"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Vrsta magacina:" VerticalAlignment="Center" Margin="0,0,0,12" FontWeight="SemiBold"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbVrsta" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,12">
+            <ComboBoxItem Content="Veleprodaja" IsSelected="True"/>
+            <ComboBoxItem Content="Maloprodaja"/>
+            <ComboBoxItem Content="Materijalni"/>
+        </ComboBox>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Odgovorno lice:" VerticalAlignment="Center" Margin="0,0,0,12" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="3" Grid.Column="1" x:Name="TxtOdgovornoLice" Height="32" VerticalContentAlignment="Center" Margin="0,0,0,12"/>
+
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="BtnSacuvaj" Content="Sačuvaj" Width="100" Height="34" Margin="0,0,10,0" Style="{StaticResource ActionButtonStyle}" Click="BtnSacuvaj_Click"/>
+            <Button x:Name="BtnOtkazi" Content="Otkaži" Width="90" Height="34" Style="{StaticResource SecondaryButton}" Click="BtnOtkazi_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

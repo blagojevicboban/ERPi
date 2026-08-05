@@ -3,6 +3,7 @@ using System;
 using ERPiData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERPiData.Migrations
 {
     [DbContext(typeof(ErpiDbContext))]
-    partial class ErpiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805074803_DodajMagacinIPdv")]
+    partial class DodajMagacinIPdv
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -460,112 +463,6 @@ namespace ERPiData.Migrations
                     b.ToTable("PdvZapisi");
                 });
 
-            modelBuilder.Entity("ERPiData.Models.Finansije.PfrRacun", b =>
-                {
-                    b.Property<int>("PfrRacunId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("BrojRacuna")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Datum")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Iznos")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("Napomena")
-                        .HasMaxLength(250)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("PartnerId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("PfrBroj")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("QrKodUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TipRacuna")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("PfrRacunId");
-
-                    b.HasIndex("PartnerId");
-
-                    b.ToTable("PfrRacuni");
-                });
-
-            modelBuilder.Entity("ERPiData.Models.Finansije.SefDokument", b =>
-                {
-                    b.Property<int>("SefDokumentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("BrojDokumenta")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CirId")
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DatumDokumenta")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("DatumSlanja")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("IznosPdv")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("Napomena")
-                        .HasMaxLength(250)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Osnovica")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("PartnerId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TipDokumenta")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UblXmlContent")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Ukupno")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.HasKey("SefDokumentId");
-
-                    b.HasIndex("PartnerId");
-
-                    b.ToTable("SefDokumenti");
-                });
-
             modelBuilder.Entity("ERPiData.Models.Finansije.StavkaNaloga", b =>
                 {
                     b.Property<int>("StavkaNalogaId")
@@ -873,24 +770,6 @@ namespace ERPiData.Migrations
                         .HasForeignKey("PartnerId");
 
                     b.Navigation("Nalog");
-
-                    b.Navigation("Partner");
-                });
-
-            modelBuilder.Entity("ERPiData.Models.Finansije.PfrRacun", b =>
-                {
-                    b.HasOne("ERPiData.Models.Core.Partner", "Partner")
-                        .WithMany()
-                        .HasForeignKey("PartnerId");
-
-                    b.Navigation("Partner");
-                });
-
-            modelBuilder.Entity("ERPiData.Models.Finansije.SefDokument", b =>
-                {
-                    b.HasOne("ERPiData.Models.Core.Partner", "Partner")
-                        .WithMany()
-                        .HasForeignKey("PartnerId");
 
                     b.Navigation("Partner");
                 });
