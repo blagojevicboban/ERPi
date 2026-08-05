@@ -165,4 +165,9 @@ public partial class KontaView : UserControl
             MessageBox.Show($"Greška pri brisanju konta: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+    {
+        ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(DgKonta, "Kontni_Plan", "Konta");
+    }
 }

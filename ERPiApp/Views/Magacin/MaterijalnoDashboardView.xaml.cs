@@ -68,8 +68,8 @@ public partial class MaterijalnoDashboardView : UserControl
     {
         try
         {
-            // ===== VREDNOST ZALIHA MATERIJALA =====
-            var bilansRedovi = await RobniBrutoBilansService.GetMaterijalniBrutoBilansAsync(_db);
+            var bilansService = new RobniBrutoBilansService(_db);
+            var bilansRedovi = await bilansService.GetMaterijalniBrutoBilansAsync();
 
             decimal vrednostUkupno = bilansRedovi.Sum(r => r.SaldoVrednosni);
             int brojMaterijala = bilansRedovi
@@ -142,6 +142,12 @@ public partial class MaterijalnoDashboardView : UserControl
     private void BtnNovoTrebovanje_Click(object sender, RoutedEventArgs e)
     {
         var dijalog = new TrebovanjeEditWindow(_db) { Owner = Window.GetWindow(this) };
+        if (dijalog.ShowDialog() == true) LoadData();
+    }
+
+    private void BtnNovaPrimopredaja_Click(object sender, RoutedEventArgs e)
+    {
+        var dijalog = new PrimopredajaEditWindow(_db) { Owner = Window.GetWindow(this) };
         if (dijalog.ShowDialog() == true) LoadData();
     }
 

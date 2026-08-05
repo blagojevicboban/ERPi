@@ -34,6 +34,7 @@
                     <WrapPanel Grid.Column="1" VerticalAlignment="Center">
                         <Button x:Name="BtnNoviUlaz" Content="📥 Novi ulaz" Style="{StaticResource ActionButtonStyle}" Height="36" Padding="14,0" Margin="0,0,10,6" Click="BtnNoviUlaz_Click"/>
                         <Button x:Name="BtnNovoTrebovanje" Content="📤 Novo trebovanje" Style="{StaticResource ActionButtonStyle}" Height="36" Padding="14,0" Margin="0,0,10,6" Background="#7C3AED" Click="BtnNovoTrebovanje_Click"/>
+                        <Button x:Name="BtnNovaPrimopredaja" Content="🔄 Nova primopredaja" Style="{StaticResource ActionButtonStyle}" Height="36" Padding="14,0" Margin="0,0,10,6" Background="#2563EB" Click="BtnNovaPrimopredaja_Click"/>
                     </WrapPanel>
                 </Grid>
             </Border>

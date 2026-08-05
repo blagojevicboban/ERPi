@@ -124,4 +124,25 @@ public partial class KalkulacijeView : UserControl
             }
         }
     }
+
+    private async void BtnStampajPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgKalkulacije.SelectedItem is not Kalkulacija selektovana)
+        {
+            MessageBox.Show("Izaberite kalkulaciju za štampu.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            MessageBox.Show($"Priprema PDF štampanog dokumenta za kalkulaciju br. {selektovana.BrojKalkulacije}...", "PDF Štampa", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju PDF štampanog dokumenta: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        => Services.ExcelExportService.ExportDataGridToExcel(DgKalkulacije, "Ulazne_Kalkulacije", "Kalkulacije");
 }

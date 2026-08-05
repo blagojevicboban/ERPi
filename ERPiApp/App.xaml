@@ -171,8 +171,9 @@
             </Setter>
         </Style>
 
-        <!-- Alias za ActionButtonStyle — neki noviji ekrani (portovani iz ERPiFinansije) koriste ovo ime -->
+        <!-- Aliasi za ActionButtonStyle — noviji ekrani (portovani iz ERPiFinansije) koriste ova imena -->
         <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}"/>
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}"/>
 
         <Style x:Key="SecondaryButton" TargetType="Button">
             <Setter Property="Height" Value="36"/>

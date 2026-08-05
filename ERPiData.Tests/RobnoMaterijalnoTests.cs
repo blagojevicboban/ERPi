@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using ERPiData;
+using ERPiData.Models.Core;
 using ERPiData.Models.Magacin;
 using ERPiData.Services;
 using Microsoft.EntityFrameworkCore;
@@ -120,4 +121,190 @@ public class RobnoMaterijalnoTests
         Assert.Equal(50m, stanjeVraceno);
         Assert.Equal(2000m, saldoVraceno);
     }
+
+    [Fact]
+    public async Task PrimopredajaService_KnjizenjeIRasknjizenje_PrenosiZaliheIzmedjuMagacina()
+    {
+        using var db = CreateInMemoryDb();
+        var magDaje = new Magacin { SifraMagacina = "MAG1", NazivMagacina = "Magacin 1", VrstaMagacina = "Veleprodaja" };
+        var magPrima = new Magacin { SifraMagacina = "MAG2", NazivMagacina = "Magacin 2", VrstaMagacina = "Veleprodaja" };
+        var materijal = new Materijal { SifraArtikla = "M100", Naziv = "Bakarni kabl", JedinicaMere = "m" };
+        db.Magacini.AddRange(magDaje, magPrima);
+        db.Materijali.Add(materijal);
+        await db.SaveChangesAsync();
+
+        var kartice = new MaterijalnaKarticaService(db);
+        await kartice.DodajUlazRedAsync(magDaje.SifraMagacina, materijal.SifraArtikla, DateTime.Today, "Prijem u MAG1", 100m, 50m);
+
+        var primopredaja = new PrimopredajaNalog
+        {
+            BrojNaloga = 1,
+            Datum = DateTime.Today,
+            MagacinIdDaje = magDaje.MagacinId,
+            MagacinIdPrima = magPrima.MagacinId
+        };
+        primopredaja.Stavke.Add(new PrimopredajaStavka
+        {
+            RedniBroj = 1,
+            MaterijalId = materijal.MaterijalId,
+            Kolicina = 30m
+        });
+
+        var service = new PrimopredajaService(db);
+        await service.SavePrimopredajuAsync(primopredaja);
+        await service.KnjiziPrimopredajuAsync(primopredaja.PrimopredajaNalogId);
+
+        var (stanjeDaje, saldoDaje) = await kartice.GetTrenutnoStanjeAsync(magDaje.SifraMagacina, materijal.SifraArtikla);
+        Assert.Equal(70m, stanjeDaje);
+        Assert.Equal(3500m, saldoDaje);
+
+        var (stanjePrima, saldoPrima) = await kartice.GetTrenutnoStanjeAsync(magPrima.SifraMagacina, materijal.SifraArtikla);
+        Assert.Equal(30m, stanjePrima);
+        Assert.Equal(1500m, saldoPrima);
+
+        // Rasknjižavanje primopredaje
+        await service.RasknjiziPrimopredajuAsync(primopredaja.PrimopredajaNalogId);
+        var (stanjeDajeVraceno, _) = await kartice.GetTrenutnoStanjeAsync(magDaje.SifraMagacina, materijal.SifraArtikla);
+        Assert.Equal(100m, stanjeDajeVraceno);
+
+        var (stanjePrimaVraceno, _) = await kartice.GetTrenutnoStanjeAsync(magPrima.SifraMagacina, materijal.SifraArtikla);
+        Assert.Equal(0m, stanjePrimaVraceno);
+    }
+
+    [Fact]
+    public async Task RacunOtpremnicaService_Knjizenje_RazduzujeKarticuIKreiraNalogProdaje()
+    {
+        using var db = CreateInMemoryDb();
+        var magacin = new Magacin { SifraMagacina = "VP1", NazivMagacina = "Veleprodajni magacin", VrstaMagacina = "Veleprodaja" };
+        var partner = new Partner { SifraPartnera = "P001", Naziv = "Kupac Test D.O.O." };
+        var artikal = new Artikal { SifraArtikla = "A001", Naziv = "Televizor 55\"", JedinicaMere = "kom", ProdajnaCena = 60000m };
+        var kontoKupci = new Konto { BrojKonta = "2040", NazivKonta = "Kupci u zemlji" };
+        var kontoPrihod = new Konto { BrojKonta = "6120", NazivKonta = "Prihodi od prodaje robe na domaćem tržištu" };
+        var kontoPdv = new Konto { BrojKonta = "4700", NazivKonta = "Obračunati PDV" };
+
+        db.Magacini.Add(magacin);
+        db.Partneri.Add(partner);
+        db.Artikli.Add(artikal);
+        db.Konta.AddRange(kontoKupci, kontoPrihod, kontoPdv);
+        await db.SaveChangesAsync();
+
+        var kartice = new MaterijalnaKarticaService(db);
+        await kartice.DodajUlazRedAsync(magacin.SifraMagacina, artikal.SifraArtikla, DateTime.Today, "Početna zaliha", 10m, 40000m);
+
+        var racun = new RacunOtpremnica
+        {
+            BrojRacuna = 1001,
+            DatumRacuna = DateTime.Today,
+            PartnerId = partner.PartnerId,
+            MagacinId = magacin.MagacinId,
+            KontoKupcaId = kontoKupci.KontoId
+        };
+        racun.Stavke.Add(new RacunOtpremnicaStavka
+        {
+            RedniBroj = 1,
+            ArtikalId = artikal.ArtikalId,
+            Kolicina = 2m,
+            ProdajnaCena = 60000m,
+            StopaPdv = 20m
+        });
+
+        var service = new RacunOtpremnicaService(db);
+        await service.SaveRacunAsync(racun);
+
+        Assert.Equal(120000m, racun.UkupnoOsnovica);
+        Assert.Equal(24000m, racun.UkupnoPdv);
+        Assert.Equal(144000m, racun.UkupnoZaUplatu);
+
+        await service.KnjiziRacunAsync(racun.RacunOtpremnicaId);
+
+        var osvezenRacun = await service.GetRacunByIdAsync(racun.RacunOtpremnicaId);
+        Assert.NotNull(osvezenRacun);
+        Assert.True(osvezenRacun!.IsKnjizen);
+        Assert.NotNull(osvezenRacun.NalogId);
+    }
+
+    [Fact]
+    public async Task NivelacijaService_Knjizenje_AzuriraCenuArtiklaIKreiraNalog()
+    {
+        using var db = CreateInMemoryDb();
+        var magacin = new Magacin { SifraMagacina = "MAG1", NazivMagacina = "Glavni magacin", VrstaMagacina = "Veleprodaja" };
+        var artikal = new Artikal { SifraArtikla = "A002", Naziv = "Frižider", ProdajnaCena = 50000m };
+        var kontoRoba = new Konto { BrojKonta = "1320", NazivKonta = "Roba u magacinu" };
+        var kontoRazlika = new Konto { BrojKonta = "1329", NazivKonta = "Razlika u ceni" };
+
+        db.Magacini.Add(magacin);
+        db.Artikli.Add(artikal);
+        db.Konta.AddRange(kontoRoba, kontoRazlika);
+        await db.SaveChangesAsync();
+
+        var nivelacija = new NivelacijaCena
+        {
+            BrojNivelacije = 1,
+            DatumNivelacije = DateTime.Today,
+            MagacinId = magacin.MagacinId,
+            Opis = "Povećanje cena radijatora"
+        };
+        nivelacija.Stavke.Add(new NivelacijaStavka
+        {
+            RedniBroj = 1,
+            ArtikalId = artikal.ArtikalId,
+            KolicinaZaliha = 5m,
+            StaraCena = 50000m,
+            NovaCena = 55000m,
+            RazlikaPoJedinici = 5000m,
+            UkupnaRazlika = 25000m
+        });
+
+        var service = new NivelacijaService(db);
+        await service.SaveNivelacijaAsync(nivelacija);
+        await service.KnjiziNivelacijuAsync(nivelacija.NivelacijaCenaId);
+
+        var osvezena = await service.GetNivelacijaByIdAsync(nivelacija.NivelacijaCenaId);
+        Assert.NotNull(osvezena);
+        Assert.True(osvezena!.IsKnjizen);
+        Assert.Equal(55000m, artikal.ProdajnaCena);
+    }
+
+    [Fact]
+    public async Task UvoznaKalkulacijaService_ProracunZavisnihTroskova_RacunaPraspedicijuICarinu()
+    {
+        using var db = CreateInMemoryDb();
+        var inoPartner = new Partner { SifraPartnera = "INO1", Naziv = "Ino Supplier GMBH" };
+        var magacin = new Magacin { SifraMagacina = "UVOZ1", NazivMagacina = "Carinsko skladište" };
+        var artikal = new Artikal { SifraArtikla = "IMP1", Naziv = "Mašina za pakovanje" };
+
+        db.Partneri.Add(inoPartner);
+        db.Magacini.Add(magacin);
+        db.Artikli.Add(artikal);
+        await db.SaveChangesAsync();
+
+        var uvoz = new UvoznaKalkulacija
+        {
+            BrojKalkulacije = "UV-2026-01",
+            DatumKalkulacije = DateTime.Today,
+            InoPartnerId = inoPartner.PartnerId,
+            InoBrojFakture = "INV-99",
+            Valuta = "EUR",
+            KursValute = 117m,
+            SpedicijaRsd = 10000m,
+            PrevozRsd = 20000m,
+            MagacinId = magacin.MagacinId
+        };
+        uvoz.Stavke.Add(new UvoznaStavka
+        {
+            ArtikalId = artikal.ArtikalId,
+            Kolicina = 10m,
+            InoCenaDevize = 100m,
+            CarinaProcenat = 10m
+        });
+
+        var service = new UvoznaKalkulacijaService(db);
+        await service.SaveUvozAsync(uvoz);
+
+        Assert.Equal(1000m, uvoz.UkupnoDevize);
+        Assert.Equal(117000m, uvoz.UkupnoFakturaRsd);
+        Assert.Equal(11700m, uvoz.CarinaRsd);
+        Assert.Equal(158700m, uvoz.UkupnaNabavnaVrednostRsd); // 117000 + 11700 + 30000
+    }
 }
+

@@ -1,6 +1,10 @@
 <UserControl x:Class="ERPiApp.Views.Finansije.Nalozi.NaloziView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="1100">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -9,42 +13,58 @@
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
 
-        <!-- TOOLBAR -->
         <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16,12" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,2,16,2">
                     <TextBlock Text="Pretraga:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
-                    <TextBox x:Name="TxtPretraga" Width="180" Height="34" VerticalContentAlignment="Center" Padding="8,0" TextChanged="TxtPretraga_TextChanged" Margin="0,0,16,0"/>
+                    <TextBox x:Name="TxtPretraga" Style="{StaticResource SearchTextBoxStyle}" Width="180" Height="34" TextChanged="TxtPretraga_TextChanged"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <RadioButton x:Name="RbSviNalozi" Content="Svi" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,8,0" Checked="Filter_Changed"/>
+                        <RadioButton x:Name="RbProknjizeni" Content="Proknjiženi" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,8,0" Checked="Filter_Changed"/>
+                        <RadioButton x:Name="RbNeproknjizeni" Content="Neproknjiženi" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,0,0" Checked="Filter_Changed"/>
+                    </StackPanel>
+                </WrapPanel>
 
-                    <RadioButton x:Name="RbSvi" Content="Svi" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,8,0" Checked="Filter_Changed"/>
-                    <RadioButton x:Name="RbNacrt" Content="Nacrt" GroupName="StatusFilter" VerticalAlignment="Center" Margin="0,0,8,0" Checked="Filter_Changed"/>
-                    <RadioButton x:Name="RbProknjizeni" Content="Proknjiženi" GroupName="StatusFilter" VerticalAlignment="Center" Checked="Filter_Changed"/>
-                </StackPanel>
-
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="BtnNoviNalog" Content="➕" Style="{StaticResource IconButtonStyle}" ToolTip="Nov nalog" Click="BtnNoviNalog_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnIzmeniNalog" Content="✏️" Style="{StaticResource IconButtonStyle}" ToolTip="Izmeni izabrani nalog (samo nacrt)" Click="BtnIzmeniNalog_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnObrisiNalog" Content="🗑️" Style="{StaticResource IconButtonStyle}" ToolTip="Obriši izabrani nalog (samo nacrt)" Click="BtnObrisiNalog_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnProknjizi" Content="✅" Style="{StaticResource IconButtonStyle}" ToolTip="Proknjiži izabrani nalog" Click="BtnProknjizi_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnRasknjizi" Content="🔓" Style="{StaticResource IconButtonStyle}" ToolTip="Rasknjiži izabrani nalog" Click="BtnRasknjizi_Click"/>
-                </StackPanel>
+                <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnNoviNalog" Content="➕ Novi nalog" Style="{StaticResource PrimaryButtonStyle}" Margin="0,2,6,2" ToolTip="Kreiraj novi nalog za knjiženje (F2)" Click="BtnNoviNalog_Click"/>
+                    <Button x:Name="BtnIzmeniNalog" Content="✏️ Izmeni" Style="{StaticResource PrimaryButtonStyle}" Background="#D97706" Margin="0,2,6,2" ToolTip="Izmeni izabrani nalog" Click="BtnIzmeniNalog_Click"/>
+                    <Button x:Name="BtnProknjizi" Content="✅ Proknjiži" Style="{StaticResource PrimaryButtonStyle}" Background="#10B981" Margin="0,2,6,2" ToolTip="Proknjiži izabrani nalog u glavnu knjigu" Click="BtnProknjizi_Click"/>
+                    <Button x:Name="BtnProknjiziSve" Content="⚡ Proknjiži sve" Style="{StaticResource PrimaryButtonStyle}" Background="#059669" Margin="0,2,6,2" ToolTip="Masovno proknjiži sve neproknjižene naloge" Click="BtnProknjiziSve_Click"/>
+                    <Button x:Name="BtnRasknjizi" Content="🔓 Rasknjiži" Style="{StaticResource PrimaryButtonStyle}" Background="#DC2626" Margin="0,2,6,2" ToolTip="Rasknjiži izabrani nalog" Click="BtnRasknjizi_Click"/>
+                    <Button x:Name="BtnPreknjizavanje" Content="🔄 Preknjižavanje" Style="{StaticResource PrimaryButtonStyle}" Background="#7C3AED" Margin="0,2,6,2" ToolTip="Preknjižavanje stavki sa konta na konto" Click="BtnPreknjizavanje_Click"/>
+                    <Button x:Name="BtnNapredniFilter" Content="⚙️ Napredni filter" Style="{StaticResource PrimaryButtonStyle}" Background="#4F46E5" Margin="0,2,6,2" ToolTip="Napredna pretraga nalozi po datumu, vrsti i opisu" Click="BtnNapredniFilter_Click"/>
+                    <Button x:Name="BtnUvozIzvoda" Content="🏦 Uvoz izvoda" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Margin="0,2,6,2" ToolTip="Uvoz bankarskih izvoda u naloge" Click="BtnUvozIzvoda_Click"/>
+                    <Button x:Name="BtnUvozZarada" Content="📒 Uvoz zarada" Style="{StaticResource PrimaryButtonStyle}" Background="#0EA5E9" Margin="0,2,6,2" ToolTip="Uvoz naloga za knjiženje koji je napravio ERPiZarade" Click="BtnUvozZarada_Click"/>
+                    <Button x:Name="BtnStampa" Content="🖨️" Style="{StaticResource PrimaryButtonStyle}" Background="#4F46E5" Width="36" Padding="0" ToolTip="Štampaj nalog u PDF" Margin="0,2,6,2" Click="BtnStampa_Click"/>
+                    <Button x:Name="BtnExportExcelNalozi" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource PrimaryButtonStyle}" Background="#059669" Width="36" Padding="0" ToolTip="Izvoz naloga u Excel" Margin="0,2,6,2" Click="BtnExportExcelNalozi_Click"/>
+                    <Separator Width="1" Height="24" Background="{StaticResource BorderBrush}" Margin="2,4,8,4"/>
+                    <Button x:Name="BtnNovaGodina" Content="📅 Nova godina" Style="{StaticResource PrimaryButtonStyle}" Background="#0F172A" Margin="0,2,6,2" ToolTip="Otvaranje početnog stanja i nove poslovne godine" Click="BtnNovaGodina_Click"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
 
-        <!-- LISTA NALOGA -->
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
             <DockPanel>
                 <TextBlock Text="📖 Nalozi za knjiženje (Glavna knjiga)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
-                <DataGrid x:Name="DgNalozi" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal"
-                          HeadersVisibility="Column" Background="Transparent" BorderThickness="0"
-                          SelectionChanged="DgNalozi_SelectionChanged" MouseDoubleClick="DgNalozi_MouseDoubleClick">
+                <DataGrid x:Name="DgNalozi" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" SelectionChanged="DgNalozi_SelectionChanged" MouseDoubleClick="DgNalozi_MouseDoubleClick">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu x:Name="CmNalozi">
+                            <MenuItem Header="➕ Novi nalog" Click="BtnNoviNalog_Click"/>
+                            <MenuItem x:Name="CmiIzmeni" Header="✏️ Izmeni" Click="BtnIzmeniNalog_Click"/>
+                            <Separator/>
+                            <MenuItem x:Name="CmiProknjizi" Header="✅ Proknjiži" Click="BtnProknjizi_Click"/>
+                            <MenuItem x:Name="CmiRasknjizi" Header="🔓 Rasknjiži" Click="BtnRasknjizi_Click"/>
+                            <Separator/>
+                            <MenuItem Header="🖨️ Štampa" Click="BtnStampa_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Br. naloga" Binding="{Binding BrojNaloga}" Width="100"/>
+                        <DataGridTextColumn x:Name="ColBrojNaloga" Header="Br. naloga" Binding="{Binding BrojNaloga}" Width="100"/>
                         <DataGridTextColumn Header="Datum" Binding="{Binding DatumNaloga, StringFormat=\{0:dd.MM.yyyy\}}" Width="110"/>
                         <DataGridTextColumn Header="Vrsta" Binding="{Binding VrstaNaloga}" Width="120"/>
                         <DataGridTextColumn Header="Opis" Binding="{Binding Opis}" Width="*"/>
-                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding UkupnoDuguje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
-                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding UkupnoPotrazuje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding UkupnoDuguje, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding UkupnoPotrazuje, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                     </DataGrid.Columns>
                 </DataGrid>
@@ -53,18 +73,17 @@
 
         <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="#E2E8F0"/>
 
-        <!-- STAVKE IZABRANOG NALOGA -->
         <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="16" Margin="0,16,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
             <DockPanel>
-                <TextBlock Text="📋 Stavke naloga" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
+                <TextBlock x:Name="TxtDetailHeader" Text="📋 Stavke naloga" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,12"/>
                 <DataGrid x:Name="DgStavke" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="R.br." Binding="{Binding RedniBroj}" Width="60"/>
-                        <DataGridTextColumn Header="Konto" Binding="{Binding Konto.Prikaz}" Width="220"/>
-                        <DataGridTextColumn Header="Partner" Binding="{Binding Partner.Naziv}" Width="160"/>
-                        <DataGridTextColumn Header="Opis" Binding="{Binding Opis}" Width="*"/>
-                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding Duguje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
-                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding Potrazuje, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Konto" Binding="{Binding Konto.Prikaz}" Width="180"/>
+                        <DataGridTextColumn Header="Partner" Binding="{Binding Partner.Naziv}" Width="150"/>
+                        <DataGridTextColumn Header="Dokument / Opis" Binding="{Binding Opis}" Width="*"/>
+                        <DataGridTextColumn Header="Duguje (RSD)" Binding="{Binding Duguje, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        <DataGridTextColumn Header="Potražuje (RSD)" Binding="{Binding Potrazuje, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

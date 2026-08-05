@@ -54,8 +54,11 @@ public class ErpiDbContext : DbContext
     public DbSet<PrimopredajaNalog> PrimopredajaNalozi => Set<PrimopredajaNalog>();
     public DbSet<PrimopredajaStavka> PrimopredajaStavke => Set<PrimopredajaStavka>();
     public DbSet<PdvZapis> PdvZapisi => Set<PdvZapis>();
+    public DbSet<DokumentPrilog> DokumentiPrilozi => Set<DokumentPrilog>();
     public DbSet<SefDokument> SefDokumenti => Set<SefDokument>();
     public DbSet<PfrRacun> PfrRacuni => Set<PfrRacun>();
+    public DbSet<RacunOtpremnica> RacuniOtpremnice => Set<RacunOtpremnica>();
+    public DbSet<RacunOtpremnicaStavka> RacunOtpremnicaStavke => Set<RacunOtpremnicaStavka>();
 
     // ── Zarade ────────────────────────────────────────────────────────
     public DbSet<Radnik> Radnici => Set<Radnik>();
@@ -116,7 +119,77 @@ public class ErpiDbContext : DbContext
         {
             // Fallback za obvijene izuzetke
         }
+
+        EnsureDbSchemaUpdated(ctx);
         return ctx;
+    }
+
+    public static void EnsureDbSchemaUpdated(ErpiDbContext ctx)
+    {
+        try
+        {
+            var connection = ctx.Database.GetDbConnection();
+            bool wasOpen = connection.State == System.Data.ConnectionState.Open;
+            if (!wasOpen) connection.Open();
+
+            using (var cmd = connection.CreateCommand())
+            {
+                // 1. Provera RacuniOtpremnice
+                cmd.CommandText = "PRAGMA table_info(RacuniOtpremnice);";
+                var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        existingColumns.Add(reader.GetString(1));
+                    }
+                }
+
+                if (existingColumns.Count > 0)
+                {
+                    EnsureColumn(connection, "RacuniOtpremnice", "FiskalniBroj", "TEXT NULL", existingColumns);
+                    EnsureColumn(connection, "RacuniOtpremnice", "FiskalniQrKod", "TEXT NULL", existingColumns);
+                    EnsureColumn(connection, "RacuniOtpremnice", "FiskalniDatum", "TEXT NULL", existingColumns);
+                    EnsureColumn(connection, "RacuniOtpremnice", "BrojOtpremnice", "TEXT NULL", existingColumns);
+                    EnsureColumn(connection, "RacuniOtpremnice", "KontoKupcaId", "INTEGER NULL", existingColumns);
+                    EnsureColumn(connection, "RacuniOtpremnice", "RokPlacanjaDana", "INTEGER NOT NULL DEFAULT 15", existingColumns);
+                    EnsureColumn(connection, "RacuniOtpremnice", "NacinPlacanja", "TEXT NULL", existingColumns);
+                }
+
+                // 2. Provera StavkeNaloga
+                cmd.CommandText = "PRAGMA table_info(StavkeNaloga);";
+                existingColumns.Clear();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        existingColumns.Add(reader.GetString(1));
+                    }
+                }
+
+                if (existingColumns.Count > 0)
+                {
+                    EnsureColumn(connection, "StavkeNaloga", "Osnovica", "TEXT NULL", existingColumns);
+                    EnsureColumn(connection, "StavkeNaloga", "StopaPdv", "TEXT NULL", existingColumns);
+                }
+            }
+
+            if (!wasOpen) connection.Close();
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Greška pri sinhronizaciji šeme baze: {ex.Message}");
+        }
+    }
+
+    private static void EnsureColumn(System.Data.Common.DbConnection conn, string table, string column, string columnDef, HashSet<string> existing)
+    {
+        if (!existing.Contains(column))
+        {
+            using var alterCmd = conn.CreateCommand();
+            alterCmd.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {columnDef};";
+            alterCmd.ExecuteNonQuery();
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -168,6 +241,18 @@ public class ErpiDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<StavkaKalkulacije>()
+            .HasOne(s => s.Artikal)
+            .WithMany()
+            .HasForeignKey(s => s.ArtikalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<RacunOtpremnica>()
+            .HasMany(r => r.Stavke)
+            .WithOne(s => s.RacunOtpremnica)
+            .HasForeignKey(s => s.RacunOtpremnicaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RacunOtpremnicaStavka>()
             .HasOne(s => s.Artikal)
             .WithMany()
             .HasForeignKey(s => s.ArtikalId)

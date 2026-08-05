@@ -94,6 +94,55 @@ public class ZatvaranjeStavkiService
             .ToList();
     }
 
+    public async Task<List<OtvorenaStavkaRed>> GetOtvoreneStavkeZaKontoAsync(
+        string brojKonta, DateTime? naDan = null, bool samoOtvorene = true)
+    {
+        var granicniDatum = naDan ?? DateTime.Now;
+
+        var stavke = await _db.StavkeNaloga
+            .Include(s => s.Nalog)
+            .Include(s => s.Konto)
+            .Where(s => s.PartnerId == null && s.Konto != null && s.Konto.BrojKonta == brojKonta && s.Nalog != null &&
+                s.Nalog.Status == StatusNaloga.Proknjizen && s.Nalog.DatumNaloga <= granicniDatum)
+            .ToListAsync();
+
+        var stavkaIds = stavke.Select(s => s.StavkaNalogaId).ToList();
+
+        var zatvaranja = await _db.ZatvaranjaStavki
+            .Where(z => (stavkaIds.Contains(z.StavkaDugujeId) || stavkaIds.Contains(z.StavkaPotrazujeId))
+                && z.DatumZatvaranja <= granicniDatum)
+            .ToListAsync();
+
+        var zatvorenoPoDuguje = zatvaranja.GroupBy(z => z.StavkaDugujeId).ToDictionary(g => g.Key, g => g.Sum(z => z.Iznos));
+        var zatvorenoPoPotrazuje = zatvaranja.GroupBy(z => z.StavkaPotrazujeId).ToDictionary(g => g.Key, g => g.Sum(z => z.Iznos));
+
+        var rezultat = new List<OtvorenaStavkaRed>();
+
+        foreach (var s in stavke)
+        {
+            if (s.Duguje > 0)
+            {
+                decimal zatvoreno = zatvorenoPoDuguje.TryGetValue(s.StavkaNalogaId, out var z1) ? z1 : 0m;
+                rezultat.Add(NapraviRed(s, "Duguje", s.Duguje, zatvoreno, granicniDatum));
+            }
+            if (s.Potrazuje > 0)
+            {
+                decimal zatvoreno = zatvorenoPoPotrazuje.TryGetValue(s.StavkaNalogaId, out var z2) ? z2 : 0m;
+                rezultat.Add(NapraviRed(s, "Potrazuje", s.Potrazuje, zatvoreno, granicniDatum));
+            }
+        }
+
+        if (samoOtvorene)
+        {
+            rezultat = rezultat.Where(r => r.Status != "Zatvoreno").ToList();
+        }
+
+        return rezultat
+            .OrderBy(r => r.ValutaDospela ?? r.Datum)
+            .ThenBy(r => r.Datum)
+            .ToList();
+    }
+
     /// <summary>Deljena formula preostalog iznosa/statusa.</summary>
     public static (decimal Preostalo, string Status) IzracunajPreostaloIStatus(decimal originalniIznos, decimal zatvoreno)
     {
@@ -198,7 +247,7 @@ public class ZatvaranjeStavkiService
     /// Otkazuje (briše) postojeće zatvaranje — preostali iznos obe povezane stavke se automatski
     /// "vraća" jer se uvek iznova izračunava iz agregacije ZatvaranjeStavke.
     /// </summary>
-    public async Task<bool> OtkaziZatvaranjeAsync(int zatvaranjeStavkeId)
+    public async Task<bool> OtkaziZatvaranjeAsync(int zatvaranjeStavkeId, int? korisnikId = null, string? korisnickoIme = null)
     {
         var zatvaranje = await _db.ZatvaranjaStavki.FindAsync(zatvaranjeStavkeId);
         if (zatvaranje == null) return false;
@@ -222,100 +271,4 @@ public class ZatvaranjeStavkiService
             .OrderByDescending(z => z.DatumZatvaranja)
             .ToListAsync();
     }
-
-    /// <summary>
-    /// IOS izveštaj za SVE partnere odjednom (Faza 3.2c) — ista logika preostalog iznosa/statusa
-    /// kao <see cref="GetOtvoreneStavkeZaPartneraAsync"/>, samo u jednom prolazu grupisano po
-    /// partneru umesto da se poziva po jednom partneru. Skraćeno u odnosu na
-    /// ERPiFinansijeData.OtvoreneStavkeService.GetIosIzvestajAsync: bez "sintetički partner"
-    /// grane (ovde PartnerId nema legacy DBF razlog da izostane — stavke bez partnera su prosto
-    /// van dometa ovog izveštaja, isto kao i u GetOtvoreneStavkeZaPartneraAsync) i bez opcionog
-    /// koristiZatvaranje prekidača (ovde je zatvaranje uvek dostupno, nije naknadna nadogradnja).
-    /// </summary>
-    public async Task<List<IosPartnerGrupa>> GetIosIzvestajAsync(
-        DateTime? naDan = null, string? kontoPrefix = null, bool samoOtvorene = true)
-    {
-        var granicniDatum = naDan ?? DateTime.Now;
-
-        var upit = _db.StavkeNaloga
-            .Include(s => s.Nalog)
-            .Include(s => s.Konto)
-            .Include(s => s.Partner)
-            .Where(s => s.PartnerId != null && s.Nalog != null &&
-                s.Nalog.Status == StatusNaloga.Proknjizen && s.Nalog.DatumNaloga <= granicniDatum);
-
-        if (!string.IsNullOrWhiteSpace(kontoPrefix))
-        {
-            var prefix = kontoPrefix.Trim();
-            upit = upit.Where(s => s.Konto != null && s.Konto.BrojKonta.StartsWith(prefix));
-        }
-
-        var stavke = await upit.ToListAsync();
-
-        var stavkaIds = stavke.Select(s => s.StavkaNalogaId).ToList();
-        var zatvaranja = await _db.ZatvaranjaStavki
-            .Where(z => (stavkaIds.Contains(z.StavkaDugujeId) || stavkaIds.Contains(z.StavkaPotrazujeId))
-                && z.DatumZatvaranja <= granicniDatum)
-            .ToListAsync();
-        var zatvorenoPoDuguje = zatvaranja.GroupBy(z => z.StavkaDugujeId).ToDictionary(g => g.Key, g => g.Sum(z => z.Iznos));
-        var zatvorenoPoPotrazuje = zatvaranja.GroupBy(z => z.StavkaPotrazujeId).ToDictionary(g => g.Key, g => g.Sum(z => z.Iznos));
-
-        var redovi = new List<(int PartnerId, OtvorenaStavkaRed Red)>();
-        foreach (var s in stavke)
-        {
-            if (s.Duguje > 0)
-            {
-                decimal zatvoreno = zatvorenoPoDuguje.TryGetValue(s.StavkaNalogaId, out var z1) ? z1 : 0m;
-                redovi.Add((s.PartnerId!.Value, NapraviRed(s, "Duguje", s.Duguje, zatvoreno, granicniDatum)));
-            }
-            if (s.Potrazuje > 0)
-            {
-                decimal zatvoreno = zatvorenoPoPotrazuje.TryGetValue(s.StavkaNalogaId, out var z2) ? z2 : 0m;
-                redovi.Add((s.PartnerId!.Value, NapraviRed(s, "Potrazuje", s.Potrazuje, zatvoreno, granicniDatum)));
-            }
-        }
-
-        if (samoOtvorene)
-        {
-            redovi = redovi.Where(r => r.Red.Status != "Zatvoreno").ToList();
-        }
-
-        var partneri = stavke
-            .Where(s => s.Partner != null)
-            .Select(s => s.Partner!)
-            .GroupBy(p => p.PartnerId)
-            .ToDictionary(g => g.Key, g => g.First());
-
-        return redovi
-            .GroupBy(r => r.PartnerId)
-            .Where(g => partneri.ContainsKey(g.Key))
-            .Select(g =>
-            {
-                var partner = partneri[g.Key];
-                return new IosPartnerGrupa
-                {
-                    PartnerId = g.Key,
-                    SifraPartnera = partner.SifraPartnera,
-                    NazivPartnera = partner.Naziv,
-                    Pib = partner.Pib,
-                    Stavke = g.Select(x => x.Red).OrderBy(r => r.ValutaDospela ?? r.Datum).ThenBy(r => r.Datum).ToList()
-                };
-            })
-            .OrderBy(g => g.NazivPartnera)
-            .ToList();
-    }
-}
-
-/// <summary>Grupa otvorenih stavki jednog partnera u zbirnom IOS izveštaju (svi partneri).</summary>
-public class IosPartnerGrupa
-{
-    public int PartnerId { get; set; }
-    public string SifraPartnera { get; set; } = string.Empty;
-    public string NazivPartnera { get; set; } = string.Empty;
-    public string? Pib { get; set; }
-    public List<OtvorenaStavkaRed> Stavke { get; set; } = new();
-
-    /// <summary>Saldo duga: Duguje strana uvećava, Potražuje strana umanjuje otvoreni dug partnera.</summary>
-    public decimal Saldo => Stavke.Sum(s => s.Strana == "Duguje" ? s.Preostalo : -s.Preostalo);
-    public int BrojStavki => Stavke.Count;
 }

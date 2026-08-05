@@ -5,9 +5,9 @@ namespace ERPiApp.Views.Finansije.Partneri;
 
 public partial class IosIzvestajWindow : Window
 {
-    private readonly ZatvaranjeStavkiService _service;
+    private readonly OtvoreneStavkeService _service;
 
-    public IosIzvestajWindow(ZatvaranjeStavkiService service)
+    public IosIzvestajWindow(OtvoreneStavkeService service)
     {
         InitializeComponent();
         _service = service;
@@ -23,7 +23,7 @@ public partial class IosIzvestajWindow : Window
         var kontoPrefix = string.IsNullOrWhiteSpace(TxtKontoPrefix.Text) ? null : TxtKontoPrefix.Text.Trim();
         var samoOtvorene = ChkSamoOtvorene.IsChecked == true;
 
-        DgPartneri.ItemsSource = await _service.GetIosIzvestajAsync(naDan, kontoPrefix, samoOtvorene);
+        DgPartneri.ItemsSource = await _service.GetIosIzvestajAsync(odKonta: kontoPrefix, doKonta: kontoPrefix, doDatuma: naDan, samoSaSaldom: samoOtvorene, koristiZatvaranje: true);
         DgStavke.ItemsSource = null;
         TxtStavkeNaslov.Text = "📋 Stavke";
     }

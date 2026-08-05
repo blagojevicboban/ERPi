@@ -1,51 +1,57 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using ERPiData.Models.Core;
+using System;
 
 namespace ERPiData.Models.Finansije;
 
-/// <summary>
-/// Zapis u evidenciji PDV-a (KIR - Knjiga izlaznih računa, KPR - Knjiga primljenih računa).
-/// </summary>
+public enum TipPdvKnjige
+{
+    KIR_IzdatRacun,
+    KPR_PrimljenRacun
+}
+
 public class PdvZapis
 {
-    [Key]
     public int PdvZapisId { get; set; }
-
-    public int? PartnerId { get; set; }
-
-    [ForeignKey(nameof(PartnerId))]
-    public Partner? Partner { get; set; }
-
-    public int? NalogId { get; set; }
-
-    [ForeignKey(nameof(NalogId))]
-    public Nalog? Nalog { get; set; }
-
-    [Required]
-    [MaxLength(10)]
-    public string TipKnjige { get; set; } = "KPR"; // KPR ili KIR
-
-    [Required]
-    [MaxLength(50)]
+    public TipPdvKnjige TipKnjige { get; set; }
+    public int RedniBroj { get; set; }
+    public DateTime DatumRacuna { get; set; }
+    public DateTime DatumKnjizenja { get; set; }
     public string BrojDokumenta { get; set; } = string.Empty;
+    public string PartnerNaziv { get; set; } = string.Empty;
+    public string PartnerPib { get; set; } = string.Empty;
 
-    public DateTime DatumDokumenta { get; set; } = DateTime.Now;
+    public decimal UkupnaNaknadaSaPdv { get; set; }
+    public decimal Osnovica20 { get; set; }
+    public decimal Pdv20 { get; set; }
+    public decimal Osnovica10 { get; set; }
+    public decimal Pdv10 { get; set; }
+    public decimal OslobodjenPromet { get; set; }
 
-    public DateTime DatumPoreskogDogadjaja { get; set; } = DateTime.Now;
+    public int? IzvornoDokumentId { get; set; }
+}
 
-    [Column(TypeName = "decimal(18, 2)")]
-    public decimal Osnovica { get; set; }
+public class PdvObracunResult
+{
+    public DateTime OdDatuma { get; set; }
+    public DateTime DoDatuma { get; set; }
 
-    [Column(TypeName = "decimal(5, 2)")]
-    public decimal StopaPdv { get; set; } = 20.00m;
+    // KIR
+    public decimal KirUkupnoSaPdv { get; set; }
+    public decimal KirOsnovica20 { get; set; }
+    public decimal KirPdv20 { get; set; }
+    public decimal KirOsnovica10 { get; set; }
+    public decimal KirPdv10 { get; set; }
+    public decimal KirOslobodjen { get; set; }
+    public decimal KirUkupanPdv => KirPdv20 + KirPdv10;
 
-    [Column(TypeName = "decimal(18, 2)")]
-    public decimal IznosPdv { get; set; }
+    // KPR
+    public decimal KprUkupnoSaPdv { get; set; }
+    public decimal KprOsnovica20 { get; set; }
+    public decimal KprPdv20 { get; set; }
+    public decimal KprOsnovica10 { get; set; }
+    public decimal KprPdv10 { get; set; }
+    public decimal KprOslobodjen { get; set; }
+    public decimal KprUkupanPdv => KprPdv20 + KprPdv10;
 
-    [Column(TypeName = "decimal(18, 2)")]
-    public decimal Ukupno { get; set; }
-
-    [MaxLength(250)]
-    public string? Napomena { get; set; }
+    // Razlika
+    public decimal PdvRazlika => KirUkupanPdv - KprUkupanPdv;
 }

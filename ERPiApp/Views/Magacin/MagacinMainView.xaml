@@ -6,6 +6,15 @@
             <TabItem Header="📊 Ulazne kalkulacije">
                 <ContentControl x:Name="HostKalkulacije"/>
             </TabItem>
+            <TabItem Header="🏷️ Nivelacije cena">
+                <ContentControl x:Name="HostNivelacije"/>
+            </TabItem>
+            <TabItem Header="🛒 MP kalkulacije">
+                <ContentControl x:Name="HostMaloprodaja"/>
+            </TabItem>
+            <TabItem Header="🌍 Uvozne kalkulacije">
+                <ContentControl x:Name="HostUvoz"/>
+            </TabItem>
             <TabItem Header="📦 Šifarnik artikala">
                 <ContentControl x:Name="HostArtikli"/>
             </TabItem>

@@ -1,0 +1,46 @@
+<UserControl x:Class="ERPiApp.Views.Magacin.MaloprodajneKalkulacijeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOOLBAR -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button x:Name="BtnKnjizi" Content="⚡ Knjiži selektovanu MP kalkulaciju" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Click="BtnKnjizi_Click" Margin="0,0,10,0"/>
+                    <Button x:Name="BtnRasknjizi" Content="↩️ Rasknjiži MP kalkulaciju" Style="{StaticResource ActionButtonStyle}" Background="#F59E0B" Click="BtnRasknjizi_Click" Margin="0,0,10,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <TextBlock Text="Pretraga:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBox x:Name="TxtPretraga" Width="200" Height="34" VerticalContentAlignment="Center" Padding="6,0" TextChanged="TxtPretraga_TextChanged"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- GRID -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DataGrid x:Name="DgKalkulacije" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Broj" Binding="{Binding BrojKalkulacije}" Width="80"/>
+                    <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="100"/>
+                    <DataGridTextColumn Header="Magacin prima" Binding="{Binding MagacinPrima.NazivMagacina}" Width="1.5*"/>
+                    <DataGridTextColumn Header="Dobavljač" Binding="{Binding Dobavljac.Naziv}" Width="2*"/>
+                    <DataGridTextColumn Header="Nabavna vr." Binding="{Binding NabavnaVrednost, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Marža (RUC)" Binding="{Binding Razlika, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="PDV" Binding="{Binding Porez, StringFormat=\{0:N2\}}" Width="110" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="MP Vrednost" Binding="{Binding ProdajnaVrednost, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridCheckBoxColumn Header="Proknjižena" Binding="{Binding IsKnjizen}" Width="90"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

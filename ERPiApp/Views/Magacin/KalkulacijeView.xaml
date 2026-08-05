@@ -13,15 +13,17 @@
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Magacin:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
                     <ComboBox x:Name="CmbMagacinFilter" Width="200" Height="34" VerticalContentAlignment="Center"
-                              DisplayMemberPath="Prikaz" SelectedValuePath="MagacinId" SelectionChanged="CmbMagacinFilter_SelectionChanged"/>
+                               DisplayMemberPath="Prikaz" SelectedValuePath="MagacinId" SelectionChanged="CmbMagacinFilter_SelectionChanged"/>
                     <TextBlock Text="Pretraga:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="16,0,6,0"/>
-                    <TextBox x:Name="TxtPretraga" Width="180" Height="34" VerticalContentAlignment="Center" Padding="8,0" TextChanged="TxtPretraga_TextChanged"/>
+                    <TextBox x:Name="TxtPretraga" Style="{StaticResource SearchTextBoxStyle}" Width="180" Height="34" VerticalContentAlignment="Center" TextChanged="TxtPretraga_TextChanged"/>
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="BtnNovaKalkulacija" Content="➕" Style="{StaticResource IconButtonStyle}" ToolTip="Nova ulazna kalkulacija" Click="BtnNovaKalkulacija_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnIzmeniKalkulaciju" Content="✏️" Style="{StaticResource IconButtonStyle}" ToolTip="Izmeni kalkulaciju" Click="BtnIzmeniKalkulaciju_Click" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnObrisiKalkulaciju" Content="🗑️" Style="{StaticResource IconButtonStyle}" ToolTip="Obriši kalkulaciju" Click="BtnObrisiKalkulaciju_Click"/>
+                    <Button x:Name="BtnNovaKalkulacija" Content="➕ Nova kalkulacija" Style="{StaticResource PrimaryButtonStyle}" ToolTip="Nova ulazna kalkulacija" Click="BtnNovaKalkulacija_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnIzmeniKalkulaciju" Content="✏️ Izmeni" Style="{StaticResource PrimaryButtonStyle}" Background="#D97706" ToolTip="Izmeni kalkulaciju" Click="BtnIzmeniKalkulaciju_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnObrisiKalkulaciju" Content="🗑️ Obriši" Style="{StaticResource PrimaryButtonStyle}" Background="#DC2626" ToolTip="Obriši kalkulaciju" Click="BtnObrisiKalkulaciju_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnStampajPdf" Content="🖨️ PDF" Style="{StaticResource PrimaryButtonStyle}" Background="#4F46E5" ToolTip="Štampaj kalkulaciju u PDF" Click="BtnStampajPdf_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource PrimaryButtonStyle}" Background="#059669" Width="36" Padding="0" ToolTip="Izvoz kalkulacija u Excel" Click="BtnExportExcel_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>

@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _db = db;
+        ErpiDbContext.EnsureDbSchemaUpdated(_db);
 
         TxtFirmaNaziv.Text = AppSession.TrenutnaFirma?.Naziv ?? "—";
         TxtFirmaSifra.Text = AppSession.TrenutnaFirma?.Sifra ?? "—";
@@ -44,7 +45,7 @@ public partial class MainWindow : Window
         MainContentHost.Content = new DashboardView(_db);
     }
 
-    private void NavNalozi_Click(object sender, RoutedEventArgs e)
+    public void NavNalozi_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "📖 Glavna knjiga i Nalozi";
         MainContentHost.Content = new NaloziView(_db);
@@ -74,7 +75,7 @@ public partial class MainWindow : Window
         MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.KarticaKontaView(_db);
     }
 
-    private void NavBrutoBilans_Click(object sender, RoutedEventArgs e)
+    public void NavBrutoBilans_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "📊 Bruto bilans";
         MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.BrutoBilansView(_db);
@@ -128,6 +129,18 @@ public partial class MainWindow : Window
         MainContentHost.Content = new MagacinMainView(_db);
     }
 
+    private void NavRacuniOtpremnice_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🧾 Računi - Otpremnice";
+        MainContentHost.Content = new ERPiApp.Views.Magacin.RacuniOtpremniceView(_db);
+    }
+
+    private void NavPdvEvidencija_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🧾 PDV Evidencija (KIR / KPR / PP-PDV)";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.PdvEvidencijaView(_db);
+    }
+
     private void NavMaterijalno_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "🏭 Materijalno — Ulazi i Trebovanja";
@@ -140,11 +153,19 @@ public partial class MainWindow : Window
         MainContentHost.Content = new SefPfrMainView(_db);
     }
 
-    private void NavUvoz_Click(object sender, RoutedEventArgs e)
+    public void NavUvoz_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "⚙️ Uvoz podataka iz ERPiFinansije";
         MainContentHost.Content = new ERPiApp.Views.Podesavanja.UvozWizardView(_db);
     }
+
+    public void NavIzvestaji_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Izveštaji i Bruto Bilans";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.BrutoBilansView(_db);
+    }
+
+    public void NavPodesavanja_Click(object sender, RoutedEventArgs e) => NavUvoz_Click(sender, e);
 
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();
 

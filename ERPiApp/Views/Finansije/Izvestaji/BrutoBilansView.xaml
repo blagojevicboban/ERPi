@@ -38,7 +38,9 @@
 
                     <CheckBox x:Name="ChkSaTotalima" Content="Totali po sintetičkim kontima" VerticalAlignment="Center" IsChecked="True" Margin="0,0,16,0"/>
 
-                    <Button Content="🔄 Učitaj Bruto Bilans" Style="{StaticResource ActionButtonStyle}" Height="34" Padding="14,0" Click="BtnUcitaj_Click"/>
+                    <Button Content="🔄 Učitaj" Style="{StaticResource ActionButtonStyle}" Height="34" Padding="14,0" Margin="0,0,8,0" Click="BtnUcitaj_Click"/>
+                    <Button x:Name="BtnStampajPdf" Content="🖨️ PDF" Style="{StaticResource ActionButtonStyle}" Background="#4F46E5" Height="34" Padding="14,0" Margin="0,0,8,0" Click="BtnStampajPdf_Click"/>
+                    <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource ActionButtonStyle}" Background="#059669" Height="34" Width="36" Padding="0" ToolTip="Izvoz bruto bilansa u Excel" Click="BtnExportExcel_Click"/>
                 </WrapPanel>
             </DockPanel>
         </Border>

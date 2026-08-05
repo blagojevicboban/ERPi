@@ -13,18 +13,19 @@
 
         <!-- Toolbar -->
         <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16,12" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-            <WrapPanel VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,16,2">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Pretraga:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
                     <TextBox x:Name="TxtPretraga" Style="{StaticResource SearchTextBoxStyle}" Width="220" Height="34" TextChanged="TxtPretraga_TextChanged"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,0,2">
-                    <Button x:Name="BtnNoviKonto" Content="➕ Novi konto" Style="{StaticResource ActionButtonStyle}" Margin="0,0,8,0" Click="BtnNoviKonto_Click"/>
-                    <Button x:Name="BtnIzmeniKonto" Content="✏️ Izmeni" Style="{StaticResource ActionButtonStyle}" Background="#D97706" Margin="0,0,8,0" Click="BtnIzmeniKonto_Click" IsEnabled="False"/>
-                    <Button x:Name="BtnObrisiKonto" Content="🗑️ Obriši" Style="{StaticResource ActionButtonStyle}" Background="#DC2626" Margin="0,0,8,0" Click="BtnObrisiKonto_Click" IsEnabled="False"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnNoviKonto" Content="➕ Novi konto" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0" Click="BtnNoviKonto_Click"/>
+                    <Button x:Name="BtnIzmeniKonto" Content="✏️ Izmeni" Style="{StaticResource PrimaryButtonStyle}" Background="#D97706" Margin="0,0,8,0" Click="BtnIzmeniKonto_Click" IsEnabled="False"/>
+                    <Button x:Name="BtnObrisiKonto" Content="🗑️ Obriši" Style="{StaticResource PrimaryButtonStyle}" Background="#DC2626" Margin="0,0,8,0" Click="BtnObrisiKonto_Click" IsEnabled="False"/>
+                    <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource PrimaryButtonStyle}" Background="#059669" Width="36" Padding="0" ToolTip="Izvoz kontnog plana u Excel" Click="BtnExportExcel_Click"/>
                 </StackPanel>
-            </WrapPanel>
+            </DockPanel>
         </Border>
 
         <!-- Main Data Grid -->

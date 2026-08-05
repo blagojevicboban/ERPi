@@ -101,4 +101,9 @@ public partial class ArtikliView : UserControl
             }
         }
     }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+    {
+        ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(DgArtikli, "Sifarnik_Artikala", "Artikli");
+    }
 }

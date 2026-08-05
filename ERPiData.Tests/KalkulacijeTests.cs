@@ -88,13 +88,12 @@ public class KalkulacijeTests
 
         var pdvZapis = new PdvZapis
         {
-            PartnerId = dobavljac.PartnerId,
+            PartnerNaziv = dobavljac.Naziv,
             BrojDokumenta = "FA-2026/01",
-            TipKnjige = "KPR",
-            Osnovica = 1000m,
-            StopaPdv = 20m,
-            IznosPdv = 200m,
-            Ukupno = 1200m
+            TipKnjige = TipPdvKnjige.KPR_PrimljenRacun,
+            Osnovica20 = 1000m,
+            Pdv20 = 200m,
+            UkupnaNaknadaSaPdv = 1200m
         };
         db.PdvZapisi.Add(pdvZapis);
 
@@ -120,7 +119,7 @@ public class KalkulacijeTests
 
         var pdv = await db.PdvZapisi.FirstOrDefaultAsync(p => p.BrojDokumenta == "FA-2026/01");
         Assert.NotNull(pdv);
-        Assert.Equal("KPR", pdv.TipKnjige);
-        Assert.Equal(1200m, pdv.Ukupno);
+        Assert.Equal(TipPdvKnjige.KPR_PrimljenRacun, pdv!.TipKnjige);
+        Assert.Equal(1200m, pdv.UkupnaNaknadaSaPdv);
     }
 }

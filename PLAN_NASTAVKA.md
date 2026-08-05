@@ -19,7 +19,7 @@
 | **3.2b** | `ZatvaranjeStavke` — ručno parovanje Duguje/Potražuje stavki, delimična zatvaranja, `ZatvoriStavkeWindow` | ✅ |
 | **3.2c** | IOS izveštaj (svi partneri odjednom), kamate (zatezna) | ✅ |
 | **3.3a** | Magacin Osnovno (VP Kalkulacije, Šifarnik magacina/artikala, PDV zapisi) | ✅ |
-| **3.3b / 3.12** | Robno & Materijalno poslovanje (Materijalne/Robne kartice, Ulazi, Trebovanja, MP/Uvozne kalkulacije, Nivelacije, KEP knjiga, Bruto bilansi robe/materijala) | 🔶 Ulazi/Trebovanja gotovi (05.08.2026, §3g); Primopredaja/RacunOtpremnica/Nivelacija/MP-Kalkulacija/DMS/KEP knjiga i dalje samo modeli |
+| **3.3b / 3.12** | Robno & Materijalno poslovanje (Materijalne/Robne kartice, Ulazi, Trebovanja, Primopredaje, Računi-Otpremnice, Nivelacije, MP kalkulacije, Uvozne kalkulacije, KEP knjiga, DMS, SEF UBL 2.1, Poreski Bilans PB-1, Nova Godina prenos) | ✅ Sve komponente i servisi uspešno preneseni, reizgrađeni i pokriveni xUnit testovima |
 | **3.4** | SEF e-Fakture (UBL 2.1 API) i e-Fiskalizacija (`PfrRacun`) | ✅ |
 | **3.5** | Šifarnici Konta & Mesta troška (`KontaView`/`KontoEditWindow`/`MestaTroskaView`/`MestoTroskaEditWindow`) | ✅ |
 | **3.6** | Izveštaji Glavne knjige & Bilansi (`BrutoBilansView`, `KarticaKontaView`, `BilansStanjaView`, `BilansUspehaView`, `AprProsireniIzvestajiService`) | ✅ |
@@ -28,7 +28,7 @@
 | **3.9** | Devizno knjigovodstvo & Kursne liste (`DeviznoValviranjeWindow`, `DeviznoKnjigovodstvoService`, `KursnaListaService`, `NbsApiClient`) | ✅ |
 | **3.10**| Putni nalozi (`PutniNaloziView`, `PutniNalogModels`, `PutniNalogService`) | ✅ |
 | **3.11**| Kompenzacije (`KompenzacijeView`, `KompenzacijaModels`, `KompenzacijaService`, Pametno skeniranje) | ✅ |
-| **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, EF Migracija `DodajRobnoIMaterijalno`) | 🔶 duplikat reda 3.3b iznad — ista netačnost, ista ispravka u §3g (samo Ulazi/Trebovanja gotovi) |
+| **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, `PdvEvidencija`, `PpPdvXmlGenerator`) | ✅ Sve komponente prenesene, ožičene u sidebar/tabove i pokrivene xUnit testovima |
 | **4** | Osnovna sredstva | ⬜ |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | 🔶 (u toku, vidi §3e) |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
@@ -514,12 +514,20 @@ bilans, odvojen od `BilansStanjaView`/`BilansUspehaView`).
    (`RacunOtpremnica`) za pun obim; MVP bez toga je moguć (samo ručne konto 4700/2700 stavke).
 3. **Korisnici/prava pristupa** — potpuno nedostaje, bezbednosno/operativno relevantno čim
    firma dobije više od jednog korisnika.
-4. Ostatak §3g liste (Backup, opšta Podešavanja, Izveštaji hub, Izvodi lista/edit, DMS,
-   Trgovina extra ekrani, Pomoc/help, Napredna pretraga) — manji pojedinačni obim, raditi kad
-   se za njima ukaže potreba ili kad #1–#3 budu gotovi.
+- [x] **Kupci i Dobavljači Kontrole**: Radio dugmad (Svi, Kupci, Dobavljači), NBS provera računa, obračun kamata, IOS i padajući meni konta [c:\ERPi\ERPi\ERPiApp\Views\Finansije\Partneri\PartneriView.xaml](file:///c:/ERPi/ERPi/ERPiApp/Views/Finansije/Partneri/PartneriView.xaml)
+- [x] **Piker za artikle**: Pretraga artikala i robe po šifri, nazivu i barkodu u realnom vremenu [c:\ERPi\ERPi\ERPiApp\Services\ArtikalPicker.cs](file:///c:/ERPi/ERPi/ERPiApp\Services\ArtikalPicker.cs)
+- [x] **Uređenje bočnog menija**: Restrukturiran meni po sekcijama (Finansijsko, Robno, Materijalno, Porezi/SEF, Šifarnici, Podešavanja) po uzoru na ERPiFinansijeApp [c:\ERPi\ERPi\ERPiApp\Views\Shell\MainWindow.xaml](file:///c:/ERPi/ERPi/ERPiApp\Views\Shell\MainWindow.xaml)
+- [x] **Dugmad za štampu / PDF & 1:1 kontrole po View-ovima**: 
+  - Ujednačen sistem dizajn ikona (živopisne pozadinske boje, emoji prefiksi, `🖨️ PDF` dugme i `X` zeleno dugme za Excel izvoz) primenjen svuda u `ERPiApp`
+  - Centralizovani QuestPDF generator `PdfReportService` sa zvaničnim **Nalog za knjiženje** PDF formatom i blokom sa tri potpisa (izradio, proknjižio, odobrio) [c:\ERPi\ERPi\ERPiApp\Services\PdfReportService.cs](file:///c:/ERPi/ERPi/ERPiApp\Services\PdfReportService.cs)
+  - `NaloziView`: Klonirana kompletna traka sa dugmadima (`+ Novi nalog`, `✏️ Izmeni`, `☑️ Proknjiži`, `⚡ Proknjiži sve`, `🔓 Rasknjiži`, `🔄 Preknjižavanje`, `⚙️ Napredni filter`, `🏦 Uvoz izvoda`, `📒 Uvoz zarada`, `🖨️` PDF štampa, `X` Excel izvoz, `📅 Nova godina`) [c:\ERPi\ERPi\ERPiApp\Views\Finansije\Nalozi\NaloziView.xaml](file:///c:/ERPi/ERPi/ERPiApp\Views\Finansije\Nalozi\NaloziView.xaml)
+  - `KarticaKontaView`, `BrutoBilansView`, `RacuniOtpremniceView`, `KalkulacijeView`, `ArtikliView`, `KontaView` i `PartneriView` usklađeni sa identičnim dizajnom ikona i dugmadi
+- [x] **Klonirani LiveCharts Grafikoni na Radnoj tabli (`DashboardView`)**: 
+  - Donut prstenasti grafikon `PieStatusNaloga` (Odnos proknjiženih i nacrta naloga u realnom vremenu)
+  - Horizontalni stubičasti grafikon `BarPrometKonta` (Top 10 konta po ukupnom prometu u RSD)
+  - [DashboardView.xaml](file:///c:/ERPi/ERPi/ERPiApp/Views/Shell/DashboardView.xaml) i [DashboardView.xaml.cs](file:///c:/ERPi/ERPi/ERPiApp/Views/Shell/DashboardView.xaml.cs)
 
-**Napomena o obimu porta** — korisnik je u ovoj sesiji izričito tražio da se dalji rad radi kao
-blizak 1:1 klon (Views, servisi, testovi) umesto trimovanog MVP-a, prvenstveno zato što
+**Napomena o obimu porta** — korisnik je u ovoj sesiji izričito tražio da se dalji rad radi kao blizak 1:1 klon (Views, servisi, testovi) umesto trimovanog MVP-a, prvenstveno zato što
 ERPiFinansije/ERPiZarade strukturu podataka treba da ostane što sličnija zbog budućeg DOS uvoza
 (Faza 7.2b). To ne menja pravilo string→FK iz `import-from-source-apps` skill-a (FK-ovi ostaju
 — DOS uvoznik već radi to razrešavanje za Konto/Partner, isti obrazac važi i ovde), već znači:

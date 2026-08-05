@@ -1636,6 +1636,127 @@ namespace ERPiData.Migrations
                     b.ToTable("PrimopredajaStavke");
                 });
 
+            modelBuilder.Entity("ERPiData.Models.Magacin.RacunOtpremnica", b =>
+                {
+                    b.Property<int>("RacunOtpremnicaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BrojOtpremnice")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BrojRacuna")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DatumRacuna")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsKnjizen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("KontoKupcaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MagacinId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NacinPlacanja")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("NalogId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Napomena")
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PartnerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("RokPlacanja")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RokPlacanjaDana")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("RokVazenjaPredracuna")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TipDokumenta")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UkupnoOsnovica")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("UkupnoPdv")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("UkupnoRabat")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("UkupnoZaUplatu")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("RacunOtpremnicaId");
+
+                    b.HasIndex("KontoKupcaId");
+
+                    b.HasIndex("MagacinId");
+
+                    b.HasIndex("NalogId");
+
+                    b.HasIndex("PartnerId");
+
+                    b.ToTable("RacuniOtpremnice");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Magacin.RacunOtpremnicaStavka", b =>
+                {
+                    b.Property<int>("RacunOtpremnicaStavkaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ArtikalId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("IznosPdv")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("Kolicina")
+                        .HasColumnType("decimal(18, 3)");
+
+                    b.Property<decimal>("Osnovica")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("ProdajnaCena")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("RabatProcenat")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("RacunOtpremnicaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RedniBroj")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("StopaPdv")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("Ukupno")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("RacunOtpremnicaStavkaId");
+
+                    b.HasIndex("ArtikalId");
+
+                    b.HasIndex("RacunOtpremnicaId");
+
+                    b.ToTable("RacunOtpremnicaStavke");
+                });
+
             modelBuilder.Entity("ERPiData.Models.Magacin.StavkaKalkulacije", b =>
                 {
                     b.Property<int>("StavkaKalkulacijeId")
@@ -4416,6 +4537,51 @@ namespace ERPiData.Migrations
                     b.Navigation("PrimopredajaNalog");
                 });
 
+            modelBuilder.Entity("ERPiData.Models.Magacin.RacunOtpremnica", b =>
+                {
+                    b.HasOne("ERPiData.Models.Core.Konto", "KontoKupca")
+                        .WithMany()
+                        .HasForeignKey("KontoKupcaId");
+
+                    b.HasOne("ERPiData.Models.Magacin.Magacin", "Magacin")
+                        .WithMany()
+                        .HasForeignKey("MagacinId");
+
+                    b.HasOne("ERPiData.Models.Finansije.Nalog", "Nalog")
+                        .WithMany()
+                        .HasForeignKey("NalogId");
+
+                    b.HasOne("ERPiData.Models.Core.Partner", "Partner")
+                        .WithMany()
+                        .HasForeignKey("PartnerId");
+
+                    b.Navigation("KontoKupca");
+
+                    b.Navigation("Magacin");
+
+                    b.Navigation("Nalog");
+
+                    b.Navigation("Partner");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Magacin.RacunOtpremnicaStavka", b =>
+                {
+                    b.HasOne("ERPiData.Models.Magacin.Artikal", "Artikal")
+                        .WithMany()
+                        .HasForeignKey("ArtikalId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ERPiData.Models.Magacin.RacunOtpremnica", "RacunOtpremnica")
+                        .WithMany("Stavke")
+                        .HasForeignKey("RacunOtpremnicaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artikal");
+
+                    b.Navigation("RacunOtpremnica");
+                });
+
             modelBuilder.Entity("ERPiData.Models.Magacin.StavkaKalkulacije", b =>
                 {
                     b.HasOne("ERPiData.Models.Magacin.Artikal", "Artikal")
@@ -4740,6 +4906,11 @@ namespace ERPiData.Migrations
                 });
 
             modelBuilder.Entity("ERPiData.Models.Magacin.PrimopredajaNalog", b =>
+                {
+                    b.Navigation("Stavke");
+                });
+
+            modelBuilder.Entity("ERPiData.Models.Magacin.RacunOtpremnica", b =>
                 {
                     b.Navigation("Stavke");
                 });

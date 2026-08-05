@@ -89,29 +89,46 @@
                     <Grid>
                         <!-- FINANSIJE I MAGACIN MODUL -->
                         <StackPanel x:Name="PnlNavFinansije" Visibility="Visible">
-                            <TextBlock Text="OPŠTE" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
-                            <RadioButton x:Name="BtnDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyle}" IsChecked="True" Click="NavDashboard_Click" ToolTip="Pregled stanja Core šeme"/>
-
-                            <TextBlock Text="FINANSIJE I MAGACIN" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
-                            <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Dnevnik glavne knjige — nalozi i stavke"/>
-                            <RadioButton x:Name="BtnPartneri" Content="👥 Partneri" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Partneri i otvorene stavke po kontu"/>
-                            <RadioButton x:Name="BtnKonta" Content="📋 Kontni plan" Style="{StaticResource NavButtonStyle}" Click="NavKonta_Click" ToolTip="Šifarnik konta (sintetika i analitika)"/>
-                            <RadioButton x:Name="BtnMestaTroska" Content="🎯 Mesta troška &amp; Projekti" Style="{StaticResource NavButtonStyle}" Click="NavMestaTroska_Click" ToolTip="Šifarnik mesta troška i analitika profitabilnosti"/>
-                            <RadioButton x:Name="BtnKarticaKonta" Content="💳 Kartice konta" Style="{StaticResource NavButtonStyle}" Click="NavKarticaKonta_Click" ToolTip="Pregled kartica konta sa kumulativnim saldom"/>
-                            <RadioButton x:Name="BtnBrutoBilans" Content="📊 Bruto bilans" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans po kontima sa prometom"/>
-                            <RadioButton x:Name="BtnBilansStanja" Content="🏛️ Bilans stanja" Style="{StaticResource NavButtonStyle}" Click="NavBilansStanja_Click" ToolTip="Zvanični Bilans Stanja sa AOP pozicijama"/>
-                            <RadioButton x:Name="BtnBilansUspeha" Content="📈 Bilans uspeha" Style="{StaticResource NavButtonStyle}" Click="NavBilansUspeha_Click" ToolTip="Zvanični Bilans Uspeha sa AOP pozicijama"/>
-                            <RadioButton x:Name="BtnIzvodi" Content="🏦 Uvoz izvoda banke" Style="{StaticResource NavButtonStyle}" Click="NavIzvodi_Click" ToolTip="Uvoz Halcom/Asseco/CAMT/MT940 izvoda i automatsko knjiženje"/>
-                            <RadioButton x:Name="BtnBlagajna" Content="💰 Blagajna (243/244)" Style="{StaticResource NavButtonStyle}" Click="NavBlagajna_Click" ToolTip="Dinarska i devizna blagajna sa dnevnikom"/>
-                            <RadioButton x:Name="BtnPutniNalozi" Content="🚗 Putni nalozi" Style="{StaticResource NavButtonStyle}" Click="NavPutniNalozi_Click" ToolTip="Evidencija i obračun službenih putovanja u zemlji i inostranstvu"/>
-                            <RadioButton x:Name="BtnKompenzacije" Content="🤝 Kompenzacije" Style="{StaticResource NavButtonStyle}" Click="NavKompenzacije_Click" ToolTip="Dvojne i trojne kompenzacije sa pametnim skeniranjem"/>
+                            <!-- 💼 FINANSIJSKO KNJIGOVODSTVO -->
+                            <TextBlock Text="FINANSIJSKO KNJIGOVODSTVO" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,6,0,3"/>
+                            <RadioButton x:Name="BtnDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyle}" IsChecked="True" Click="NavDashboard_Click" ToolTip="Radna tabla sa indikatorima i brzim akcijama"/>
+                            <RadioButton x:Name="BtnNalozi" Content="📖 Glavna knjiga i Nalozi" Style="{StaticResource NavButtonStyle}" Click="NavNalozi_Click" ToolTip="Evidencija, knjiženje i pregled naloga glavne knjige"/>
+                            <RadioButton x:Name="BtnKarticaKonta" Content="📋 Dnevnik i Kartice konta" Style="{StaticResource NavButtonStyle}" Click="NavKarticaKonta_Click" ToolTip="Pregled hronoloških sintetičkih i analitičkih kartica konta"/>
+                            <RadioButton x:Name="BtnPartneri" Content="👥 Partneri i Otvorene stavke" Style="{StaticResource NavButtonStyle}" Click="NavPartneri_Click" ToolTip="Analitika kupaca, dobavljača i otvorene stavke (IOS)"/>
+                            <RadioButton x:Name="BtnKompenzacije" Content="🤝 Kompenzacije i Cesije" Style="{StaticResource NavButtonStyle}" Click="NavKompenzacije_Click" ToolTip="Dvojne i trojne kompenzacije sa pametnim skeniranjem"/>
+                            <RadioButton x:Name="BtnPutniNalozi" Content="🚗 Putni nalozi i Dnevnice" Style="{StaticResource NavButtonStyle}" Click="NavPutniNalozi_Click" ToolTip="Obračun dnevnica, goriva, smeštaja i knjiženje na konto 5330/5340"/>
+                            <RadioButton x:Name="BtnBlagajna" Content="💰 Dinarska i Devizna Blagajna" Style="{StaticResource NavButtonStyle}" Click="NavBlagajna_Click" ToolTip="Uplatnice, isplatnice, blagajnički dnevnik (2430/2440)"/>
+                            <RadioButton x:Name="BtnMestaTroska" Content="🎯 Mesta troška i Projekti" Style="{StaticResource NavButtonStyle}" Click="NavMestaTroska_Click" ToolTip="Analitika, troškovi i profitabilnost po projektima"/>
                             <RadioButton x:Name="BtnDevizno" Content="💱 Devizno &amp; Valviranje" Style="{StaticResource NavButtonStyle}" Click="NavDevizno_Click" ToolTip="Valviranje deviznih konta i obračun kursnih razlika"/>
-                            <RadioButton x:Name="BtnMagacin" Content="📦 Robno (Kalkulacije, Magacini, Artikli)" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije veleprodaje, šifarnik magacina i artikala"/>
-                            <RadioButton x:Name="BtnMaterijalno" Content="🏭 Materijalno (Ulazi, Trebovanja)" Style="{StaticResource NavButtonStyle}" Click="NavMaterijalno_Click" ToolTip="Radna tabla materijalnog knjigovodstva — vrednost zaliha, ulazi, trebovanja"/>
-                            <RadioButton x:Name="BtnSefPfr" Content="📄 SEF i e-Fiskalizacija" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
+                            <RadioButton x:Name="BtnIzvodi" Content="🏦 Uvoz izvoda banke" Style="{StaticResource NavButtonStyle}" Click="NavIzvodi_Click" ToolTip="Uvoz Halcom/Asseco/CAMT/MT940 izvoda"/>
+                            <RadioButton x:Name="BtnBrutoBilans" Content="📄 Finansijski izveštaji" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans, Zaključni list i zvanični finansijski izveštaji"/>
 
-                            <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,14,0,3"/>
-                            <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz stare baza.db baze ERPiFinansije"/>
+                            <!-- 📦 ROBNO KNJIGOVODSTVO -->
+                            <Separator Background="#334155" Margin="16,8"/>
+                            <TextBlock Text="ROBNO KNJIGOVODSTVO (VP / MP)" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnMagacin" Content="📦 Kalkulacije i Nivelacije" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije veleprodaje/maloprodaje, magacini i artikli"/>
+                            <RadioButton x:Name="BtnRacuniOtpremnice" Content="🧾 Računi - Otpremnice" Style="{StaticResource NavButtonStyle}" Click="NavRacuniOtpremnice_Click" ToolTip="Prodaja robe, fakture i otpremnice kupcima"/>
+
+                            <!-- 🏭 MATERIJALNO KNJIGOVODSTVO -->
+                            <Separator Background="#334155" Margin="16,8"/>
+                            <TextBlock Text="MATERIJALNO KNJIGOVODSTVO" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnMaterijalno" Content="🏭 Ulazi i Trebovanja" Style="{StaticResource NavButtonStyle}" Click="NavMaterijalno_Click" ToolTip="Radna tabla materijalnog knjigovodstva — vrednost zaliha, ulazi, trebovanja"/>
+
+                            <!-- 🧾 POREZI, SEF I FISKALIZACIJA -->
+                            <Separator Background="#334155" Margin="16,8"/>
+                            <TextBlock Text="POREZI, SEF I FISKALIZACIJA" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnPdvEvidencija" Content="🧾 PDV Evidencija (KPR/KIR)" Style="{StaticResource NavButtonStyle}" Click="NavPdvEvidencija_Click" ToolTip="Knjiga primljenih i izdatih računa i PP-PDV prijava"/>
+                            <RadioButton x:Name="BtnSefPfr" Content="📄 SEF e-Fakture i PFR" Style="{StaticResource NavButtonStyle}" Click="NavSefPfr_Click" ToolTip="SEF e-Fakture (UBL 2.1 API) i PFR e-Fiskalizacija"/>
+
+                            <!-- 📋 MATIČNI PODACI (ŠIFARNICI) -->
+                            <Separator Background="#334155" Margin="16,8"/>
+                            <TextBlock Text="MATIČNI PODACI (ŠIFARNICI)" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnKonta" Content="📋 Kontni plan" Style="{StaticResource NavButtonStyle}" Click="NavKonta_Click" ToolTip="Šifarnik konta (sintetika i analitika)"/>
+
+                            <!-- ⚙️ PODEŠAVANJA I SISTEM -->
+                            <Separator Background="#334155" Margin="16,8"/>
+                            <TextBlock Text="PODEŠAVANJA I SISTEM" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka Wizard" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz baze ERPiFinansije ili DOS DBF fajlova"/>
                         </StackPanel>
 
                         <!-- ZARADE MODUL (KLONIRANO IZ ERPiZarade) -->
