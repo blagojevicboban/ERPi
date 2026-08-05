@@ -4,6 +4,14 @@
       Title="Amortizacija"
       Background="{StaticResource SurfaceBrush}">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../SredstvaStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
     <TabControl x:Name="TabControl">
         <!-- Tab 1: Obracun -->
         <TabItem Header="⚙️ Obracun amortizacije">

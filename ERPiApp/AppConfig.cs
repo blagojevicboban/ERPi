@@ -107,9 +107,17 @@ public static class AppConfig
         get => Settings.PrikaziInfoTraku;
         set { Settings.PrikaziInfoTraku = value; SaveSettings(); }
     }
+
+    /// <summary>Da li se glavni prozor otvara preko celog ekrana. Po defaultu: true (parnost sa ERPiFinansije).</summary>
+    public static bool StartMaximized
+    {
+        get => Settings.StartMaximized;
+        set { Settings.StartMaximized = value; SaveSettings(); }
+    }
 }
 
 internal class UiSettings
 {
     public bool PrikaziInfoTraku { get; set; } = false;
+    public bool StartMaximized { get; set; } = true;
 }

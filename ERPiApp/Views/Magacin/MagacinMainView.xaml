@@ -3,6 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
         <TabControl x:Name="TabMainMagacin" BorderThickness="0" Background="Transparent" SelectionChanged="TabMainMagacin_SelectionChanged">
+            <TabItem Header="📜 Ponude &amp; Predračuni">
+                <ContentControl x:Name="HostPonude"/>
+            </TabItem>
+            <TabItem Header="🛒 Narudžbenice Dobavljačima">
+                <ContentControl x:Name="HostNarudzbenice"/>
+            </TabItem>
             <TabItem Header="📊 Ulazne kalkulacije">
                 <ContentControl x:Name="HostKalkulacije"/>
             </TabItem>
@@ -23,6 +29,21 @@
             </TabItem>
             <TabItem Header="🏛️ Poreske tarife">
                 <ContentControl x:Name="HostPoreskeTarife"/>
+            </TabItem>
+            <TabItem Header="🔄 Primopredaje">
+                <ContentControl x:Name="HostPrimopredaje"/>
+            </TabItem>
+            <TabItem Header="📥 Zaduženja">
+                <ContentControl x:Name="HostZaduzenja"/>
+            </TabItem>
+            <TabItem Header="📤 Razduženja">
+                <ContentControl x:Name="HostRazduzenja"/>
+            </TabItem>
+            <TabItem Header="📇 Robne kartice">
+                <ContentControl x:Name="HostRobneKartice"/>
+            </TabItem>
+            <TabItem Header="📊 Robni Bruto bilans">
+                <ContentControl x:Name="HostRobniBrutoBilans"/>
             </TabItem>
         </TabControl>
     </Grid>

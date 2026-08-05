@@ -4,6 +4,14 @@
       Title="Prijava Sredstava"
       Background="{StaticResource SurfaceBrush}">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../SredstvaStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
     <Grid Margin="28,24,24,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>   <!-- Naslov -->

@@ -54,6 +54,8 @@ public class ErpiDbContext : DbContext
     public DbSet<UlazStavka> UlazStavke => Set<UlazStavka>();
     public DbSet<PrimopredajaNalog> PrimopredajaNalozi => Set<PrimopredajaNalog>();
     public DbSet<PrimopredajaStavka> PrimopredajaStavke => Set<PrimopredajaStavka>();
+    public DbSet<RobnoKretanjeNalog> RobnaKretanja => Set<RobnoKretanjeNalog>();
+    public DbSet<RobnoKretanjeStavka> RobnaKretanjaStavke => Set<RobnoKretanjeStavka>();
     public DbSet<PdvZapis> PdvZapisi => Set<PdvZapis>();
     public DbSet<DokumentPrilog> DokumentiPrilozi => Set<DokumentPrilog>();
     public DbSet<SefDokument> SefDokumenti => Set<SefDokument>();
@@ -61,6 +63,10 @@ public class ErpiDbContext : DbContext
     public DbSet<RacunOtpremnica> RacuniOtpremnice => Set<RacunOtpremnica>();
     public DbSet<RacunOtpremnicaStavka> RacunOtpremnicaStavke => Set<RacunOtpremnicaStavka>();
     public DbSet<PoreskaTarifa> PoreskeTarife => Set<PoreskaTarifa>();
+    public DbSet<PonudaPredracun> PonudePredracuni => Set<PonudaPredracun>();
+    public DbSet<PonudaStavka> PonudeStavke => Set<PonudaStavka>();
+    public DbSet<NarudzbenicaDobavljacu> NarudzbeniceDobavljacima => Set<NarudzbenicaDobavljacu>();
+    public DbSet<NarudzbenicaStavka> NarudzbeniceStavke => Set<NarudzbenicaStavka>();
 
     // ── Zarade ────────────────────────────────────────────────────────
     public DbSet<Radnik> Radnici => Set<Radnik>();
@@ -265,6 +271,60 @@ public class ErpiDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<RacunOtpremnicaStavka>()
+            .HasOne(s => s.Artikal)
+            .WithMany()
+            .HasForeignKey(s => s.ArtikalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PonudaPredracun>()
+            .HasMany(p => p.Stavke)
+            .WithOne(s => s.PonudaPredracun)
+            .HasForeignKey(s => s.PonudaPredracunId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PonudaPredracun>()
+            .HasOne(p => p.Partner)
+            .WithMany()
+            .HasForeignKey(p => p.PartnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PonudaPredracun>()
+            .HasOne(p => p.RacunOtpremnica)
+            .WithMany()
+            .HasForeignKey(p => p.RacunOtpremnicaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PonudaStavka>()
+            .HasOne(s => s.Artikal)
+            .WithMany()
+            .HasForeignKey(s => s.ArtikalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<NarudzbenicaDobavljacu>()
+            .HasMany(n => n.Stavke)
+            .WithOne(s => s.NarudzbenicaDobavljacu)
+            .HasForeignKey(s => s.NarudzbenicaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<NarudzbenicaDobavljacu>()
+            .HasOne(n => n.Partner)
+            .WithMany()
+            .HasForeignKey(n => n.PartnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<NarudzbenicaDobavljacu>()
+            .HasOne(n => n.Magacin)
+            .WithMany()
+            .HasForeignKey(n => n.MagacinId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<NarudzbenicaDobavljacu>()
+            .HasOne(n => n.Kalkulacija)
+            .WithMany()
+            .HasForeignKey(n => n.KalkulacijaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<NarudzbenicaStavka>()
             .HasOne(s => s.Artikal)
             .WithMany()
             .HasForeignKey(s => s.ArtikalId)

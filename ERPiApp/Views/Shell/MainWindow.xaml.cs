@@ -22,6 +22,8 @@ public partial class MainWindow : Window
         _db = db;
         ErpiDbContext.EnsureDbSchemaUpdated(_db);
 
+        WindowState = AppConfig.StartMaximized ? WindowState.Maximized : WindowState.Normal;
+
         TxtFirmaNaziv.Text = AppSession.TrenutnaFirma?.Naziv ?? "—";
         TxtFirmaSifra.Text = AppSession.TrenutnaFirma?.Sifra ?? "—";
         TxtImeKorisnika.Text = AppSession.TrenutniKorisnik?.ImeIPrezime ?? "—";
@@ -181,6 +183,12 @@ public partial class MainWindow : Window
         win.ShowDialog();
     }
 
+    private void NavRobnoDashboard_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Radna tabla — Robno knjigovodstvo";
+        MainContentHost.Content = new ERPiApp.Views.Magacin.RobnoDashboardView(_db);
+    }
+
     private void NavMagacin_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "📦 Robno — Kalkulacije, Magacini, Artikli";
@@ -201,8 +209,14 @@ public partial class MainWindow : Window
 
     private void NavMaterijalno_Click(object sender, RoutedEventArgs e)
     {
-        TxtHeaderTitle.Text = "🏭 Materijalno — Ulazi i Trebovanja";
+        TxtHeaderTitle.Text = "📊 Radna tabla — Materijalno knjigovodstvo";
         MainContentHost.Content = new ERPiApp.Views.Magacin.MaterijalnoDashboardView(_db);
+    }
+
+    private void NavMaterijalnoSkladiste_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🏭 Skladište i Zalihe — Materijalno knjigovodstvo";
+        MainContentHost.Content = new ERPiApp.Views.Magacin.MaterijalnoSkladisteView(_db);
     }
 
     private void NavSefPfr_Click(object sender, RoutedEventArgs e)
@@ -226,7 +240,7 @@ public partial class MainWindow : Window
     public void NavPodesavanja_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "🔧 Podešavanja aplikacije";
-        MainContentHost.Content = new PodesavanjaView();
+        MainContentHost.Content = new PodesavanjaView(_db);
     }
 
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();
@@ -247,7 +261,7 @@ public partial class MainWindow : Window
         PnlNavFinansije.Visibility = Visibility.Visible;
         PnlNavZarade.Visibility = Visibility.Collapsed;
         PnlNavSredstva.Visibility = Visibility.Collapsed;
-        PostaviBojuSidebara((Color)FindResource("SidebarStartColor"), (Color)FindResource("SidebarEndColor"));
+        PostaviBojuSidebara((Color)FindResource("SidebarStartColor"), (Color)FindResource("SidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8)));
         TxtHeaderTitle.Text = "📊 Radna tabla";
         MainContentHost.Content = new DashboardView(_db);
     }
@@ -257,7 +271,7 @@ public partial class MainWindow : Window
         PnlNavFinansije.Visibility = Visibility.Collapsed;
         PnlNavZarade.Visibility = Visibility.Visible;
         PnlNavSredstva.Visibility = Visibility.Collapsed;
-        PostaviBojuSidebara((Color)FindResource("ZaradeSidebarStartColor"), (Color)FindResource("ZaradeSidebarEndColor"));
+        PostaviBojuSidebara((Color)FindResource("ZaradeSidebarStartColor"), (Color)FindResource("ZaradeSidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x90, 0xCA, 0xF9)));
         TxtHeaderTitle.Text = "📁 Obračunski periodi zarada";
         MainContentHost.Content = new ERPiApp.Views.Zarade.Obracuni.ObracuniPage();
     }
@@ -267,20 +281,26 @@ public partial class MainWindow : Window
         PnlNavFinansije.Visibility = Visibility.Collapsed;
         PnlNavZarade.Visibility = Visibility.Collapsed;
         PnlNavSredstva.Visibility = Visibility.Visible;
-        PostaviBojuSidebara((Color)FindResource("SredstvaSidebarStartColor"), (Color)FindResource("SredstvaSidebarEndColor"));
-        TxtHeaderTitle.Text = "🏛️ Registar osnovnih sredstava";
-        MainContentHost.Content = new ERPiApp.Views.Sredstva.Sredstva.SredstvaPage(_db);
+        PostaviBojuSidebara((Color)FindResource("SredstvaSidebarStartColor"), (Color)FindResource("SredstvaSidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x95, 0xD5, 0xB2)));
+        TxtHeaderTitle.Text = "📊 Radna tabla";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Dashboard.SredstvaDashboardPage(_db);
     }
 
     /// <summary>
-    /// Menja gradijent pozadine sidebar-a prema aktivnom modulu — svaki modul zadržava
+    /// Menja gradijent pozadine sidebar-a i akcentne boje kartica prema aktivnom modulu — svaki modul zadržava
     /// prepoznatljivu boju svog izvornog samostalnog app-a (Finansije = plavo/teget,
     /// Zarade = ljubičasto, Sredstva = zeleno).
     /// </summary>
-    private void PostaviBojuSidebara(Color start, Color end)
+    private void PostaviBojuSidebara(Color start, Color end, SolidColorBrush accentBrush)
     {
         GradStopSidebar1.Color = start;
         GradStopSidebar2.Color = end;
+        TxtBrandSubtitle.Foreground = accentBrush;
+        TxtFirmaSifra.Foreground = accentBrush;
+        TxtUlogaKorisnika.Foreground = accentBrush;
+        VersionText.Foreground = accentBrush;
+        BtnOdjava.Foreground = accentBrush;
+        BtnOdjava.BorderBrush = accentBrush;
     }
 
     // ── Navigacija Zarade ─────────────────────────────────────────────
@@ -480,6 +500,12 @@ public partial class MainWindow : Window
 
     // ── Navigacija Sredstva ───────────────────────────────────────────
 
+    private void NavSredstvaDashboard_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Radna tabla";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Dashboard.SredstvaDashboardPage(_db);
+    }
+
     private void NavSredstvaRegistar_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "🏛️ Registar osnovnih sredstava";
@@ -508,6 +534,30 @@ public partial class MainWindow : Window
     {
         TxtHeaderTitle.Text = "📈 Obračun amortizacije";
         MainContentHost.Content = new ERPiApp.Views.Sredstva.Amortizacija.AmortizacijaPage(_db);
+    }
+
+    private void NavSredstvaPopis_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🗂️ Popis sredstava";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Popis.PopisPage(_db);
+    }
+
+    private void NavSredstvaRevalorizacija_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "💹 Revalorizacija";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Revalorizacija.RevalorizacijaPage(_db);
+    }
+
+    private void NavSredstvaIzvestaji_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Izveštaji — Osnovna sredstva";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Izvestaji.IzvestajiPage(_db);
+    }
+
+    private void NavSredstvaPodesavanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "⚙️ Podešavanja — Osnovna sredstva";
+        MainContentHost.Content = new ERPiApp.Views.Sredstva.Podesavanja.PodesavanjaSredstvaView(_db);
     }
 
     /// <summary>Otvara analitičku karticu izabranog sredstva — poziva je SredstvaPage (dupli klik / dugme "Kartica").</summary>

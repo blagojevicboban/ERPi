@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using ERPiData;
 using ERPiData.Models.Finansije;
+using ERPiData.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.SefPfr;
@@ -61,20 +62,23 @@ public partial class PfrRacuniView : UserControl
         UcitajRacune();
     }
 
-    private void BtnFiskalizuj_Click(object sender, RoutedEventArgs e)
+    private async void BtnFiskalizuj_Click(object sender, RoutedEventArgs e)
     {
-        if (DgPfrRacuni.SelectedItem is PfrRacun racun)
+        if (DgPfrRacuni.SelectedItem is not PfrRacun racun) return;
+
+        BtnFiskalizuj.IsEnabled = false;
+        try
         {
-            var r = _db.PfrRacuni.Find(racun.PfrRacunId);
-            if (r != null)
-            {
-                r.Status = "Fiskalizovan";
-                r.PfrBroj = $"PFR-RS-{Guid.NewGuid().ToString().Substring(0, 12).ToUpper()}";
-                r.QrKodUrl = $"https://suf.puris.gov.rs/v/?vl={r.PfrBroj}";
-                _db.SaveChanges();
-                UcitajRacune();
-                MessageBox.Show($"Račun {r.BrojRacuna} je uspešno fiskalizovan. PFR Broj: {r.PfrBroj}", "e-Fiskalizacija", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            var servis = new PfrService(_db);
+            var (success, message) = await servis.FiskalizujRacunAsync(racun.PfrRacunId);
+            UcitajRacune();
+
+            MessageBox.Show(message, success ? "e-Fiskalizacija" : "Greška e-Fiskalizacije",
+                MessageBoxButton.OK, success ? MessageBoxImage.Information : MessageBoxImage.Error);
+        }
+        finally
+        {
+            BtnFiskalizuj.IsEnabled = DgPfrRacuni.SelectedItem is PfrRacun;
         }
     }
 }

@@ -1,0 +1,107 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ── Boje za Sredstva modul ──────────────────────────────────── -->
+    <Color x:Key="SredstvaPrimaryColor">#1B4332</Color>
+    <Color x:Key="SredstvaPrimaryLightColor">#2D6A4F</Color>
+    <Color x:Key="SredstvaAccentColor">#52B788</Color>
+    <Color x:Key="SredstvaSurfaceColor">#F5F7FA</Color>
+    <Color x:Key="SredstvaCardColor">#FFFFFF</Color>
+    <Color x:Key="SredstvaTextPrimaryColor">#1A1A2E</Color>
+    <Color x:Key="SredstvaTextSecondaryColor">#6B7280</Color>
+    <Color x:Key="SredstvaBorderColor">#E5E7EB</Color>
+    <Color x:Key="SredstvaSuccessColor">#10B981</Color>
+
+    <SolidColorBrush x:Key="SredstvaPrimaryBrush" Color="{StaticResource SredstvaPrimaryColor}"/>
+    <SolidColorBrush x:Key="SredstvaPrimaryLightBrush" Color="{StaticResource SredstvaPrimaryLightColor}"/>
+
+    <!-- ── Sredstva Dugmad ───────────────────────────────────────── -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SredstvaPrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource SredstvaPrimaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource SredstvaPrimaryLightBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}"
+                            BorderBrush="{StaticResource SredstvaPrimaryLightBrush}" BorderThickness="1.5">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#EEF9F4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ── DataGrid Stilovi za Sredstva ────────────────────────────── -->
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
+        <Setter Property="RowBackground" Value="White"/>
+        <Setter Property="AlternatingRowBackground" Value="#F9FAF9"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="ColumnHeaderHeight" Value="44"/>
+        <Setter Property="RowHeight" Value="36"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="#F0F7F4"/>
+        <Setter Property="Foreground" Value="#6B7280"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderThickness" Value="0,0,1,2"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style TargetType="DataGridRow">
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#D8F3E6"/>
+                <Setter Property="Foreground" Value="#1A1A2E"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#EBF7F1"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

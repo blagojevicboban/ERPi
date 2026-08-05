@@ -4,7 +4,8 @@
 > [`ANALIZA_I_PLAN.md`](ANALIZA_I_PLAN.md) i beleži šta je urađeno, šta je namerno odloženo
 > i koje odluke ne treba poništavati bez razloga.
 >
-> Stanje na dan **05.08.2026** (dopunjeno u istoj sesiji sa Fazom 4), verzija **2.0.0-alpha**.
+> Stanje na dan **05.08.2026** (dopunjeno u istoj sesiji sa Fazom 4, pa Ponude/Predračuni i
+> Narudžbenice — vidi §6), verzija **2.0.0-alpha**.
 
 ---
 
@@ -29,12 +30,12 @@
 | **3.10**| Putni nalozi (`PutniNaloziView`, `PutniNalogModels`, `PutniNalogService`) | ✅ |
 | **3.11**| Kompenzacije (`KompenzacijeView`, `KompenzacijaModels`, `KompenzacijaService`, Pametno skeniranje) | ✅ |
 | **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, `PdvEvidencija`, `PpPdvXmlGenerator`) | ✅ Sve komponente prenesene, ožičene u sidebar/tabove i pokrivene xUnit testovima |
-| **4** | Osnovna sredstva | 🔶 (jezgro preneto, vidi §3h — Popis/Revalorizacija/Izveštaji hub odloženi) |
+| **4** | Osnovna sredstva | 🔶 (kompletan UI preneto, vidi §3h/§3j — ostaje DOS uvoz i pun F1 hub, ništa commit-ovano) |
 | **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | 🔶 (u toku, vidi §3e) |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
 | **7.1** | `ERPiMigration` — direktan `ErpiFinansijeImporter` (uvoz iz `baza.db` / `AccountingDbContext` u `ErpiDbContext`) + `UvozWizardView` | ✅ |
 | 7.2a | DOS import Zarade — `ZaradeDbfMigrator` (DBF → privremena ERPiZaradeData baza → `ErpiZaradeProdukcijaImporter`) + `PodesavanjaZaradeView` | ✅ (vidi §3f) |
-| 7.2b | DOS import Finansije/Sredstva | ⬜ |
+| 7.2b | DOS import Finansije/Sredstva | 🔶 (Sredstva ✅, vidi §3k; Finansije i dalje ⬜) |
 | **8** | Velopack pakovanje i CI/CD | ⬜ |
 
 ---
@@ -374,19 +375,6 @@ Preneto u ovoj sesiji (`ERPiData/Models/Sredstva`, `ERPiData/Services/Sredstva`,
   §3g za Finansije.
 
 **Poznati nedostaci (namerno odloženo, "Trim, don't transplant whole"):**
-- **`PopisPage`/`UpisPopisaWindow`** (godišnji popis, `Komisija`/`ClanKomisije`/`Popis`/
-  `PopisnaStavka` modeli i `PopisCalculator` servis VEĆ postoje i imaju migraciju i xUnit
-  testove — samo UI ekrani nisu preneti). Napomena: izvorni `UpisPopisaWindow.xaml` referencira
-  `StaticResource OutlineButton` koji **ne postoji ni u izvornom `ERPiSredstvaApp/Resources/
-  Styles.xaml`** — pre porta ovog ekrana ili definisati taj stil ili zameniti sa `SecondaryButton`.
-- **`RevalorizacijaPage`** (revalorizacija/indeksacija po koeficijentima) — `RevalorizacijaCalculator`
-  servis već postoji i pokriven je xUnit testovima, UI ekran nije prenet.
-- **`IzvestajiPage`** (zbirna izveštajna stranica) nije prenet — isti opštiji nedostatak kao
-  "Izveštaji hub" za Finansije u §3g (ERPi generalno još nema centralnu izveštajnu stranicu ni za
-  jedan modul).
-- **F1 Pomoc** — Sredstva nema `Views/Sredstva/Pomoc` (ERPiSredstvaApp ima `Pomoc/EditHelpWindow`
-  itd.) — isti opštiji nedostatak kao za Finansije u §3g, Zarade je jedini modul koji ga ima
-  (prenet u Fazi 5).
 - **`ObracunskaJedinica`** (int na `Sredstvo`/`Kartica`/`Prijava`/`Rashod`) je ostala kao goli
   numerički kod, bez FK — u izvornom ERPiSredstva takođe nema svoj šifarnik/tabelu, pa nije bilo
   šta da se poveže. Ako se u budućnosti pokaže da "obračunska jedinica" treba da bude pravo mesto
@@ -394,12 +382,208 @@ Preneto u ovoj sesiji (`ERPiData/Models/Sredstva`, `ERPiData/Services/Sredstva`,
 - **Nijedan Sredstva ekran nije vizuelno proveren kroz UI** — isti razlog kao §3d/§3g za druge
   module (korisnik testira sam, vidi §4). Build je čist (`dotnet build ERPi.slnx`, 0 grešaka), EF
   migracija primenjena end-to-end na scratch bazi, 55/55 xUnit testova prolazi — ali dugme-po-dugme
-  provera (posebno `PrijavaWindow`/`RashodWindow` transakciona knjiženja i `AmortizacijaPage`-ov
-  poreski tab) nije urađena.
-- **DOS uvoz Sredstava** (`DosSredstvaImporter` iz `ERPiMigration`, planiran u ANALIZA_I_PLAN §4
-  kao Faza 7.2b) i dalje nije napisan — modeli/migracija sada postoje pa je uvoznik sledeći
-  logičan korak kad zatreba (Sredstva nema produkcione podatke, DOS import će biti dovoljan, isti
-  status kao Finansije).
+  provera (posebno `PrijavaWindow`/`RashodWindow` transakciona knjiženja, `AmortizacijaPage`-ov
+  poreski tab i novi `PopisPage`/`RevalorizacijaPage`/`IzvestajiPage` iz §3j ispod) nije urađena.
+- **DOS uvoz Sredstava — urađeno, vidi §3k.** Ispostavilo se da izvor DA IMA produkcione DBF
+  podatke (korisnik ih ima na disku), tako da prethodna pretpostavka "Sredstva nema produkcione
+  podatke" iznad nije bila tačna — ista situacija kao Zarade (PSSS PIROT).
+- **F1 Pomoc — samo per-dialog, ne pun hub.** `UpisPopisaWindow` (§3j) sada ima F1 help preko
+  **deljenog** `ERPiApp.Views.Zarade.Pomoc.EditHelpWindow` (generička klasa, nula Zarade-specifične
+  logike — namerno se NIJE napravila bit-za-bit identična kopija pod `Views/Sredstva/Pomoc`, to bi
+  bila čista duplikacija). Pun `PomocPage`/`ChangelogWindow` hub (globalni F1, sadržajna stranica sa
+  temama) i dalje nije prenet za Sredstva — isti opštiji nedostatak kao za Finansije (§3g) i kao
+  Zaradin još-neožičeni globalni hub (§3e).
+
+---
+
+## 3j. Faza 4 (Osnovna sredstva) — Popis, Revalorizacija, Izveštaji portovani (05.08.2026, nastavak)
+
+Preneta preostala tri UI ekrana iz `ERPiSredstvaApp` čiji su modeli/servisi/xUnit testovi već bili
+preneti u ranijoj sesiji (§3h) — samo je UI sloj nedostajao:
+
+- **`Views/Sredstva/Popis/`** — `PopisPage` (dva taba: Popisne liste + Komisije/članovi),
+  `UpisPopisaWindow` (masovni unos stvarno popisanih količina, zaključivanje popisa),
+  `Stampe/PopisIzvestajDocument` i `Stampe/PraznaPopisnaListaDocument` (PDF, `CoreFirma` obrazac
+  isti kao Prijava/Rashod/Kartice). Ožičeno u sidebar kao "🗂️ Popis sredstava".
+  - `PopisPage.SyncSredstvaSaKarticama()` prenet i **adaptiran na `KontoId` FK** (izvor je sinhronizovao
+    string `Sredstvo.Konto`/`ObracunskaJedinica` iz poslednje `Kartica` pre generisanja popisa) —
+    ovo NIJE bio legacy-only kod: `PrijavaWindow`/`RashodWindow` u ERPi upisuju `KontoId`/
+    `ObracunskaJedinica` samo na `Kartica` zapis, nikad na sâm `Sredstvo` (vidi doc komentar na
+    `Sredstvo.KontoId`), pa bez ove sinhronizacije `Sredstvo.KontoId` ostaje `null` zauvek i popis/
+    izveštaji ne mogu da grupišu po kontu. Grupisanje u oba PDF dokumenta prebačeno sa string
+    `Sredstvo.Konto` na `Sredstvo.Konto.BrojKonta` (FK navigacija).
+  - Izvorni `UpisPopisaWindow.xaml`-ov `StaticResource OutlineButton` (ne postoji ni u izvornom
+    `ERPiSredstvaApp/Resources/Styles.xaml`, već zabeleženo u §3h) zamenjen sa `SecondaryButton`.
+  - F1 help na `UpisPopisaWindow` koristi **deljeni** `ERPiApp.Views.Zarade.Pomoc.EditHelpWindow`
+    (generička klasa bez Zarade-specifične logike) — vidi napomenu u "Poznati nedostaci" iznad.
+- **`Views/Sredstva/Revalorizacija/RevalorizacijaPage`** (obračun po godišnjem + 12 mesečnih
+  koeficijenata, knjiženje efekta kao nova `Kartica` stavka, PDF `Stampe/RevalorizacijaDocument`,
+  CSV export). Ožičeno kao "💹 Revalorizacija". `Kartica.KontoId`/`ObracunskaJedinica`/
+  `AmortizacionaGrupa1/2` pri knjiženju preuzimaju se iz poslednje kartice sredstva (izvor je isto
+  radio sa string `Konto`).
+- **`Views/Sredstva/Izvestaji/IzvestajiPage`** (Popis svih sredstava, rekapitulacije po kontu/OJ/
+  amortizacionoj grupi, CSV export). Ožičeno kao "📊 Izveštaji". **Ispravljen bag iz izvora**:
+  izvorni ERPiSredstva je i "po kontu" i "po OJ" rekapitulaciju grupisao po istoj
+  `AmortizacionaGrupa` (dead-end kod — "po OJ" je čak grupisao sve u jednu grupu `"1"`), verovatno
+  nedovršen ekran. Ovde grupisanje stvarno koristi `Sredstvo.Konto.BrojKonta` (FK) i
+  `Sredstvo.ObracunskaJedinica` (postojeće polje, ranije nekorišćeno u ovom izveštaju) — moguće jer
+  ERPi ima prave FK/popunjena polja koja izvor nije imao, ne slepo kopiranje bug-a.
+  - Lokalni `ReportNavButton` stil dodat u `IzvestajiPage.xaml`-ov `Page.Resources` (izvorni
+    `NavButton` iz `ERPiSredstvaApp/Resources/Styles.xaml` je pravljen za tamni app-sidebar, ne
+    uklapa se u svetlu `Card` pozadinu ovde) — namerno lokalni, ne dodat u `App.xaml` jer ga
+    nijedan drugi ekran ne koristi.
+
+Nije potrebna nova EF migracija — `Popisi`/`PopisneStavke`/`Komisije`/`ClanoviKomisije` DbSet-ovi i
+migracija već postoje iz ranije sesije (§3h). `dotnet build ERPi.slnx` čist, 0 grešaka.
+**Nije commit-ovano.** Nijedan od tri nova ekrana nije vizuelno proveren kroz UI (korisnik testira
+sam, vidi §4).
+
+Sa ovim, Faza 4 nema više poznatih UI-nedostataka iz originalnog ERPiSredstva osim punog F1 Pomoc
+huba (opštiji nedostatak, vidi iznad) — DOS uvoz je urađen u nastavku iste sesije (§3k). Portovanje
+iz ERPiSredstva se može smatrati završenim za sve module koji imaju gotov servisni sloj.
+
+---
+
+## 3m. SEF/PFR podešavanja + e-Fiskalizacija + REST API/Web Dashboard u `PodesavanjaView` (05.08.2026, nastavak)
+
+Faza 3.4 je ranije označena ✅ jer `SefService.PosaljiNaSefAsync` (koristi se iz Komercijala/
+`RacunOtpremnicaView`) je bio potpuno ožičen na pravi SEF API (`SefApiClient` + `SefUblGenerator`,
+čita `Firma.SefApiKey`/`SefEnvironment`) — ali **ekran na kome se taj ključ zapravo unosi nikad
+nije bio prenet**: `ERPiApp/Views/Shell/PodesavanjaView` je imao samo Info traku i "O aplikaciji",
+bez ijednog SEF polja. `SefService`-ova greška ("Idite u Podešavanja -> SEF e-Fakture...") je
+pokazivala na ekran koji nije postojao. Primećeno kad je korisnik pokazao odgovarajući tab u
+izvornom `ERPiFinansije/ERPiFinansijeApp/Views/Podesavanja/PodesavanjaView`. Urađeno u dva
+poteza istog dana: prvo samo SEF tab, pa je korisnik na "proveri da li i ostalo postoji u
+ERPiFinansije" rekao "Može" — pa je preneto i e-Fiskalizacija i REST API/Web Dashboard.
+
+`PodesavanjaView` je pretvoren iz jedne kolone u `TabControl` sa **četiri** taba:
+
+1. **🔧 Opšte** — stari sadržaj (Info traka, O aplikaciji) + novo: toggle "🖥️ Pokreni preko
+   celog ekrana" (`AppConfig.StartMaximized`, JSON-perzistovano isto kao `PrikaziInfoTraku`,
+   default `true`) — čita ga `MainWindow`-ov konstruktor (`WindowState = AppConfig.StartMaximized
+   ? Maximized : Normal`). Prenet iz izvornog `UserSettings.StartMaximized`, jedino polje iz
+   `UserSettings` koje je u samom izvoru stvarno na nešto uticalo (`MainWindow.xaml.cs` tamo)
+   — ostala UserSettings polja (`NazivServisa`/`OvlascenoLice`/`PotvrdaZaRasknjizavanje`/
+   `PotvrdaZaBrisanje`) su, provereno grep-om kroz `ERPiFinansijeApp`, upisana ali **nigde
+   pročitana** čak ni u samom izvoru (mrtva polja, verovatno pripremljena za PDF zaglavlje/
+   potvrdne dijaloge koji nikad nisu implementirani) — namerno NISU prenesena, nema smisla
+   portovati mrtvu formu. `AutoBackupFrequency`/`CustomBackupFolder`/`LastAutoBackupDate` JESU
+   žive u izvoru (auto-backup pri startu, `BackupView`), ali pripadaju ERPi-jevom već postojećem
+   zasebnom "Rezervne kopije" ekranu, ne ovom tabu — nije diran.
+2. **⚡ SEF e-Fakture** — API ključ/okruženje/JBKJS/email, čita/piše `Firma` red preko
+   `_db.Firme` (polja već postojala, nema migracije). "Testiraj SEF Konekciju" zove postojeći
+   `SefApiClient.TestConnectionAsync()`.
+3. **🧾 e-Fiskalizacija (PFR)** — novo. Portovano iz `ERPiFinansijeData/Services/PfrApiClient.cs`:
+   - [`ERPiData/Services/PfrApiClient.cs`](ERPiData/Services/PfrApiClient.cs) — `PfrApiClient`
+     (HTTP klijent ka lokalnom LPFR/VPFR servisu) + DTO-i `PfrPostavke`/`PfrZahtev`/
+     `PfrZahtevStavka`/`PfrZahtevPlacanje`/`PfrOdgovor`, 1:1 protokol iz izvora (izvor ih je držao
+     u `Models/EsirModels.cs`, ovde su uz klijenta u `Services/` — nema drugog potrošača modela).
+   - [`ERPiData/Services/PfrService.cs`](ERPiData/Services/PfrService.cs) — novo, orkestrira
+     `PfrApiClient` nad `PfrRacun` zapisima (izvor nije imao ekvivalentan servisni sloj jer je
+     `PfrRacuniView` tamo pozivao `PfrApiClient` direktno iz code-behind-a). Bitna razlika od
+     izvora: ERPi-jev `PfrRacun` je namerno pojednostavljen (nema stavke po artiklu kao izvorni
+     `FiskalniRacunLog`), pa `PfrService` gradi `PfrZahtev` kao **jednu stavku** koja nosi ukupan
+     `Iznos` — dovoljno da se račun izda, nedovoljno za PDV razrez po stopi po stavci ako PFR to
+     ikad zatraži.
+   - `PfrRacuniView.BtnFiskalizuj_Click` (`Views/SefPfr/`) više NE piše lažan `PfrBroj`/QR lokalno
+     — sada zove `PfrService.FiskalizujRacunAsync`, pravi HTTP poziv, upisuje pravi odgovor
+     (ili SIMULACIJA status ako je `Firma.PfrSimulatorMod` uključen i PFR nije dostupan).
+   - Podešavanja tab: PFR URL/PAC kod/ime kasira/simulator-mod checkbox, čita/piše iste
+     `Firma.PfrUrl`/`PfrPacKod`/`PfrKasirName`/`PfrSimulatorMod` kolone koje su već postojale
+     (portovane u ranijoj Fazi 3.4, ali dotad ničim čitane/pisane iz UI-ja). "Testiraj PFR
+     Konekciju" zove `PfrApiClient.TestirajPfrKonekcijuAsync()` direktno sa poljima iz forme.
+4. **🌐 REST API i Web Dashboard** — novo. Portovano iz
+   `ERPiFinansijeData/Services/AccountingWebServer.cs` →
+   [`ERPiData/Services/ErpiWebServer.cs`](ERPiData/Services/ErpiWebServer.cs) — **ispravka
+   ranije pretpostavke** iz prve verzije ove beleške: izvor NIJE ASP.NET Kestrel host, nego čist
+   `System.Net.HttpListener` (ugrađen u .NET, bez novog NuGet paketa) — port je bio mnogo manji
+   posao nego prvobitno procenjeno. Endpoint-i `/api/status`, `/api/dashboard` (prihodi/rashodi/
+   broj naloga/partnera/artikala tekuće godine), `/api/partneri`, i default ruta vraća
+   samostalnu HTML5 dashboard stranicu (Tailwind CDN, poll na 10s) — token u
+   `Authorization: Bearer` ili `?token=` query, `CryptographicOperations.FixedTimeEquals`
+   poređenje. Prilagođeno šemi: `StavkaNaloga.BrojKonta` (string u izvoru) → navigacija
+   `s.Konto.BrojKonta` (FK); `Nalog.IsKnjizen`/`RacunOtpremnica.IsKnjizen` su `[NotMapped]`
+   računate osobine u ERPi šemi pa se NE koriste u LINQ `Where` pre materijalizacije (za razliku
+   od par postojećih mesta u ERPi-ju, npr. `MestaTroskaService`/`PdvService`, koja to rade i nisu
+   proverena da li se stvarno prevode u SQL ili bi pukla — nije ovom sesijom diran taj rizik,
+   samo izbegnut u novom kodu) — umesto toga upit direktno poredi `n.Status == StatusNaloga.
+  Proknjizen`, garantovano prevodivo. Izvorov `Serilog.Log.Error` pozivi su izostavljeni (ERPiApp
+   nema Serilog uveden) — greške se lokalno gutaju/vraćaju kao HTTP 500, bez logovanja na disk.
+   - Podešavanja tab: port (default 5050), status (🟢/🔴 sa klikabilnim linkom kad radi), token
+     polje (samo za čitanje), dugmad Pokreni/Zaustavi/Otvori u pregledaču — 1:1 UX kao izvor.
+   - Server se NE gasi eksplicitno pri zatvaranju `MainWindow`-a (izvor to isto ne radi — oslanja
+     se na to da se `HttpListener` zatvori sa gašenjem procesa). Ako se ovo ikad pokaže kao
+     problem (npr. port ostaje "zauzet" posle pada aplikacije), dodati `Closed += (_,_) =>
+     ErpiWebServer.Stop();` u `MainWindow`.
+
+**Namerno i dalje NIJE preneto** ("Trim, don't transplant whole"):
+- **Rezervna kopija** kao tab — ERPi već ima zaseban sidebar ekran za backup.
+- **Uvoz iz starog programa** kao tab — ERPi već ima `UvozWizardView` na drugom mestu u sidebar-u.
+- Mrtva `UserSettings` polja (`NazivServisa`/`OvlascenoLice`/potvrdni dijalozi) — vidi obrazloženje
+  gore uz tab 1.
+
+**Nije vizuelno provereno kroz UI** (korisnik testira sam, vidi §4) — `dotnet build ERPi.slnx` je
+čist (0 grešaka) za sve dodate/izmenjene fajlove. Posebno neprovereno: da li lokalni PFR servis
+(ili njegov nedostatak + simulator mod) i `HttpListener` na portu 5050 rade bez sukoba sa
+firewall-om/postojećim procesima na ovoj mašini — prva stvarna proba je na korisniku.
+
+---
+
+## 3k. Faza 7.2b — DOS uvoz Sredstava (05.08.2026, nastavak)
+
+Korisnik je javio da su Popis/Revalorizacija/Izveštaji (§3j) prazni čak i posle uvoza — uzrok:
+`UvozWizardView` uvozi samo Finansije/Zarade, Sredstva nikad nije imalo nijedan uvozni put.
+Korisnik je potvrdio da postoji stvarna (ne samo test) DOS baza za Sredstva na disku, pa
+pretpostavka u §3h ("Sredstva nema produkcione podatke") **nije bila tačna** — ista situacija kao
+Zarade (PSSS PIROT).
+
+Korisnik je izričito tražio DOS uvoz (ne EF-to-EF uvoz iz žive `ERPiSredstvaApp` instalacije) —
+isti dvostepeni obrazac kao `ZaradeDbfMigrator`/`ErpiZaradeProdukcijaImporter` (Faza 7.2a, §3f):
+DBF → privremena `ERPiSredstvaData` (`SredstvaDbContext`) SQLite baza → EF-to-EF u `ErpiDbContext`.
+EF-to-EF stage nije izložen kao zaseban "uvoz iz postojeće ERPiSredstvaApp instalacije" korisnički
+put (za razliku od Zarade, koja ima obe kartice) — samo je interni plumbing koji DOS uvoz poziva.
+
+**Dodato:**
+- `ERPiMigration/Importers/SredstvaDbfMigrator.cs` — 1:1 port `ERPiSredstvaMigration/Program.cs`
+  (konzolni alat) svedene na pozivnu `MigrateAsync(dbfDir, sqliteDb, log)` metodu, isti obrazac kao
+  `ZaradeDbfMigrator`. Čita `SREDSTVA.DBF`/`KARTICA.DBF`/`RASHOD.DBF`/`PRIJAVA.DBF`/`KONTPLAN.DBF`/
+  `KORISNIC.DBF` (cp852 encoding) u svežu `SredstvaDbContext` bazu. `KORISNIC.DBF` (deljeni registar
+  firmi u originalnom DOS rasporedu, jedan nivo iznad `KOR**` foldera) se traži i u izabranom
+  folderu i u roditeljskom — robusnije od izvora koji je imao hardkodovanu apsolutnu putanju.
+- `ERPiMigration/Importers/ErpiSredstvaProdukcijaImporter.cs` — EF-to-EF druga faza (isti obrazac
+  kao `ErpiZaradeProdukcijaImporter`): `Konto` (string, sve tri tabele: `Sredstvo`/`Kartica`/
+  `Prijava`) razrešava se u `KontoId` FK, auto-kreira `Konto` ako broj ne postoji (isti obrazac kao
+  `ErpiFinansijeImporter`); izvorni zaseban `Dobavljac` model postaje `Partner` (`JeDobavljac =
+  true`, `SifraPartnera = "SR-DOB-{Konto}"` stabilan dedup ključ) — ERPi namerno nije preneo
+  Dobavljac kao zaseban entitet (§3h odluka). Dedup: `Sredstvo` po `InventarskiBroj` (nema DB
+  unique indeks), `Kartica`/`Prijava`/`Rashod` po (dest `SredstvoId`/`BrojNaloga`, `RedBroj`),
+  `Komisija` po (`Naziv`, `DatumKreiranja`), `Popis` po (`Godina`, dest `KomisijaId`,
+  `DatumPopisa`) — isti stil kao Zarade importer (HashSet pre-check pre svakog batch-a).
+- `ERPiApp/Views/Sredstva/Podesavanja/PodesavanjaSredstvaView` — nova UI, ožičena kao "⚙️
+  Podešavanja" pod novom PODEŠAVANJA sekcijom Sredstva sidebar-a. Samo jedna kartica (DOS uvoz,
+  folder-picker + log panel) — za razliku od `PodesavanjaZaradeView` NEMA karticu "Uvoz iz
+  postojeće instalacije" (korisnikova odluka, vidi gore).
+- `ERPiMigration.csproj` — dodata `ProjectReference` ka `ERPiSredstvaData.csproj` (bila je
+  nedostajala; verzije EF Core/DbfDataReader se poklapaju sa ostatkom `ERPiMigration`-a, nije
+  bio potreban version pin kao kod Zarade DbfDataReader-a u Fazi 7.2a).
+
+**Odluka koju ne treba poništavati**: EF-to-EF `ErpiSredstvaProdukcijaImporter` postoji SAMO kao
+plumbing za DOS uvoz, ne kao zaseban dugme/korisnički put — korisnik je to eksplicitno tražio
+("Ne treba mi importer iz ERPiSredstva"). Ako se ikad ipak zatraži direktan uvoz iz žive
+`ERPiSredstvaApp` SQLite instalacije (analogno Zarade drugoj kartici), importer je već spreman,
+treba samo dodati UI karticu.
+
+**Nije testirano sa stvarnim DBF fajlovima** (isti status kao Zarade DOS uvoz u §3f — testiran je
+samo EF-to-EF put suvim modelima, ne i čitanje pravih DBF fajlova) — `dotnet build ERPi.slnx` čist,
+0 grešaka/upozorenja. Korisnik ima realne DBF podatke na disku; sledeći test treba da pokrene DOS
+uvoz kroz UI protiv njih.
+
+**Uzgredni nalaz o Zarade DOS uvozu**: korisnik je pitao da li nam "slično treba i za Zarade" —
+provereno, `PodesavanjaZaradeView` VEĆ ima identičan dvostepeni DOS uvoz obrazac (folder-picker +
+`ZaradeDbfMigrator` + `ErpiZaradeProdukcijaImporter`, Faza 7.2a) potpuno ožičen i dostupan u UI-ju
+(Zarade sidebar → Podešavanja). Nije bilo šta da se dodaje — ako "slično" znači da i Zarade DOS
+uvoz treba stvarno isproban sa pravim DBF fajlovima (§3f već beleži da nikad nije testiran), to
+ostaje otvoreno kao zaseban zadatak, ne kao nedostajuća funkcionalnost.
 
 ---
 
@@ -543,26 +727,104 @@ pitao šta u ERPi-ju nedostaje. Puna uporedba tab-po-tab sa izvornim
 
 | Tab u izvoru | Status u ERPi |
 | :--- | :--- |
-| Ponude & Predračuni | ⬜ nedostaje (vidi dole) |
-| Narudžbenice Dobavljačima | ⬜ nedostaje (vidi dole) |
+| Ponude & Predračuni | ✅ portovano (05.08.2026, nova sesija) — vidi dole |
+| Narudžbenice Dobavljačima | ✅ portovano (05.08.2026, nova sesija) — vidi dole |
 | **Računopolagači** | ✅ **nije stvarni nedostatak** — u izvoru je ovo isti `Magacin` šifarnik (`DgRacunopolagaci` binduje `SifraMagacina`/`NazivMagacina`/`OdgovornoLice`/`VrstaMagacina`, `LoadRacunopolagace()` čita `db.Magacini`), samo drugačije nazvan tab u istom ekranu. ERPi već ima identične kolone (uključujući `OdgovornoLice`) u `MagaciniView` (tab "Šifarnik magacina" u `MagacinMainView`) — nema šta dodatno da se portuje, eventualno samo dodati alias/tooltip ako korisnik želi da i ERPi ima tab pod imenom "Računopolagači".
 | Šifarnik artikala | ✅ `ArtikliView` |
 | Poreske tarife | ✅ portovano (05.08.2026, iste sesije) — `PoreskaTarifa` model + `PoreskeTarifeView`/`PoreskaTarifaEditWindow`, tab u `MagacinMainView`, migracija `DodajPoreskeTarife` verifikovana na scratch bazi |
-| **Zaduženja** / **Razduženja** | ⬜ nedostaje, **ali nije novi entitet** — u izvoru dele istu `PrimopredajaNalog`/`PrimopredajaStavka` tabelu kao tab "Primopredaje", razlikovane samo preko `VrstaDokumenta` ("Zaduženje"/"Razduženje"/"Primopredaja", vidi `TrgovinaView.xaml.cs` komentar oko L1584 i `ApplyFilterPrimopredaje` koje filtrira `_svePrimopredaje.Where(p => p.VrstaDokumenta == vrsta)`). **Važna arhitekturna razlika**: ta izvorna `PrimopredajaNalog` je Robno/Artikal-bazirana (`PrimopredajaStavka.SifraArtikla`, koristi se u `Views/Trgovina/PrimopredajaEditWindow`) — DRUGAČIJA od ERPi-jevog već portovanog `PrimopredajaNalog`-a (`ERPiData/Models/Magacin/UlazNalog.cs`), koji je namerno Materijalno/`MaterijalId`-bazirano (§3g odluka, port izvorne `Views/Magacin/PrimopredajaEditWindow`, koja radi nad `Materijali`). Dakle Zaduženje/Razduženje/Robna-Primopredaja **ne mogu da se dodaju kao filter na postojeći ERPi `PrimopredajaService`** — treba nov model (npr. `RobnoInternoKretanje`/`RobnaStavkaKretanja` sa `ArtikalId` FK, `MagacinIdDaje`/`MagacinIdPrima`, `VrstaDokumenta` diskriminator "Primopredaja"/"Zaduženje"/"Razduženje", analogno postojećem Materijalnom pandanu), nov servis (kopija `PrimopredajaService`-ove VP↔MP PDV logike, ali nad `RobnaKarticaService`/`MaterijalnaKarticaService`-ovim Robno-pandanom ako postoji, ili direktno nad `RobnaKartica` ako je već portovano — proveriti pre pisanja) i UI (1 edit prozor + 1 list view sa "Svi/Proknjiženi/Neproknjiženi" filterom, parametrizovan po `VrstaDokumenta`, po uzoru na izvorni `TrgovinaView`-ov `NovaPrimopredaja(vrsta)`/`ApplyFilterPrimopredaje(vrsta)` obrazac — ne 3 odvojena skoro-identična ekrana).
+| **Zaduženja** / **Razduženja** / **Primopredaje** (Robno) | ✅ portovano (05.08.2026, treća sesija) — vidi §3j |
 | Kalkulacije | ✅ `KalkulacijeView` |
-| Robne kartice | pretpostavlja se ✅ preko `RobniBrutoBilansService`/`RobniBrutoBilansView` — nije posebno provereno da li postoji i pojedinačna kartična (analitička) pretraga po artiklu, samo zbirni bruto bilans; vidi i `MaterijalneKarticeView` nedostatak gore (Materijalna strana ima isti otvoren nedostatak).
+| Robne kartice | ✅ portovano (05.08.2026, treća sesija) — `RobneKarticeView`, vidi §3j |
+| Robni Bruto bilans | ✅ portovano (05.08.2026, treća sesija) — `RobniBrutoBilansView`, servis je već postojao ali ekran ne, vidi §3j |
 
-**Ponude & Predračuni / Narudžbenice Dobavljačima** (izvor: `ERPiFinansijeData/Models` nema
-posebne fajlove za ove — proveriti da li su modelovane kao `VrstaDokumenta` na zajedničkom
-"dokument" entitetu ili kao zaseban `Ponuda`/`Narudzbenica` model pre porta; oba tab-a u izvoru
-imaju dugme "Pretvori u Fakturu/Kalkulaciju" — zavise od `RacunOtpremnica`/`Kalkulacija` kao
-odredišta konverzije, oba već postoje u ERPi, pa je preduslov zadovoljen).
+**Ponude & Predračuni / Narudžbenice Dobavljačima — portovano (05.08.2026, nova sesija).**
+Izvor (`ERPiFinansijeData/Models/KomercijalaModels.cs`) je imao zaseban `PonudaPredracun`/
+`NarudzbenicaDobavljacu` model (ne `VrstaDokumenta` na zajedničkom entitetu) — isti obrazac
+prenet u `ERPiData/Models/Magacin/PonudaPredracun.cs` i `NarudzbenicaDobavljacu.cs`, sa
+`SifraArtikla`/cache-ovan `NazivPartnera`/`NazivDobavljaca` pretvorenim u prave FK-ove
+(`ArtikalId`, `PartnerId`) po `import-from-source-apps` pravilu (vidi §2). Servis:
+`ERPiData/Services/KomercijalaService.cs` (CRUD + `PretvoriPonuduURacunAsync`/
+`PretvoriNarudzbenicuUKalkulacijuAsync`, 1:1 logika iz izvora). UI: `PonudeView`/
+`PonudaEditWindow` i `NarudzbeniceView`/`NarudzbenicaEditWindow` u `ERPiApp/Views/Magacin`, kao
+dva nova taba u `MagacinMainView` (ispred "Ulazne kalkulacije"). Editor stavki koristi
+`DataGridComboBoxColumn` artikal-piker + DTO model sa računatim `IznosNeto/Pdv/Bruto`
+propertijima (isti obrazac kao `KalkulacijaEditWindow`), ne izvornu WrapPanel
+"unesi pa dodaj red" traku — laganiji, doslednije sa ostatkom ERPi-ja.
+Migracija `DodajPonudeNarudzbenice`, verifikovana end-to-end na scratch bazi.
+Arhitekturna razlika od izvora: `NarudzbenicaDobavljacu` u ERPi ima i `MagacinId` (magacin
+prijema) — ERPi-jev `Kalkulacija` je magacinski vezan (nenullable `MagacinId`), izvorni
+ERPiFinansije `Kalkulacija` to nije imao, pa konverzija narudžbenice u kalkulaciju zahteva
+magacin unapred izabran na samoj narudžbenici (ne postoji "podrazumevani magacin" fallback).
+`PretvoriNarudzbenicuUKalkulacijuAsync` takođe zahteva da sve stavke imaju izabran artikal
+(bez toga vraća `Success=false` sa objašnjenjem, ne baca izuzetak).
+Nije vizuelno provereno kroz UI (korisnik testira sam, vidi §4) — build je čist (0 CS grešaka;
+poslednji `dotnet build ERPi.slnx` u ovoj sesiji je pukao samo na kopiranju `ERPiData.dll/.pdb`
+jer je `ERPiApp` bio pod debug-erom u drugoj sesiji, ne na kompajliranju), migracija primenjena
+end-to-end na scratch bazi, ali dugme-po-dugme provera CRUD-a i konverzija nije urađena.
 
-**Poreske tarife** — portovano (vidi tabelu gore). Preostaju tri: **Ponude & Predračuni**,
-**Narudžbenice Dobavljačima**, **Zaduženja/Razduženja** (Robno/Artikal varijanta Primopredaje,
-zahteva nov model — vidi arhitekturnu napomenu gore). Nije vizuelno provereno kroz UI
-(korisnik testira sam, vidi §4) — `PoreskeTarifeView` build je čist, migracija primenjena
-end-to-end na scratch bazi, ali dugme-po-dugme provera CRUD-a nije urađena.
+**Poreske tarife** — portovano (vidi tabelu gore), takođe nije vizuelno provereno (isti razlog).
+
+## 3j. Zatvaranje §3i liste — Zaduženja/Razduženja/Primopredaje (Robno), Robne kartice, Robni Bruto Bilans, Robno Dashboard (05.08.2026, treća sesija istog dana, na zahtev korisnika uz oba screenshot-a iz §3i)
+
+Korisnik je ponovo pokazao ista dva screenshot-a (izvorni 13-tabni `TrgovinaView` naspram
+`MagacinMainView`-a) i zatražio da se zatvori ostatak liste, plus da se portuje i Robna
+"Radna tabla" (dashboard) sa svojom meni stavkom. Sve niže je **novo u ovoj sesiji, build čist
+(`dotnet build ERPi.slnx` 0 grešaka/0 upozorenja), migracija verifikovana end-to-end na scratch
+bazi, 55/55 xUnit testova prolazi** — ali **ništa nije vizuelno provereno kroz UI** (korisnik
+testira sam, vidi §4).
+
+- **Nov model `RobnoKretanjeNalog`/`RobnoKretanjeStavka`** (`ERPiData/Models/Magacin/RobnoKretanje.cs`,
+  migracija `DodajRobnoKretanje`) — namerno ODVOJEN od `PrimopredajaNalog` (koji ostaje
+  Materijalno/`MaterijalId`-bazirano, §3g odluka). Ima `ArtikalId` FK i `VrstaDokumenta`
+  diskriminator (`VrstaRobnogKretanja.Primopredaja/Zaduzenje/Razduzenje` — vrednosti
+  "Primopredaja"/"Zaduženje"/"Razduženje") — isti obrazac kao izvorni `TrgovinaView`, jedna
+  tabela/tri filtrirana taba, ne tri skoro-identična ekrana.
+- **`RobnoKretanjeService`** (`ERPiData/Services/RobnoKretanjeService.cs`) — 1:1 struktura sa
+  `PrimopredajaService` (CRUD, `KnjiziKretanjeAsync`/`RasknjiziKretanjeAsync` sa VP↔MP PDV
+  prelaznim nalogom preko `RobnaKonta`), ali knjiži preko **iste** `MaterijalnaKarticaService`
+  instance (njeni `DodajUlazRedAsync`/`DodajIzlazRedAsync`/`UkloniPoslednjiRedAsync` su
+  string-ključni, generički nad `MaterijalnaKartica` tabelom — ta tabela je knjigovodstveno
+  zajednička za Robno i Materijalno, isto kao što `RobniBrutoBilansService` već dokazuje
+  filtriranjem `robaMap`/`materijalMap`). Nije trebalo nova "robna kartica" tabela.
+- **UI**: `RobnoKretanjeEditWindow` (editor, parametrizovan `vrsta` stringom) + `RobnoKretanjaView`
+  (lista sa "Svi/Proknjiženi/Neproknjiženi" filterom + master-detail stavke, takođe
+  parametrizovana `vrsta`-om) — jedan par ekrana pokriva sve tri nove tabove. `RadioButton`
+  "Svi" IsChecked se namerno postavlja u `Loaded`, ne XAML literalu (isti gotcha kao §2).
+  Ožičeno kao 3 nova taba u `MagacinMainView` ("🔄 Primopredaje", "📥 Zaduženja", "📤 Razduženja").
+- **`RobniBrutoBilansView`** (`ERPiApp/Views/Magacin/RobniBrutoBilansView.xaml`) — servisni sloj
+  (`RobniBrutoBilansService.GetRobniBrutoBilansAsync`) je već postojao od Faze 3.12/3g, ali
+  ekran nikad nije bio napisan (§3i-ova "pretpostavlja se ✅" je bila netačna pretpostavka —
+  provereno `grep` da `RobniBrutoBilansView` klasa ranije nije postojala nigde u `ERPiApp`).
+  Filter po magacinu/datumu/pretrazi, isti izgled kao izvorni `TrgovinaView`-ov tab. Novi tab
+  u `MagacinMainView` ("📊 Robni Bruto bilans").
+- **`RobneKarticeView`** (`ERPiApp/Views/Magacin/RobneKarticeView.xaml`) — master-detail
+  (magacin + artikal lista levo, hronologija kartice desno), analogan izvornom `TrgovinaView`
+  tabu "Robne kartice". Čita `MaterijalneKartice` tabelu DIREKTNO (ne preko
+  `MaterijalnaKarticaService`, da se izbegne uvoz Materijal-specifičnog servisa u Robni ekran —
+  vidi komentar u fajlu). Novi tab u `MagacinMainView` ("📇 Robne kartice"). Materijalna strana
+  i dalje nema svoj pandan (`MaterijalneKarticeView` ostaje otvoren nedostatak, §3g/§3i).
+- **`RobnoDashboardView`** (`ERPiApp/Views/Magacin/RobnoDashboardView.xaml`) — "Radna tabla"
+  Robnog knjigovodstva, port iz `ERPiFinansijeApp/Views/Trgovina/RobnoDashboardView`, isti
+  obrazac kao već postojeći `MaterijalnoDashboardView` (KPI karte vrednosti zaliha VP/MP preko
+  `RobniBrutoBilansService.GetRobniBrutoBilansAsync` + `Magacin.VrstaMagacina` grupisanje,
+  poslednjih 8 kalkulacija/nivelacija, top 10 artikala, brze akcije). Razlika od izvora: brza
+  akcija "Nova kalkulacija (MP)" NIJE dodata — `MaloprodajneKalkulacijeView` još nema
+  create-dijalog (samo knjiži/rasknjiži postojećih), pa referenciranje nepostojećeg prozora
+  nije uvedeno; "Nova kalkulacija (VP)"/"Nova nivelacija"/"Nova otpremnica"/"Nova primopredaja"
+  (Robno) rade. Nova top-level nav stavka `BtnRobnoDashboard` ("📊 Radna tabla") u sekciji
+  "ROBNO KNJIGOVODSTVO", ispred postojećeg `BtnMagacin`, isti raspored kao Materijalna sekcija
+  (`BtnMaterijalno`/`BtnMaterijalnoSkladiste`) — ta sekcijska podela sidebar-a je zatečena
+  već urađena od strane druge/paralelne sesije u međuvremenu (`BtnMaterijalnoSkladiste`+
+  `MaterijalnoSkladisteView` su se pojavili u `MainWindow.xaml(.cs)` kao tuđa promena, nisu
+  dirani, samo iskorišćeni kao obrazac za novo dugme).
+- **NAPOMENA korisniku (nije bug, samo objašnjenje "prazne tabele")**: korisnik je usput
+  prijavio da su Ulazne kalkulacije/Nivelacije/MP/Uvozne kalkulacije prazne dok Artikli/Magacini
+  imaju podatke — ovo je OČEKIVANO, ne kvar: `ErpiFinansijeImporter` (Faza 7.1) uvozi samo
+  "osnovne entitete" (Konta/Partneri/Magacini/Artikli/Nalozi/Stavke/Kalkulacije), Robno-
+  materijalna dokumenta (Nivelacije/MP/Uvozne kalkulacije/Primopredaje/itd.) **nisu deo uvoza**
+  (vidi §3d) — prazne su jer nikad nisu migrirane iz stare baze, ne zato što ekran ne radi.
+  Ako korisnik želi tu istoriju u ERPi, sledeći korak je proširenje `ErpiFinansijeImporter`-a
+  da uvozi i Robno-materijalna dokumenta, ne popravka ovih ekrana.
 
 **Finansije — ekrani koji postoje u ERPiFinansije a nemaju pandan u ERPi:**
 - **Korisnici/prava pristupa** — `KorisniciView`/`KorisnikEditWindow` nemaju NIKAKAV pandan;
@@ -634,6 +896,7 @@ bilans, odvojen od `BilansStanjaView`/`BilansUspehaView`).
   - Ujednačen sistem dizajn ikona (živopisne pozadinske boje, emoji prefiksi, `🖨️ PDF` dugme i `X` zeleno dugme za Excel izvoz) primenjen svuda u `ERPiApp`
   - Centralizovani QuestPDF generator `PdfReportService` sa zvaničnim **Nalog za knjiženje** PDF formatom i blokom sa tri potpisa (izradio, proknjižio, odobrio) [c:\ERPi\ERPi\ERPiApp\Services\PdfReportService.cs](file:///c:/ERPi/ERPi/ERPiApp\Services\PdfReportService.cs)
   - `NaloziView`: Klonirana kompletna traka sa dugmadima (`+ Novi nalog`, `✏️ Izmeni`, `☑️ Proknjiži`, `⚡ Proknjiži sve`, `🔓 Rasknjiži`, `🔄 Preknjižavanje`, `⚙️ Napredni filter`, `🏦 Uvoz izvoda`, `📒 Uvoz zarada`, `🖨️` PDF štampa, `X` Excel izvoz, `📅 Nova godina`) [c:\ERPi\ERPi\ERPiApp\Views\Finansije\Nalozi\NaloziView.xaml](file:///c:/ERPi/ERPi/ERPiApp\Views\Finansije\Nalozi\NaloziView.xaml)
+    - `⚙️ Napredni filter` je do sada bio samo klonirano dugme bez funkcije (`TxtPretraga.Focus()` stub) — dovršeno 05.08.2026: portovan `NaprednaPretragaWindow`/`NapredniFilterCriteria` iz ERPiFinansije (`Views/Shared`) u `ERPiApp/Views/Finansije/Shared/`, prilagođen `ErpiDbContext`-u i pravim FK-ovima (`Konto`/`Partner` na `StavkaNaloga`, umesto string `BrojKonta`); ne otvara sopstvenu SQLite konekciju kao izvor, deli već otvoren `_db`. Filtrira po rasponu datuma/iznosa, broju naloga/opisu, kontu, partneru i statusu knjiženja, kombinovano sa postojećom pretragom/radio dugmadima; dugme menja boju u `DarkOrange` kad je filter aktivan (originalna boja se sad čuva iz XAML-a pri konstrukciji, ne hardkoduje se `PrimaryLightBrush` kao u izvoru). `Trgovina`-kontekst (Kalkulacije) iz ERPiFinansije nije prenet — ERPi nema odgovarajući ekran s istim dugmetom još. **Nije vizuelno provereno kroz UI** (isti razlog kao ostali novoportovani ekrani, korisnik testira sam).
   - `KarticaKontaView`, `BrutoBilansView`, `RacuniOtpremniceView`, `KalkulacijeView`, `ArtikliView`, `KontaView` i `PartneriView` usklađeni sa identičnim dizajnom ikona i dugmadi
 - [x] **Klonirani LiveCharts Grafikoni na Radnoj tabli (`DashboardView`)**: 
   - Donut prstenasti grafikon `PieStatusNaloga` (Odnos proknjiženih i nacrta naloga u realnom vremenu)
@@ -662,22 +925,25 @@ Faze 3.5–3.12 su implementirane, commit-ovane i push-ovane na `origin/main` (0
 **3.12 je delimično netačno označena** — videti §3g za ispravku. §3d ("Poznati nedostaci u Fazi
 3.5–3.12", vizuelna provera + čišćenje legacy kolona u `KontaView`) ostaje važeće uporedo.
 
-**Faza 4 (Osnovna sredstva) je sada 🔶 — jezgro preneto u istoj sesiji** (registar, kartice,
-prijava, rashod, amortizacija + poreska amortizacija/Obrazac OA), vidi §3h za pun opis i za listu
-odloženog (Popis, Revalorizacija, Izveštaji hub, DOS uvoz). **Nije commit-ovano** — celo stablo
-`ERPiData/Models/Sredstva`, `ERPiData/Services/Sredstva`, `ERPiApp/Views/Sredstva`, migracija
-`DodajOsnovnaSredstva` i prateća migracija `PdvZapisRacunOtpremnicaSefPolja` (pre-postojeća
-neprimenjena šema izdvojena u sopstvenu migraciju pri generisanju — videti §3h) su i dalje
-untracked/modified u `git status`; ne commit-ovati dok korisnik ne kaže.
+**Faza 4 (Osnovna sredstva) je sada 🔶 — kompletan UI preneto I DOS uvoz dodat** (registar, kartice,
+prijava, rashod, amortizacija + poreska amortizacija/Obrazac OA iz §3h; Popis, Revalorizacija,
+Izveštaji iz §3j; DOS/DBF uvoz — `SredstvaDbfMigrator`/`ErpiSredstvaProdukcijaImporter`/
+`PodesavanjaSredstvaView` — iz §3k, sve u nastavku iste sesije). Ostaje samo pun F1 Pomoc hub
+(opštiji nedostatak, isti kao Finansije/Zarade) — portovanje iz ERPiSredstva se može smatrati
+završenim. **Nije commit-ovano** — celo stablo `ERPiData/Models/Sredstva`,
+`ERPiData/Services/Sredstva`, `ERPiApp/Views/Sredstva`, `ERPiMigration/Importers/SredstvaDbfMigrator.cs`
++ `ErpiSredstvaProdukcijaImporter.cs`, migracija `DodajOsnovnaSredstva` i prateća migracija
+`PdvZapisRacunOtpremnicaSefPolja` (pre-postojeća neprimenjena šema izdvojena u sopstvenu migraciju
+pri generisanju — videti §3h) su i dalje untracked/modified u `git status`; ne commit-ovati dok
+korisnik ne kaže.
 
 Preporučeni redosled sledećeg rada (bilo koji redosled je razuman, ovo je samo predlog):
-1. **Korisnik vizuelno proveri Fazu 4** kroz UI (registar → prijava → kartica → amortizacija →
-   rashod, tim redosledom prati zavisnost podataka) pre nego što se nastavi dalje na tom modulu.
+1. **Korisnik pokrene DOS uvoz** (§3k) protiv pravih DBF fajlova i vizuelno proveri Fazu 4 kroz UI
+   (registar → prijava → kartica → amortizacija → rashod → popis → revalorizacija → izveštaji, tim
+   redosledom prati zavisnost podataka) pre nego što se nastavi dalje na tom modulu.
 2. §3g ("Preporučeni redosled sledećeg rada" za Finansije): Robno-materijalno ostatak servisa/
    ekrana, PDV evidencija, Korisnici/prava pristupa.
-3. Dovršiti Fazu 4 (Popis/Revalorizacija/Izveštaji hub iz §3h) kad zatreba periodični popis ili
-   revalorizacija.
-4. Faza 5 (Obračun zarada, već u toku — vidi §3e) i Faza 6 (automatsko knjiženje Zarade/Sredstva →
+3. Faza 5 (Obračun zarada, već u toku — vidi §3e) i Faza 6 (automatsko knjiženje Zarade/Sredstva →
    Nalog, sad kad oba modula postoje u istoj bazi).
 
 ---
@@ -706,4 +972,186 @@ sesiji):
 **Nije vizuelno provereno kroz UI** (korisnik testira sam, vidi §4) — `PoreskeTarifeView` build
 je čist, migracija primenjena end-to-end na scratch bazi (16. u nizu, posle `DodajOsnovnaSredstva`),
 ali CRUD dugme-po-dugme provera nije urađena. **Nije commit-ovano.**
+
+---
+
+## 6. Sesija 05.08.2026 (nastavak) — Ponude & Predračuni + Narudžbenice Dobavljačima
+
+Nastavak §5-ove liste, korisnikov odabrani redosled (§3i, §5 stavka 1): **Ponude & Predračuni**
+i **Narudžbenice Dobavljačima** portovani u ovoj sesiji.
+
+**Urađeno:**
+- `ERPiData/Models/Magacin/PonudaPredracun.cs` (`PonudaPredracun` + `PonudaStavka`) i
+  `NarudzbenicaDobavljacu.cs` (`NarudzbenicaDobavljacu` + `NarudzbenicaStavka`) — port iz
+  `ERPiFinansijeData/Models/KomercijalaModels.cs`, sa `SifraArtikla`→`ArtikalId` i cache-ovan
+  `NazivPartnera`/`NazivDobavljaca`→`PartnerId` navigacijom pretvorenim u prave FK-ove.
+- `ERPiData/Services/KomercijalaService.cs` — CRUD za oba dokumenta + 1-klik konverzije
+  `PretvoriPonuduURacunAsync` (→ `RacunOtpremnica`) i `PretvoriNarudzbenicuUKalkulacijuAsync`
+  (→ `Kalkulacija`), 1:1 logika iz izvornog `KomercijalaService`.
+- `ERPiApp/Views/Magacin/PonudeView`+`PonudaEditWindow` i
+  `NarudzbeniceView`+`NarudzbenicaEditWindow` — dva nova taba u `MagacinMainView`, ispred
+  "Ulazne kalkulacije". Editor stavki: `DataGridComboBoxColumn` artikal-piker + DTO model sa
+  računatim `IznosNeto/Pdv/Bruto` propertijima (isti obrazac kao `KalkulacijaEditWindow`), ne
+  izvorna WrapPanel "unesi pa dodaj red" traka.
+- Migracija `DodajPonudeNarudzbenice`, verifikovana end-to-end na scratch bazi (17. u nizu).
+
+**Arhitekturna razlika od izvora**: `NarudzbenicaDobavljacu` u ERPi ima i `MagacinId` (magacin
+prijema robe) — polje koje izvor nema, jer je ERPi-jev `Kalkulacija` magacinski vezan
+(nenullable `MagacinId`), a izvorni ERPiFinansije `Kalkulacija` nije. Bez izabranog magacina na
+narudžbenici, `PretvoriNarudzbenicuUKalkulacijuAsync` vraća `Success=false` s objašnjenjem
+("izaberite magacin prijema") umesto da nagađa podrazumevani magacin ili baci izuzetak — isto
+tako i za stavke bez izabranog artikla.
+
+**Nije vizuelno provereno kroz UI** (korisnik testira sam, vidi §4) — build je čist (0 CS
+grešaka na celom `ERPi.slnx`; poslednji build u ovoj sesiji je pukao samo na kopiranju
+`ERPiData.dll`/`.pdb` jer je `ERPiApp` bio pokrenut pod debug-erom u drugoj sesiji u trenutku
+provere — nije problem u kodu, samo file lock), migracija primenjena end-to-end na scratch
+bazi, ali CRUD dugme-po-dugme provera i obe konverzije (u Račun / u Kalkulaciju) nisu
+urađene. **Nije commit-ovano.**
+
+**Sledeće na redu** (§3i, poslednja preostala stavka sa Robno tab-po-tab revizije):
+**Zaduženja/Razduženja** — najsloženiji od tri, zahteva nov Robno/Artikal-bazirani model
+(npr. `RobnoInternoKretanje`/`RobnaStavkaKretanja` sa `ArtikalId` FK, `MagacinIdDaje`/
+`MagacinIdPrima`, `VrstaDokumenta` diskriminator) jer izvorna Robna `PrimopredajaNalog` (koju
+Zaduženje/Razduženje dele preko `VrstaDokumenta` filtera) NIJE ista tabela kao ERPi-jev već
+portovan Materijalni `PrimopredajaNalog` (`MaterijalId`-baziran, §3g odluka) — puno objašnjenje
+i predlog modela u §3i tabeli iznad, red "Zaduženja/Razduženja".
+
+---
+
+## 7. Sesija 05.08.2026 (nastavak) — Materijalno: "Skladište i Zalihe" (puni `MagacinView` port) + Radna tabla meni stavka
+
+Korisnik je pokazao screenshot izvornog `ERPiFinansijeApp`-ovog `MagacinView` (6 tabova:
+Šifrarnik materijala, Ulazi, Trebovanja, Primopredaje, Kartice materijala, Bruto bilans
+materijalnog knjigovodstva) i javio da ERPi-jev Materijalno meni nema nijedan tab — tačno,
+`BtnMaterijalno` je do sada bio jedina stavka pod "MATERIJALNO KNJIGOVODSTVO" i otvarala je
+direktno `MaterijalnoDashboardView` (radna tabla sa poslednjih 8 ulaza/trebovanja + brze akcije,
+§3g), bez pune tabelarne istorije sa filterima — baš ta praznina koju je §3g/§3h već ranije
+imenovao kao "Puna tabelarna lista ... nije portovana".
+
+**Urađeno u ovoj sesiji (portovan pun `MagacinView`, NIJE commit-ovano):**
+- `ERPiApp/Views/Magacin/MaterijalnoSkladisteView.xaml(.cs)` — novi ekran, 6 tabova 1:1 sa
+  izvorom (Šifrarnik materijala / Ulazi / Trebovanja / Primopredaje / Kartice materijala / Bruto
+  bilans materijalnog knjigovodstva). Deli već otvoren `ErpiDbContext` (konstruktor), ne otvara
+  sopstvenu konekciju kao izvor. Ulazi/Trebovanja/Primopredaje master-detail gridovi binduju
+  prave FK navigacione property-je (`Magacin.NazivMagacina`, `Materijal.Naziv`,
+  `MagacinDaje`/`MagacinPrima`) — izvor je to radio ručnim spajanjem preko string šifara u
+  code-behind-u jer njegove stavke nisu imale FK; ERPi-jeve već imaju (§3g odluka), pa je taj
+  ceo sloj koda ovde nepotreban.
+- `ERPiApp/Views/Magacin/MaterijalEditWindow.xaml(.cs)` — CRUD dijalog šifarnika materijala
+  (Šifra/Naziv/JM/Pakovanje), isti obrazac kao postojeći `ArtikalEditWindow`.
+- `ERPiApp/Views/Magacin/ProveraKarticaWindow.xaml(.cs)` — prozor za prikaz redova materijalne
+  kartice sa negativnim stanjem/cenom (dugme "⚠️" na tabu Kartice materijala); §3g ga je već
+  imenovao kao nedostajući ("`ProveraKarticaWindow` — servisni sloj postoji, ekran ne" — servis
+  `MaterijalnaKarticaService.GetNegativnaStanjaAsync()` je već postojao, samo ekran nije).
+- Sidebar (`MainWindow.xaml`): `BtnMaterijalno` preimenovan iz "🏭 Ulazi i Trebovanja" u
+  "📊 Radna tabla" (i dalje otvara `MaterijalnoDashboardView`, ponašanje nepromenjeno), dodata
+  nova stavka `BtnMaterijalnoSkladiste` "🏭 Skladište i Zalihe" → `NavMaterijalnoSkladiste_Click`
+  → `MaterijalnoSkladisteView(_db)`. Sad MATERIJALNO KNJIGOVODSTVO ima dve stavke kao ROBNO
+  KNJIGOVODSTVO sekcija (radna tabla + glavni hub), po izričitom zahtevu korisnika ("sa meni
+  stavkom za Radnu tablu").
+
+**Namerno trimovano od izvora ("Trim, don't transplant whole"):**
+- **Nema PDF štampu (🖨️)** ni na jednom od 6 tabova — ERPiApp još nema `PdfReportService`
+  metode za šifarnik materijala, ulaz/trebovanje/primopredaja nalog, materijalnu karticu ni
+  bruto bilans materijala (izvorne `GenerisiSifrarnikMaterijalaPdf`/`GenerisiUlazPdf`/
+  `GenerisiTrebovanjePdf`/`GenerisiPrimopredajuPdf`/`GenerisiMaterijalnuKarticuPdf`/
+  `GenerisiSveMaterijalneKarticePdf`/`GenerisiRobniBrutoBilansPdf`/
+  `GenerisiProveruMaterijalnihKarticaPdf` nisu portovane). Svaki tab umesto toga ima Excel izvoz
+  (već postojeći opšti `ExcelExportService.ExportDataGridToExcel`, isti obrazac kao ostatak
+  `ERPiApp`-a). Isti opštiji nedostatak kao kod skoro svih ostalih novoportovanih ekrana (§3b/§3g).
+- **Tab "Kartice materijala" nema čekiranje/multi-select ni desni-klik kontekstni meni** — u
+  izvoru je ta mašinerija (`MaterijalIzbor.IsSelected`, `ChkSviArtikli` tri-state header
+  checkbox, `LstArtikli_PreviewMouseRightButtonDown`) postojala isključivo da nahrani grupnu PDF
+  štampu više kartica odjednom (`BtnStampajKarticu_Click` grana za >1 čekiran materijal); pošto
+  PDF štampa nije portovana (gore), ta mašinerija nema svrhu — tab je sad običan single-select
+  grid. `MaterijalIzbor` DTO klasa je zadržana (radi lakšeg budućeg vraćanja checkbox-a kad PDF
+  štampa stigne), ali joj je `IsSelected`/`PropertyChanged` neiskorišćen u ovoj verziji.
+- **Toolbar dugmad su ikona-samo + `ToolTip`** (`➕`/`✏️`/`🗑️`/`✅`/`🔄`/`⚠️`, `IconButtonStyle`),
+  ne ikona+tekst kao u izvoru — po standardnom obrascu ovog projekta (vidi
+  `import-from-source-apps` skill i korisnikovu memoriju o UI stilu), iako par novijih ekrana
+  (`NarudzbeniceView`, `PonudeView`, `RacuniOtpremniceView`) taj obrazac nije dosledno pratilo —
+  primećeno ovde kao odstupanje vredno ispravke u tim ekranima kad im dođe red.
+- **Rasknjiženje Ulaza/Trebovanja/Primopredaje je admin-only** (`AppSession.IsAdministrator`
+  gate pre `RasknjiziXAsync` poziva) — 1:1 isto ponašanje kao izvor, prvi put iskorišćeno u ovom
+  delu `ERPiApp`-a (dosadašnji Materijalno ekrani, `UlazEditWindow`/`TrebovanjeEditWindow`/
+  `PrimopredajaEditWindow`, samo blokiraju izmenu proknjiženog naloga bez ponude za
+  rasknjiženje — ta grana je živela isključivo u starom, sad zamenjenom `MagacinView`-u iz
+  izvora, pa je vraćena ovde gde joj je i mesto).
+
+**Build**: `dotnet build ERPi.slnx` čist za sve fajlove iz ove sesije (jedina preostala greška u
+istom prolazu je u `RobnoKretanjaView.xaml.cs` — tuđ, paralelan rad na §3i "Zaduženja/Razduženja"
+stavci, van dometa ove sesije).
+
+**Nije vizuelno provereno kroz UI** (korisnik testira sam, vidi §4) — ni novi ekran ni
+preimenovana/dodata sidebar stavka nisu klikom provereni. **Nije commit-ovano.**
+
+---
+
+## 3l. Sredstva — "Radna tabla" (KPI + grafikoni), 05.08.2026, nastavak
+
+Korisnik je tražio radnu tablu za Sredstva modul "kao u ERPiSredstva" — izvorni
+`ERPiSredstvaApp/Views/Dashboard/DashboardPage(.xaml.cs)`/`DashboardViewModel` nije bio prenet
+(§3h je to izričito zabeležio kao namernu odluku, jer ERPi ima svoj `Shell/DashboardView`, ali taj
+je Finansije-fokusiran, ne Sredstva).
+
+Dodato (`ERPiApp/Views/Sredstva/Dashboard/`), isti "Radna tabla" naziv/raspored kao Finansije i
+Robno/Materijalno knjigovodstvo (§ iznad):
+- `SredstvaDashboardPage.xaml(.cs)` + `SredstvaDashboardViewModel.cs` — 1:1 raspored iz izvora
+  (3 KPI kartice: ukupno sredstava/nabavna/sadašnja vrednost; grafikoni: Top 5 najvrednijih
+  aktivnih sredstava — horizontalni bar, Status sredstava — donut, Vrednost po kontima Top 10 —
+  pie). Konstruktor prima deljeni `ErpiDbContext` (isti obrazac kao ostale Sredstva stranice), ne
+  samostalni `SredstvaDbContext` iz izvora.
+  - Razlika od izvora: "Vrednost po kontima" grupiše po `Sredstvo.KontoId` → `Konto.BrojKonta`
+    (prava FK navigacija, učitana kao rečnik unapred da se izbegne N+1 jer `Include` nije
+    podešen), ne po string koloni `Sredstvo.Konto` — isti string→FK obrazac kao svuda drugde
+    (vidi §2).
+- Sidebar (`MainWindow.xaml`): nova prva stavka `BtnSredstvaDashboard` "📊 Radna tabla" u
+  `PnlNavSredstva`, iznad postojeće "OSNOVNA SREDSTVA" grupe. `TabModulSredstva_Click` (klik na
+  modul-tab u vrhu) sad otvara radnu tablu kao landing ekran (bilo je direktno
+  `SredstvaPage`/Registar) — isti obrazac kao `TabModulFinansije_Click` → `DashboardView`.
+- Sve potrebne `App.xaml` resurse (`Card`, `SurfaceBrush`, `PrimaryBrush`, `TextSecondaryBrush`,
+  `TextPrimaryBrush`, `SuccessBrush`) ERPi već ima iz Faze 4 (§3h) — nije trebalo ništa dodavati.
+
+**Build**: `dotnet build ERPi.slnx` čist za sav novi/izmenjeni kod (samo predikuduće Zarade
+upozorenja, nepovezano); finalni copy-to-output korak je odbio da zameni `ERPiApp.exe` jer je
+korisnikova instanca bila pokrenuta u trenutku build-a (zaključan fajl) — isto kao poznata
+napomena u §3k, ne greška u kodu.
+
+**Nije vizuelno provereno kroz UI** (korisnik testira sam, vidi §4). **Nije commit-ovano.**
+
+---
+
+## 3n. Bag: ERPi registar Sredstava se ne slaže sa ERPiSredstva (05.08.2026, nastavak)
+
+Korisnik je pokazao dva screenshot-a (PSSS PIROT firma) — ERPi i ERPiSredstva prikazuju iste
+šifre/nazive sredstava, ali potpuno različite Nabavna/Ispravka/Sadašnja vrednost (npr. "Upravna
+zgrada": ERPi 515.154,90 vs. ERPiSredstva 879.628,24).
+
+**Uzrok nađen upoređivanjem baza direktno (sqlite3) — nije bag u računici amortizacije**:
+`AmortizacijaCalculator.cs` je bit-za-bit identičan u oba projekta (ERPiData/Services/Sredstva vs.
+ERPiSredstvaData/Services), i `SredstvaKartice`/`Kartice` (istorija promena po sredstvu — Pocetno
+stanje, Redovan otpis po godini, Revalorizacija po godini) su **identične** u obe baze, red po red,
+za period 2001–2025. Problem je u `SredstvaDbfMigrator.cs` (§3k, DOS uvoz): zbirna polja na samom
+`Sredstvo` redu (`NabavnaVrednost`/`IspravkaVrednosti`/`SadasnjaVrednost`) su uzimana direktno iz
+`SREDSTVA.DBF`-ovih `NABAVNA`/`OTPISANA` kolona, a te kolone u ovom DBF izvoru nose **snimak
+početnog stanja** (obično 2001), ne tekuće stanje — tekuće stanje se dobija tek akumulacijom cele
+istorije iz `KARTICA.DBF` (isti model kao `AmortizacijaCalculator`: svaka kartica je delta na
+prethodno stanje). Rezultat: `Sredstvo` red u ERPi je ostajao zaglavljen na 2001. vrednosti, iako
+je `Kartice`/`SredstvaKartice` tabela imala punu ispravnu istoriju. `ErpiSredstvaProdukcijaImporter`
+(EF-to-EF druga faza) samo kopira već pogrešnu vrednost iz privremene baze, nije on uzrok.
+
+**Ispravljeno**: `SredstvaDbfMigrator.MigrateAsync` posle uvoza `KARTICA.DBF` sad rekalkuliše
+`Sredstvo.NabavnaVrednost`/`IspravkaVrednosti`/`SadasnjaVrednost` kao sumu svih pripadajućih
+`Kartica` redova (samo za sredstva koja imaju bar jednu karticu — sredstva bez istorije zadržavaju
+sirovu DBF vrednost). Primenjuje se na sledeći DOS uvoz.
+
+**Popravljeni i postojeći podaci**: `firma_100188310_PSSS_PIROT_DOO_PIROT.db` (jedina baza sa
+razilaženjem — `ARHIBEL_ARHIBEL_doo_Pirot.db` je proverena, 0 razilaženja) je repair-ovana istim
+UPDATE-om direktno nad `Sredstva`/`SredstvaKartice`, posle backup-a
+(`firma_100188310_PSSS_PIROT_DOO_PIROT_backup_pre_sredstva_fix_20260805_234434.db` u istom Baze
+folderu). Ukupni zbirovi (Nabavna 20.792.222,30 / Ispravka 13.754.792,15 / Sadašnja 7.037.430,15)
+sad se poklapaju tačno sa ERPiSredstva.
+
+**Nije commit-ovano** (samo `SredstvaDbfMigrator.cs` izmenjen, baze su lokalni podaci van repoa).
 

@@ -4,6 +4,14 @@
       Title="Analitičke kartice"
       Background="{StaticResource SurfaceBrush}">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../SredstvaStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
     <Grid Margin="24">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350"/>
@@ -36,7 +44,7 @@
                         <DataTemplate>
                             <Border Padding="12,8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding LegacySifra}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource PrimaryLightBrush}"/>
+                                    <TextBlock Text="{Binding LegacySifra}" FontSize="11" FontWeight="Bold" Foreground="#2D6A4F"/>
                                     <TextBlock Text="{Binding Naziv}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </Border>
@@ -71,7 +79,7 @@
                         <TextBlock x:Name="SubtitleText" Text="Inv Br" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1" Click="PrintButton_Click" Style="{StaticResource IconButtonStyle}" ToolTip="Štampa (PDF)"/>
+                    <Button Grid.Column="1" Content="🖨️" Click="PrintButton_Click" Style="{StaticResource IconButtonStyle}" ToolTip="Štampa (PDF)"/>
                 </Grid>
 
                 <!-- Info kartice (stat boxes) -->
@@ -100,7 +108,7 @@
                     <Border Style="{StaticResource StatCard}">
                         <StackPanel>
                             <TextBlock Text="STOPA AMORTIZACIJE" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                            <TextBlock x:Name="StopaText" Text="—" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryLightBrush}"/>
+                            <TextBlock x:Name="StopaText" Text="—" FontSize="18" FontWeight="Bold" Foreground="#2D6A4F"/>
                             <TextBlock Text="godišnje" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Border>
@@ -142,7 +150,7 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0" Background="#F0F7F4" CornerRadius="10,10,0,0" Padding="16,10">
-                        <TextBlock Text="Hronologija promena" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryLightBrush}"/>
+                        <TextBlock Text="Hronologija promena" FontSize="13" FontWeight="SemiBold" Foreground="#2D6A4F"/>
                     </Border>
 
                     <DataGrid x:Name="KarticaGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserSortColumns="False" BorderThickness="1" BorderBrush="#E5E7EB" Background="White">

@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ERPiApp.Services;
+using ERPiApp.Views.Finansije.Shared;
 using ERPiData;
 using ERPiData.Models.Finansije;
 using ERPiData.Services;
@@ -19,11 +20,14 @@ public partial class NaloziView : UserControl
 {
     private readonly ErpiDbContext _db;
     private List<Nalog> _sviNalozi = new();
+    private NapredniFilterCriteria _napredniFilter = new();
+    private readonly System.Windows.Media.Brush _napredniFilterDefaultBackground;
 
     public NaloziView(ErpiDbContext db)
     {
         InitializeComponent();
         _db = db;
+        _napredniFilterDefaultBackground = BtnNapredniFilter.Background;
         RbSviNalozi.IsChecked = true;
         Ucitaj();
     }
@@ -69,6 +73,19 @@ public partial class NaloziView : UserControl
             filtrirani = filtrirani.Where(n => n.Status == StatusNaloga.Proknjizen);
         else if (RbNeproknjizeni?.IsChecked == true)
             filtrirani = filtrirani.Where(n => n.Status == StatusNaloga.Nacrt);
+
+        filtrirani = filtrirani.Where(n =>
+            (!_napredniFilter.DatumOd.HasValue || n.DatumNaloga >= _napredniFilter.DatumOd.Value.Date) &&
+            (!_napredniFilter.DatumDo.HasValue || n.DatumNaloga <= _napredniFilter.DatumDo.Value.Date.AddDays(1).AddTicks(-1)) &&
+            (!_napredniFilter.IznosMin.HasValue || n.UkupnoDuguje >= _napredniFilter.IznosMin.Value) &&
+            (!_napredniFilter.IznosMax.HasValue || n.UkupnoDuguje <= _napredniFilter.IznosMax.Value) &&
+            (string.IsNullOrEmpty(_napredniFilter.BrojDokumenta) || n.BrojNaloga.ToString().Contains(_napredniFilter.BrojDokumenta) || (n.Opis != null && n.Opis.Contains(_napredniFilter.BrojDokumenta, StringComparison.OrdinalIgnoreCase))) &&
+            (string.IsNullOrEmpty(_napredniFilter.Konto) || (n.Stavke != null && n.Stavke.Any(s => s.Konto != null && s.Konto.BrojKonta.Contains(_napredniFilter.Konto, StringComparison.OrdinalIgnoreCase)))) &&
+            (!_napredniFilter.SelectedPartnerId.HasValue || (n.Stavke != null && n.Stavke.Any(s => s.PartnerId == _napredniFilter.SelectedPartnerId.Value))) &&
+            (_napredniFilter.SamoProknjizeni == null ||
+                (_napredniFilter.SamoProknjizeni == true && n.Status == StatusNaloga.Proknjizen) ||
+                (_napredniFilter.SamoProknjizeni == false && n.Status == StatusNaloga.Nacrt))
+        );
 
         var lista = filtrirani.ToList();
         DgNalozi.ItemsSource = lista;
@@ -209,17 +226,41 @@ public partial class NaloziView : UserControl
 
     private void BtnPreknjizavanje_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("Funkcija automatskog preknjižavanja stavki sa konta na konto je u pripremi.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        var dijalog = new PreknjizavanjeWindow(_db) { Owner = Window.GetWindow(this) };
+        if (dijalog.ShowDialog() == true)
+        {
+            Ucitaj();
+        }
     }
 
     private void BtnNapredniFilter_Click(object sender, RoutedEventArgs e)
     {
-        TxtPretraga.Focus();
+        try
+        {
+            var win = new NaprednaPretragaWindow(_db, _napredniFilter) { Owner = Window.GetWindow(this) };
+            if (win.ShowDialog() == true)
+            {
+                _napredniFilter = win.FilterCriteria;
+                BtnNapredniFilter.Background = _napredniFilter.HasActiveFilter
+                    ? System.Windows.Media.Brushes.DarkOrange
+                    : _napredniFilterDefaultBackground;
+                Filtriraj();
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri filtriranju: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void BtnUvozIzvoda_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("Uvoz bankarskih izvoda u naloge (HALCOM, Asseco, XML) otvara se iz menija 🏦 Uvoz izvoda banke.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        var win = new ERPiApp.Views.Finansije.Izvodi.UvozIzvodaWindow(_db) { Owner = Window.GetWindow(this) };
+        win.ShowDialog();
+        if (win.JeProknjizeno)
+        {
+            Ucitaj();
+        }
     }
 
     private void BtnUvozZarada_Click(object sender, RoutedEventArgs e)
@@ -275,6 +316,19 @@ public partial class NaloziView : UserControl
 
     private void BtnExportExcelNalozi_Click(object sender, RoutedEventArgs e)
         => ExcelExportService.ExportDataGridToExcel(DgNalozi, "Nalozi_Za_Knjizenje", "Nalozi");
+
+    private void BtnExportExcelJedanNalog_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgNalozi.SelectedItem is not Nalog nalog)
+        {
+            MessageBox.Show("Izaberite jedan nalog za izvoz u Excel.", "Informacija", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        string naslov = $"Nalog br. {nalog.BrojNaloga} od {nalog.DatumNaloga:dd.MM.yyyy.} — {nalog.Opis}";
+        string fileName = $"Nalog_{nalog.BrojNaloga}_{DateTime.Now:yyyyMMdd_HHmmss}";
+        ExcelExportService.ExportDataGridToExcel(DgStavke, naslov, fileName);
+    }
 
     private void BtnNovaGodina_Click(object sender, RoutedEventArgs e)
     {

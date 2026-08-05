@@ -4,6 +4,14 @@
       Title="Osnovna sredstva"
       Background="{StaticResource SurfaceBrush}">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../SredstvaStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
     <Grid Margin="28,24,24,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -40,11 +48,11 @@
 
                 <!-- Dugmad -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="🖨️" Style="{StaticResource IconButtonStyle}" ToolTip="Nalepnice (bar-kod)"
-                            Margin="0,0,8,0" Click="BtnNalepnice_Click"/>
-                    <Button Content="📋" Style="{StaticResource IconButtonStyle}" ToolTip="Analitička kartica"
-                            Margin="0,0,8,0" Click="BtnKartica_Click"/>
-                    <Button Content="➕  Nova prijava" Style="{StaticResource PrimaryButton}"
+                    <Button Content="🖨  Nalepnice" Style="{StaticResource SecondaryButton}"
+                            Margin="0,0,8,0" Height="34" Click="BtnNalepnice_Click"/>
+                    <Button Content="📋  Kartica" Style="{StaticResource SecondaryButton}"
+                            Margin="0,0,8,0" Height="34" Click="BtnKartica_Click"/>
+                    <Button Content="➕  Novo sredstvo" Style="{StaticResource PrimaryButton}"
                             Height="34" Click="BtnNovo_Click"/>
                 </StackPanel>
             </Grid>

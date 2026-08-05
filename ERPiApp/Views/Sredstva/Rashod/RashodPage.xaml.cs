@@ -116,15 +116,19 @@ public partial class RashodPage : Page
 
     private void RashodGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        var selektovani = RashodGrid.SelectedItems.OfType<RashodNalogViewModel>().ToList();
+        BtnStampa.IsEnabled = selektovani.Count > 0;
+
         if (RashodGrid.SelectedItem is RashodNalogViewModel r)
         {
-            StatusText.Text = $"Nalog #{r.BrojNaloga}  •  Dupli klik za pregled naloga";
+            StatusText.Text = $"Nalog #{r.BrojNaloga}  •  Selektovano: {selektovani.Count} nalog(a)  •  Dupli klik za pregled naloga";
             UcitajStavke(r.BrojNaloga);
         }
         else
         {
             StavkeGrid.ItemsSource = null;
             TxtDetaljiNaslov.Text = "Izaberite nalog";
+            StatusText.Text = "Izaberite nalog iz tabele";
         }
     }
 
@@ -170,16 +174,16 @@ public partial class RashodPage : Page
 
     private void BtnStampa_Click(object sender, RoutedEventArgs e)
     {
-        var trenutniPrikaz = (RashodGrid.ItemsSource as List<RashodNalogViewModel>) ?? _all;
-        if (!trenutniPrikaz.Any())
+        var selektovani = RashodGrid.SelectedItems.OfType<RashodNalogViewModel>().ToList();
+        if (!selektovani.Any())
         {
-            MessageBox.Show("Nema podataka za štampu.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Molimo izaberite bar jedan nalog iz tabele za štampu.", "Štampa naloga", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
         try
         {
-            var brojevi = trenutniPrikaz.Select(n => n.BrojNaloga).ToHashSet();
+            var brojevi = selektovani.Select(n => n.BrojNaloga).ToHashSet();
             var rashodi = _db.SredstvaRashodi
                 .Include(r => r.Sredstvo)
                 .Where(r => brojevi.Contains(r.BrojNaloga))

@@ -10,6 +10,7 @@
     <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
     <ProjectReference Include="..\..\ERPiFinansije\ERPiFinansijeData\ERPiFinansijeData.csproj" />
     <ProjectReference Include="..\..\ERPiZarade\ERPiZaradeData\ERPiZaradeData.csproj" />
+    <ProjectReference Include="..\..\ERPiSredstva\ERPiSredstvaData\ERPiSredstvaData.csproj" />
   </ItemGroup>
 
   <ItemGroup>

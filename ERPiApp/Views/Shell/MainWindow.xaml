@@ -16,6 +16,82 @@
 
         <!-- SIDEBAR -->
         <Border Grid.Column="0">
+            <Border.Resources>
+                <!-- Transparent RepeatButton for Track -->
+                <Style x:Key="ScrollBarTrackButton" TargetType="RepeatButton">
+                    <Setter Property="OverridesDefaultStyle" Value="true"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Focusable" Value="false"/>
+                    <Setter Property="IsTabStop" Value="false"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="RepeatButton">
+                                <Border Background="Transparent"/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <!-- Modern ScrollBar Thumb Style for Dark Background -->
+                <Style x:Key="SidebarScrollBarThumb" TargetType="Thumb">
+                    <Setter Property="OverridesDefaultStyle" Value="true"/>
+                    <Setter Property="IsTabStop" Value="false"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Thumb">
+                                <Border x:Name="rectangle"
+                                        CornerRadius="3"
+                                        Background="#40FFFFFF"
+                                        Margin="2,0,2,0"
+                                        Width="6"
+                                        HorizontalAlignment="Center"/>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="true">
+                                        <Setter TargetName="rectangle" Property="Background" Value="#80FFFFFF"/>
+                                        <Setter TargetName="rectangle" Property="Width" Value="8"/>
+                                    </Trigger>
+                                    <Trigger Property="IsDragging" Value="true">
+                                        <Setter TargetName="rectangle" Property="Background" Value="#A0FFFFFF"/>
+                                        <Setter TargetName="rectangle" Property="Width" Value="8"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <!-- Style for ScrollBar within the Sidebar -->
+                <Style TargetType="ScrollBar">
+                    <Setter Property="OverridesDefaultStyle" Value="true"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <Trigger Property="Orientation" Value="Vertical">
+                            <Setter Property="Width" Value="10"/>
+                            <Setter Property="Height" Value="Auto"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ScrollBar">
+                                        <Grid x:Name="Bg" Background="Transparent">
+                                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                                <Track.DecreaseRepeatButton>
+                                                    <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollBarTrackButton}"/>
+                                                </Track.DecreaseRepeatButton>
+                                                <Track.IncreaseRepeatButton>
+                                                    <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollBarTrackButton}"/>
+                                                </Track.IncreaseRepeatButton>
+                                                <Track.Thumb>
+                                                    <Thumb Style="{StaticResource SidebarScrollBarThumb}"/>
+                                                </Track.Thumb>
+                                            </Track>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Resources>
+
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop x:Name="GradStopSidebar1" Color="{StaticResource SidebarStartColor}" Offset="0"/>
@@ -30,7 +106,7 @@
                 </StackPanel>
 
                 <!-- Aktivna firma -->
-                <Border DockPanel.Dock="Top" Margin="16,0,16,15" Background="#1E293B" CornerRadius="8" Padding="12,10"
+                <Border x:Name="BorderFirmaCard" DockPanel.Dock="Top" Margin="16,0,16,15" Background="#20FFFFFF" CornerRadius="8" Padding="12,10"
                         Cursor="Hand" MouseDown="FirmaBorder_MouseDown" ToolTip="Kliknite za promenu firme">
                     <Grid x:Name="PnlFirmaDetails">
                         <Grid.RowDefinitions>
@@ -39,17 +115,17 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
-                            <TextBlock Text="Aktivna firma:" FontSize="10" Foreground="#64748B" FontWeight="Bold"/>
-                            <Border HorizontalAlignment="Right" Background="#334155" CornerRadius="4" Padding="5,2">
-                                <TextBlock Text="🔄 Promeni" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8"/>
+                            <TextBlock Text="Firma:" FontSize="10" Foreground="#E2E8F0" FontWeight="Bold"/>
+                            <Border HorizontalAlignment="Right" Background="#30FFFFFF" CornerRadius="4" Padding="5,2">
+                                <TextBlock Text="🔄 Promeni" FontSize="10" FontWeight="SemiBold" Foreground="White"/>
                             </Border>
                         </Grid>
-                        <TextBlock x:Name="TxtFirmaNaziv" Grid.Row="1" Text="—" FontSize="13" FontWeight="SemiBold" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis" Margin="0,4,0,2"/>
+                        <TextBlock x:Name="TxtFirmaNaziv" Grid.Row="1" Text="—" FontSize="13" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis" Margin="0,4,0,2"/>
                         <TextBlock x:Name="TxtFirmaSifra" Grid.Row="2" Text="—" FontSize="11" Foreground="#38BDF8"/>
                     </Grid>
                 </Border>
 
-                <Separator DockPanel.Dock="Top" Background="#334155" Margin="16,0,16,10"/>
+                <Separator DockPanel.Dock="Top" Background="#30FFFFFF" Margin="16,0,16,10"/>
 
                 <!-- Modul Switcher -->
                 <Grid x:Name="PnlModulSwitcher" DockPanel.Dock="Top" Margin="16,0,16,12">
@@ -67,7 +143,7 @@
                 </Grid>
 
                 <!-- Korisnik + Odjava -->
-                <Border DockPanel.Dock="Bottom" Margin="16,0,16,12" Background="#1E293B" CornerRadius="8" Padding="12,10">
+                <Border x:Name="BorderKorisnikCard" DockPanel.Dock="Bottom" Margin="16,0,16,12" Background="#20FFFFFF" CornerRadius="8" Padding="12,10">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -107,13 +183,15 @@
                             <!-- 📦 ROBNO KNJIGOVODSTVO -->
                             <Separator Background="#334155" Margin="16,8"/>
                             <TextBlock Text="ROBNO KNJIGOVODSTVO (VP / MP)" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
+                            <RadioButton x:Name="BtnRobnoDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyle}" Click="NavRobnoDashboard_Click" ToolTip="Radna tabla robnog knjigovodstva — vrednost zaliha VP/MP, poslednje kalkulacije/nivelacije i brze akcije"/>
                             <RadioButton x:Name="BtnMagacin" Content="📦 Kalkulacije i Nivelacije" Style="{StaticResource NavButtonStyle}" Click="NavMagacin_Click" ToolTip="Kalkulacije veleprodaje/maloprodaje, magacini i artikli"/>
                             <RadioButton x:Name="BtnRacuniOtpremnice" Content="🧾 Računi - Otpremnice" Style="{StaticResource NavButtonStyle}" Click="NavRacuniOtpremnice_Click" ToolTip="Prodaja robe, fakture i otpremnice kupcima"/>
 
                             <!-- 🏭 MATERIJALNO KNJIGOVODSTVO -->
                             <Separator Background="#334155" Margin="16,8"/>
                             <TextBlock Text="MATERIJALNO KNJIGOVODSTVO" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
-                            <RadioButton x:Name="BtnMaterijalno" Content="🏭 Ulazi i Trebovanja" Style="{StaticResource NavButtonStyle}" Click="NavMaterijalno_Click" ToolTip="Radna tabla materijalnog knjigovodstva — vrednost zaliha, ulazi, trebovanja"/>
+                            <RadioButton x:Name="BtnMaterijalno" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyle}" Click="NavMaterijalno_Click" ToolTip="Radna tabla materijalnog knjigovodstva — vrednost zaliha, poslednji ulazi/trebovanja i brze akcije"/>
+                            <RadioButton x:Name="BtnMaterijalnoSkladiste" Content="🏭 Skladište i Zalihe" Style="{StaticResource NavButtonStyle}" Click="NavMaterijalnoSkladiste_Click" ToolTip="Šifarnik materijala, Ulazi, Trebovanja, Primopredaje, Kartice materijala, Bruto bilans"/>
 
                             <!-- 🧾 POREZI, SEF I FISKALIZACIJA -->
                             <Separator Background="#334155" Margin="16,8"/>
@@ -181,12 +259,19 @@
 
                         <!-- SREDSTVA MODUL (KLONIRANO IZ ERPiSredstva) -->
                         <StackPanel x:Name="PnlNavSredstva" Visibility="Collapsed">
+                            <RadioButton x:Name="BtnSredstvaDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaDashboard_Click" ToolTip="Radna tabla sa KPI karticama i grafikonima osnovnih sredstava"/>
                             <TextBlock Text="OSNOVNA SREDSTVA" FontSize="10" FontWeight="SemiBold" Foreground="#52B788" Margin="24,6,0,3"/>
                             <RadioButton x:Name="BtnSredstvaRegistar" Content="🏛️ Registar sredstava" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaRegistar_Click" ToolTip="Šifarnik osnovnih sredstava, nalepnice"/>
                             <RadioButton x:Name="BtnSredstvaKartice" Content="📋 Analitičke kartice" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaKartice_Click" ToolTip="Hronologija promena po sredstvu"/>
                             <RadioButton x:Name="BtnSredstvaPrijave" Content="📥 Prijava sredstava" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaPrijave_Click" ToolTip="Nalog za prijem/aktiviranje novih sredstava"/>
                             <RadioButton x:Name="BtnSredstvaRashod" Content="📤 Rashod i promene" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaRashod_Click" ToolTip="Rashodovanje, prodaja, otuđenje, prenos OJ"/>
                             <RadioButton x:Name="BtnSredstvaAmortizacija" Content="📈 Obračun amortizacije" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaAmortizacija_Click" ToolTip="Obračun i knjiženje amortizacije po periodu"/>
+                            <RadioButton x:Name="BtnSredstvaPopis" Content="🗂️ Popis sredstava" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaPopis_Click" ToolTip="Godišnji popis, komisije, upis stanja"/>
+                            <RadioButton x:Name="BtnSredstvaRevalorizacija" Content="💹 Revalorizacija" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaRevalorizacija_Click" ToolTip="Obračun i knjiženje revalorizacije po koeficijentima"/>
+                            <RadioButton x:Name="BtnSredstvaIzvestaji" Content="📊 Izveštaji" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaIzvestaji_Click" ToolTip="Popis svih sredstava, rekapitulacije po kontu/OJ/am. grupi"/>
+
+                            <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#52B788" Margin="24,14,0,3"/>
+                            <RadioButton x:Name="BtnSredstvaPodesavanja" Content="⚙️ Podešavanja" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaPodesavanja_Click" ToolTip="DOS/DBF uvoz osnovnih sredstava"/>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

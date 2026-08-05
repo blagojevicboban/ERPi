@@ -172,4 +172,20 @@ public partial class UvozWizardView : UserControl
             BtnAnaliziraj.IsEnabled = true;
         }
     }
+
+    private void BtnPokreniUvozDOS_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var window = new ERPiApp.Views.Finansije.DosImportWindow(_db)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            window.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri otvaranju prozora za DOS uvoz:\n{ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 }

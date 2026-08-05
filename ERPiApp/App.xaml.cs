@@ -14,6 +14,19 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Podesavanje QuestPDF licenciranja (Community izdanje za besplatnu upotrebu)
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+        // Podesavanje srpske lokalizacije (sr-Latn-RS) za formatiranje brojeva (20.840.822,30) i datuma
+        var culture = new System.Globalization.CultureInfo("sr-Latn-RS");
+        System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+        System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+        System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+        FrameworkElement.LanguageProperty.OverrideMetadata(
+            typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(System.Windows.Markup.XmlLanguage.GetLanguage("sr-Latn-RS")));
+
         DispatcherUnhandledException += (_, args) =>
         {
             MessageBox.Show(args.Exception.ToString(), "Neočekivana greška",
@@ -53,7 +66,18 @@ public partial class App : Application
 
             var korisnik = db.Korisnici.FirstOrDefault(k => k.IsActive && k.Uloga == UlogaKorisnika.Administrator)
                            ?? db.Korisnici.FirstOrDefault(k => k.IsActive);
-            if (korisnik == null) return false;
+            if (korisnik == null)
+            {
+                korisnik = new Korisnik
+                {
+                    KorisnickoIme = "admin",
+                    ImeIPrezime = "Administrator",
+                    Uloga = UlogaKorisnika.Administrator,
+                    IsActive = true
+                };
+                db.Korisnici.Add(korisnik);
+                db.SaveChanges();
+            }
 
             AppSession.TrenutniKorisnik = korisnik;
             AppSession.TrenutnaFirma = db.Firme.FirstOrDefault();

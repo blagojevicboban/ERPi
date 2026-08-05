@@ -1,0 +1,110 @@
+<UserControl x:Class="ERPiApp.Views.Sredstva.Podesavanja.PodesavanjaSredstvaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceBrush}">
+
+    <UserControl.Resources>
+        <!-- Isti TabControl/TabItem stil kao PodesavanjaZaradeView, za vizuelnu doslednost. -->
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="0,0,0,3"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter x:Name="ContentSite"
+                                              ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="#F0F4F8"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0" Background="Transparent" BorderThickness="0">
+
+            <!-- TAB: Uvoz podataka -->
+            <TabItem Header="📥 Uvoz podataka">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                    <StackPanel>
+
+                        <!-- DOS uvoz (direktno iz DBF fajlova) -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="🗄️ DOS uvoz (direktno iz DBF fajlova)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Uvoz osnovnih sredstava, kartica, rashoda i prijava iz starih DOS/Clipper DBF fajlova (SREDSTVA, KARTICA, RASHOD, PRIJAVA, KONTPLAN, KORISNIC)." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12" TextWrapping="Wrap"/>
+                                <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,0,0,16"/>
+
+                                <TextBlock Text="Folder sa DBF fajlovima (npr. C:\SREDSTVA\SREDS\KOR28):" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtDbfFolder" Grid.Column="0" Height="36" VerticalContentAlignment="Center" Padding="8,0" Text="C:\SREDSTVA\SREDS\KOR28"/>
+                                    <Button x:Name="BtnIzaberiDbfFolder" Grid.Column="1" Content="📁 Izaberi folder..." Height="36" Padding="16,0" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Click="BtnIzaberiDbfFolder_Click"/>
+                                </Grid>
+
+                                <Border Background="#FFF3CD" CornerRadius="8" Padding="12" Margin="0,0,0,20" BorderBrush="#FFEBA0" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="⚠️ VAŽNO UPOZORENJE" FontWeight="Bold" Foreground="#856404" FontSize="13" Margin="0,0,0,4"/>
+                                        <TextBlock Text="DBF fajlovi se prvo učitavaju u privremenu bazu, a zatim se odatle uvoze u ovu firmu. Postojeća sredstva (po inventarskom broju) se ne dupliraju — ponovno pokretanje nad istim fajlovima je bezbedno." TextWrapping="Wrap" Foreground="#856404" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <CheckBox x:Name="ChkBrisiPostojece"
+                                          Content="Obriši postojeće podatke o sredstvima u bazi pre uvoza (pražnjenje registara radi svežeg uvoza)"
+                                          FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"
+                                          Margin="0,0,0,16" IsChecked="False"/>
+
+                                <Button x:Name="BtnPokreniDosUvoz" Content="⚡ Pokreni DOS uvoz" Height="38" Padding="20,0" HorizontalAlignment="Left" Style="{StaticResource ActionButtonStyle}" Click="BtnPokreniDosUvoz_Click"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- STATUS / LOG -->
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="📋 Tok uvoza" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                                <Border Background="#0F172A" CornerRadius="6" Padding="12">
+                                    <ScrollViewer x:Name="LogScroll" Height="180" VerticalScrollBarVisibility="Auto">
+                                        <TextBlock x:Name="TxtLog" Text="Spreman." FontFamily="Consolas" FontSize="12" Foreground="#E2E8F0" TextWrapping="Wrap"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</UserControl>
