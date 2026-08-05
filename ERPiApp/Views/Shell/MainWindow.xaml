@@ -129,6 +129,7 @@
                             <Separator Background="#334155" Margin="16,8"/>
                             <TextBlock Text="PODEŠAVANJA I SISTEM" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
                             <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka Wizard" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz baze ERPiFinansije ili DOS DBF fajlova"/>
+                            <RadioButton x:Name="BtnPodesavanja" Content="🔧 Podešavanja" Style="{StaticResource NavButtonStyle}" Click="NavPodesavanja_Click" ToolTip="Podešavanja aplikacije — info traka, tema, notifikacije"/>
                         </StackPanel>
 
                         <!-- ZARADE MODUL (KLONIRANO IZ ERPiZarade) -->

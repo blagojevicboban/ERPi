@@ -199,7 +199,8 @@ public partial class IosPreviewWindow : Window
         try
         {
             byte[] pdfBytes = PdfReportService.GenerisiZbirniIOSPdf(_firma, new List<IosPartnerGrupa> { grupa }, _odKonta, _doKonta, _odDatuma, _doDatuma);
-            string pdfPath = Path.Combine(Path.GetTempPath(), $"IOS_{grupa.SifraPartnera}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            string sigurnaSifra = string.Join("_", (grupa.SifraPartnera ?? "partner").Split(Path.GetInvalidFileNameChars()));
+            string pdfPath = Path.Combine(Path.GetTempPath(), $"IOS_{sigurnaSifra}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
             await File.WriteAllBytesAsync(pdfPath, pdfBytes);
             Process.Start(new ProcessStartInfo { FileName = pdfPath, UseShellExecute = true });
         }

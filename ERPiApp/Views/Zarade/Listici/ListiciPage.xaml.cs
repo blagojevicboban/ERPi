@@ -33,7 +33,7 @@ public partial class ListiciPage : Page
             var sfd = new SaveFileDialog
             {
                 Filter = "PDF dokument (*.pdf)|*.pdf",
-                FileName = $"Platni_Listic_{o.Radnik.ImeIPrezime.Replace(" ", "_")}_{o.Mesec:D2}_{o.Godina}.pdf",
+                FileName = $"Platni_Listic_{BezbednoIme(o.Radnik.ImeIPrezime)}_{o.Mesec:D2}_{o.Godina}.pdf",
                 Title = "Sačuvaj platni listić"
             };
 
@@ -140,7 +140,7 @@ public partial class ListiciPage : Page
 
                 foreach (var o in selektovani)
                 {
-                    string safeName = o.Radnik.ImeIPrezime.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
+                    string safeName = BezbednoIme(o.Radnik.ImeIPrezime);
                     string fileName = $"Platni_Listic_{safeName}_{o.Mesec:D2}_{o.Godina}.pdf";
                     string fullPath = Path.Combine(folderPath, fileName);
 
@@ -284,4 +284,12 @@ public partial class ListiciPage : Page
     // ── METODA: Generisanje zbirnog PDF-a (jedan dokument sa više strana) ──
     private static void GenerateConsolidatedPdf(List<ObracunPlate> list, string filePath)
         => PlatniListicDocument.Sacuvaj(list, filePath);
+
+    // ── METODA: Bezbedno ime fajla (uklanja sve znakove nevalidne za Windows putanju) ──
+    private static string BezbednoIme(string ime)
+    {
+        foreach (char nedozvoljen in Path.GetInvalidFileNameChars())
+            ime = ime.Replace(nedozvoljen, '_');
+        return ime.Replace(' ', '_');
+    }
 }

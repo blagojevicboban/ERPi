@@ -36,7 +36,17 @@ public partial class MainWindow : Window
     /// <summary>Poziva LoginWindow pre Show() ako je prijavljeni korisnik i dalje na podrazumevanoj lozinci.</summary>
     public void PrikaziUpozorenjeODefaultLozinci()
     {
-        PnlUpozorenjeLozinka.Visibility = Visibility.Visible;
+        // Info traka se prikazuje samo ako je korisnik to uključio u podešavanjima
+        if (AppConfig.PrikaziInfoTraku)
+            PnlUpozorenjeLozinka.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>Osvežava vidljivost info trake prema trenutnom podešavanju — poziva je PodesavanjaView.</summary>
+    public void UpdateInfoTrakaVisibility()
+    {
+        PnlUpozorenjeLozinka.Visibility = AppConfig.PrikaziInfoTraku
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void NavDashboard_Click(object sender, RoutedEventArgs e)
@@ -165,7 +175,11 @@ public partial class MainWindow : Window
         MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.BrutoBilansView(_db);
     }
 
-    public void NavPodesavanja_Click(object sender, RoutedEventArgs e) => NavUvoz_Click(sender, e);
+    public void NavPodesavanja_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "🔧 Podešavanja aplikacije";
+        MainContentHost.Content = new PodesavanjaView();
+    }
 
     private void FirmaBorder_MouseDown(object sender, MouseButtonEventArgs e) => PromeniFirmu();
 
@@ -415,4 +429,3 @@ public partial class MainWindow : Window
         MainContentHost.Content = new ERPiApp.Views.Zarade.Obracun.ObracunPage();
     }
 }
-
