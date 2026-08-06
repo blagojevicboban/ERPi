@@ -38,6 +38,16 @@ public partial class PodesavanjaView : UserControl
             var firma = await _db.Firme.AsNoTracking().FirstOrDefaultAsync();
             if (firma != null)
             {
+                TxtFirmaSifra.Text = firma.Sifra;
+                TxtFirmaNaziv.Text = firma.Naziv;
+                TxtFirmaPib.Text = firma.Pib ?? "";
+                TxtFirmaMaticniBroj.Text = firma.MaticniBroj ?? "";
+                TxtFirmaAdresa.Text = firma.Adresa ?? "";
+                TxtFirmaPttIMesto.Text = firma.PttIMesto ?? "";
+                TxtFirmaTelefon.Text = firma.Telefon ?? "";
+                TxtFirmaZiroRacun.Text = firma.ZiroRacun ?? "";
+                TxtFirmaDbPath.Text = AppConfig.DbPath;
+
                 TxtSefApiKey.Text = firma.SefApiKey ?? "";
                 TxtJbkjsBroj.Text = firma.JbkjsBroj ?? "";
                 TxtFirmaEmail.Text = firma.Email ?? "";
@@ -165,6 +175,48 @@ public partial class PodesavanjaView : UserControl
     private void TglStartMaximized_Checked(object sender, RoutedEventArgs e) => AppConfig.StartMaximized = true;
 
     private void TglStartMaximized_Unchecked(object sender, RoutedEventArgs e) => AppConfig.StartMaximized = false;
+
+    private async void BtnSacuvajFirmu_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var sifra = TxtFirmaSifra.Text.Trim();
+            var naziv = TxtFirmaNaziv.Text.Trim();
+            if (string.IsNullOrEmpty(sifra) || string.IsNullOrEmpty(naziv))
+            {
+                MessageBox.Show("Šifra firme i Naziv firme su obavezni.", "Upozorenje",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var firma = await _db.Firme.FirstOrDefaultAsync();
+            if (firma == null)
+            {
+                MessageBox.Show("Aktivna firma nije pronađena u bazi.", "Greška",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            firma.Sifra = sifra;
+            firma.Naziv = naziv;
+            firma.Pib = string.IsNullOrWhiteSpace(TxtFirmaPib.Text) ? null : TxtFirmaPib.Text.Trim();
+            firma.MaticniBroj = string.IsNullOrWhiteSpace(TxtFirmaMaticniBroj.Text) ? null : TxtFirmaMaticniBroj.Text.Trim();
+            firma.Adresa = string.IsNullOrWhiteSpace(TxtFirmaAdresa.Text) ? null : TxtFirmaAdresa.Text.Trim();
+            firma.PttIMesto = string.IsNullOrWhiteSpace(TxtFirmaPttIMesto.Text) ? null : TxtFirmaPttIMesto.Text.Trim();
+            firma.Telefon = string.IsNullOrWhiteSpace(TxtFirmaTelefon.Text) ? null : TxtFirmaTelefon.Text.Trim();
+            firma.ZiroRacun = string.IsNullOrWhiteSpace(TxtFirmaZiroRacun.Text) ? null : TxtFirmaZiroRacun.Text.Trim();
+
+            await _db.SaveChangesAsync();
+
+            MessageBox.Show("Podaci o firmi su uspešno sačuvani!", "Uspeh",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri čuvanju podataka o firmi:\n{ex.Message}", "Greška",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
     private async void BtnSacuvajSef_Click(object sender, RoutedEventArgs e)
     {

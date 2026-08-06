@@ -1,0 +1,143 @@
+<Window x:Class="ERPiApp.Views.Sredstva.Podesavanja.SredstvaDosImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Uvoz i migracija DOS / DBF podataka — Osnovna sredstva"
+        Height="720" Width="780"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Border Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1.2*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                <TextBlock Text="🚀 Uvoz i migracija DOS / DBF podataka — Osnovna sredstva" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                <TextBlock Text="Skeniranje radnog direktorijuma, izbor pojedinačne firme i uvoz sredstava/kartica/rashoda/prijava (SREDSTVA, KARTICA, RASHOD, PRIJAVA, KONTPLAN, KORISNIC)." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <!-- Folder picker -->
+            <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12,10" Margin="0,0,0,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Radni direktorijum:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Foreground="{StaticResource TextBrush}"/>
+                    <TextBox x:Name="TxtFolderPath" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                    <Button Grid.Column="2" Content="📁 Izaberi..." Height="34" Padding="14,0" Margin="8,0,0,0" Background="#F1F5F9" Foreground="#334155" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Click="BtnBrowseFolder_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- Odredište uvoza -->
+            <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="14,12" Margin="0,0,0,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Odredište uvoza:" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+
+                    <RadioButton x:Name="RbAktivnaFirma" GroupName="Odrediste" Content="🏢 Uvezi u aktivnu firmu" IsChecked="True"
+                                 FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8" Checked="Odrediste_Changed"/>
+                    <RadioButton x:Name="RbNovaFirma" GroupName="Odrediste" Content="🆕 Napravi novu firmu od DOS podataka"
+                                 FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,8" Checked="Odrediste_Changed"/>
+
+                    <Grid x:Name="PnlNovaFirma" Visibility="Collapsed" Margin="24,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="140"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Naziv:" VerticalAlignment="Center" Margin="0,0,8,6"/>
+                        <TextBox x:Name="TxtNovaFirmaNaziv" Grid.Row="0" Grid.Column="1" Height="30" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,12,6"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Šifra:" VerticalAlignment="Center" Margin="0,0,8,6"/>
+                        <TextBox x:Name="TxtNovaFirmaSifra" Grid.Row="0" Grid.Column="3" Height="30" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,6"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="PIB:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="TxtNovaFirmaPib" Grid.Row="1" Grid.Column="1" Height="30" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,12,0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="MB:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="TxtNovaFirmaMb" Grid.Row="1" Grid.Column="3" Height="30" VerticalContentAlignment="Center" Padding="6,0"/>
+                    </Grid>
+
+                    <Separator Background="{StaticResource BorderBrush}" Margin="0,10,0,8"/>
+
+                    <CheckBox x:Name="ChkBrisiPostojece" Content="⚠️ Obriši postojeće podatke o sredstvima pre uvoza (čist re-import u aktivnu firmu)"
+                              FontWeight="SemiBold" Foreground="#DC2626"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Firm Single Selection DataGrid -->
+            <Border Grid.Row="3" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Margin="0,0,0,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Padding="12,8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                        <Grid>
+                            <TextBlock Text="🏢 Izaberite firmu iz DOS-a za uvoz:" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtFirmCount" Text="Pronađeno: 0 firmi" HorizontalAlignment="Right" Foreground="{StaticResource TextMutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <DataGrid x:Name="DgFirme" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
+                               SelectionMode="Single" SelectionUnit="FullRow"
+                               GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E2E8F0" HeadersVisibility="Column"
+                               BorderThickness="0" Background="Transparent" RowHeight="36" ColumnHeaderHeight="34"
+                               SelectionChanged="DgFirme_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Šifra" Binding="{Binding Sifra}" Width="90" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Naziv preduzeća / firme" Binding="{Binding Naziv}" Width="2*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="PIB" Binding="{Binding Pib}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Mesto" Binding="{Binding PttIMesto}" Width="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Putanja foldera" Binding="{Binding FolderPath}" Width="1.5*" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Progress & Log Box -->
+            <Border Grid.Row="4" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,6">
+                        <TextBlock x:Name="TxtStatus" Text="Izaberite firmu i pokrenite uvoz" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        <TextBlock x:Name="TxtPercentage" Text="0%" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                    </Grid>
+
+                    <ProgressBar x:Name="PbProgress" Grid.Row="1" Height="10" Minimum="0" Maximum="100" Value="0" Foreground="{StaticResource PrimaryBrush}" BorderThickness="0" Background="#E2E8F0" Margin="0,0,0,8"/>
+
+                    <TextBox x:Name="TxtLog" Grid.Row="2" IsReadOnly="True" VerticalScrollBarVisibility="Auto" Background="#F8FAFC" FontFamily="Consolas" FontSize="11" Padding="6"/>
+                </Grid>
+            </Border>
+
+            <!-- Footer Action Buttons -->
+            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="BtnStartImport" Content="🚀 Pokreni Uvoz u Aktivnu Firmu" Height="38" Padding="20,0"
+                        Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="BtnStartImport_Click"/>
+                <Button Content="Zatvori" Height="38" Padding="16,0" Margin="10,0,0,0" IsCancel="True"
+                        Background="#F1F5F9" Foreground="#334155" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

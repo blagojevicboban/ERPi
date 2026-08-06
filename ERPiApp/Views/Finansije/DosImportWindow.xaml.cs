@@ -135,7 +135,6 @@ public partial class DosImportWindow : Window
 
             MessageBox.Show($"Uvoz je uspešno završen za firmu '{izabranaFirma.Naziv}'!\n\nIzabrani moduli su uspešno zavedeni u aktivnu ERPi bazu.",
                 "Uspeh", MessageBoxButton.OK, MessageBoxImage.Information);
-            DialogResult = true;
         }
         catch (Exception ex)
         {

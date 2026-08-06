@@ -1,0 +1,50 @@
+<UserControl x:Class="ERPiApp.Views.Finansije.Izvestaji.ZakljucniListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1200">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOOLBAR & FILTERS -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16,12" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnUcitaj" Content="🔄" Style="{StaticResource IconButtonStyle}" ToolTip="Osveži" Margin="0,0,8,0" Click="BtnUcitaj_Click"/>
+                    <Button x:Name="BtnStampajPdf" Content="🖨️" Style="{StaticResource IconButtonStyle}" ToolTip="Štampaj PDF" Margin="0,0,8,0" Click="BtnStampajPdf_Click"/>
+                    <Button x:Name="BtnExportExcel" Content="📊" Style="{StaticResource IconButtonStyle}" ToolTip="Izvoz u Excel" Click="BtnExportExcel_Click"/>
+                </StackPanel>
+                <WrapPanel VerticalAlignment="Center">
+                    <TextBlock Text="Od:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                    <DatePicker x:Name="DpOd" Height="34" Width="120" Margin="0,0,12,0"/>
+
+                    <TextBlock Text="Do:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                    <DatePicker x:Name="DpDo" Height="34" Width="120" Margin="0,0,12,0"/>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- DATA GRID -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DataGrid x:Name="DgZakljucniList" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Konto" Binding="{Binding BrojKonta}" Width="70" FontWeight="Bold"/>
+                    <DataGridTextColumn Header="Naziv konta" Binding="{Binding NazivKonta}" Width="*"/>
+                    <DataGridTextColumn Header="Poč. duguje" Binding="{Binding PocetnoDuguje, StringFormat=\{0:N2\}}" Width="100" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Poč. potražuje" Binding="{Binding PocetnoPotrazuje, StringFormat=\{0:N2\}}" Width="100" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Promet duguje" Binding="{Binding PrometDuguje, StringFormat=\{0:N2\}}" Width="105" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Promet potražuje" Binding="{Binding PrometPotrazuje, StringFormat=\{0:N2\}}" Width="105" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Ukupno duguje" Binding="{Binding UkupnoDuguje, StringFormat=\{0:N2\}}" Width="105" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Ukupno potražuje" Binding="{Binding UkupnoPotrazuje, StringFormat=\{0:N2\}}" Width="105" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Saldo duguje" Binding="{Binding SaldoDuguje, StringFormat=\{0:N2\}}" Width="100" FontWeight="SemiBold" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                    <DataGridTextColumn Header="Saldo potražuje" Binding="{Binding SaldoPotrazuje, StringFormat=\{0:N2\}}" Width="100" FontWeight="SemiBold" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

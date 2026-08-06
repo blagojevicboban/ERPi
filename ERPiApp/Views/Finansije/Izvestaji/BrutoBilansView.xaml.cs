@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using ERPiData;
 using ERPiData.Services;
+using QuestPDF.Fluent;
 
 namespace ERPiApp.Views.Finansije.Izvestaji;
 
@@ -60,12 +61,14 @@ public partial class BrutoBilansView : UserControl
     {
         try
         {
-            var firma = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Firme) ?? new ERPiData.Models.Core.Firma { Naziv = "Moja Firma" };
+            var firma = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Firme);
             var redovi = (DgBrutoBilans.ItemsSource as List<BrutoBilansRed>) ?? new List<BrutoBilansRed>();
-            
-            // Kreiramo jednostavan PDF za Bruto Bilans
-            string pdfPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"Bruto_Bilans_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
-            MessageBox.Show("Bruto Bilans izveštaj je uspešno generisan.", "PDF Izveštaj", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            var doc = new Stampe.BrutoBilansDocument(firma, redovi, DpOd.SelectedDate, DpDo.SelectedDate);
+            string pdfPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"BrutoBilans_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            doc.GeneratePdf(pdfPath);
+
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(pdfPath) { UseShellExecute = true });
         }
         catch (Exception ex)
         {

@@ -35,7 +35,7 @@
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
 | **7.1** | `ERPiMigration` — direktan `ErpiFinansijeImporter` (uvoz iz `baza.db` / `AccountingDbContext` u `ErpiDbContext`) + `UvozWizardView` | ✅ |
 | 7.2a | DOS import Zarade — `ZaradeDbfMigrator` (DBF → privremena ERPiZaradeData baza → `ErpiZaradeProdukcijaImporter`) + `PodesavanjaZaradeView` | ✅ (vidi §3f) |
-| 7.2b | DOS import Finansije/Sredstva | 🔶 (Sredstva ✅, vidi §3k; Finansije i dalje ⬜) |
+| 7.2b | DOS import Finansije/Sredstva | ✅ (Sredstva vidi §3k; Finansije Robno/Materijalno dopunjeno na paritet sa ERPiFinansije u §3r) |
 | **8** | Velopack pakovanje i CI/CD | ⬜ |
 
 ---
@@ -1171,4 +1171,195 @@ Uspešno klonirana i objedinjena celokupna korisnička uputstva i help sistem iz
 3. **Povezivanje u Shell / MainWindow**:
    - Nova stavka `❓ Pomoć & Uputstva` u bočnom meniju i globalni rukovalac tastera **F1** koji otvara ekran pomoći.
 
+---
+
+## 3p. Finansijski izveštaji — Dnevnik glavne knjige, Zaključni list, Vrednovanje zaliha, Bilansi (APR) hub + PB-1/PDP/OA (06.08.2026)
+
+Korisnik je poredio ERPi sidebar sa ERPiFinansije-inim `IzvestajiView`/`BilansiView` kartica-po-kartica
+i tražio da se preneseno ono što nedostaje. Preneseno u ovoj sesiji, **nije commit-ovano**:
+
+- **`Views/Finansije/Izvestaji/DnevnikGlavneKnjigeView`** (novo) — hronološki pregled svih
+  proknjiženih naloga, stavka po stavka (port iz `IzvestajiView`-ove "📖 Dnevnik glavne knjige"
+  kartice + `DnevnikPreviewWindow`), na ERPi-jev obrazac pune stranice umesto zasebnog preview
+  prozora. PDF (`Stampe/DnevnikGlavneKnjigeDocument`, QuestPDF) + Excel export, oba icon-only
+  dugmad (`IconButtonStyle`) po standardnom obrascu projekta.
+- **`Views/Finansije/Izvestaji/ZakljucniListView`** (novo) — totali prometa po sintetičkim
+  kontima za period; podaci iz već-portovanog `BrutoBilansService.GetZakljucniListAsync`
+  (Faza 3.6) — samo je UI ekran nedostajao, servisni sloj je već postojao neiskorišćen. PDF
+  (`Stampe/ZakljucniListDocument`) + Excel export.
+- **"📦 Vrednovanje zaliha"** — NIJE novi ekran: to je funkcionalno identično već-postojećem
+  `Views/Magacin/RobniBrutoBilansView` (isti `RobniBrutoBilansService.GetRobniBrutoBilansAsync`
+  poziva i ERPiFinansije-ina "Vrednovanje zaliha" kartica). Dodat samo drugi nav ulaz iz
+  Finansije sekcije (`NavVrednovanjeZaliha_Click`) koji otvara isti `RobniBrutoBilansView(_db)` —
+  ne duplirati ekran ako se ovde ponovo dođe.
+- **`BrutoBilansView`-ovo "🖨️ PDF" dugme je bilo mrtav kod** — generisalo je putanju fajla i
+  prikazivalo poruku o uspehu, ali nikad nije pozvalo `GeneratePdf`. Ispravljeno pravim PDF-om
+  (`Stampe/BrutoBilansDocument`, QuestPDF) — prvi pravi PDF export za ovaj ekran otkad je
+  portovan u Fazi 3.6.
+- **`BilansStanjaView`/`BilansUspehaView` (dva odvojena nav ekrana) OBRISANI, zamenjeni jednim
+  `Views/Finansije/Bilansi/BilansiAprView`** (5 tabova: Bilans Stanja, Bilans Uspeha, Statistički
+  izveštaj (SI), Cash Flow, Promene na kapitalu) — 1:1 port ERPiFinansije-inog `BilansiView`
+  hub ekrana, po eksplicitnom traženju korisnika ("umesto da je odvojeno... u stvari bolje da
+  preuzmemo ceo ovaj meni"). Bilans Stanja/Uspeha tabovi koriste već-portovani `BilansService`
+  (isti kao obrisani ekrani); SI/CashFlow/Promene na kapitalu koriste već-portovani
+  `AprProsireniIzvestajiService` (Faza 3.6 ✅ ga je već pomenula u zagradi, ali dotad nijedan UI
+  ekran nije pozivao ta tri metoda — servisni sloj je čekao neiskorišćen). PDF export dodat za
+  Stanja/Uspeha tabove (`Stampe/BilansPozicijeDocument`, deljen za oba jer dele isti
+  `BilansPozicija` oblik reda); SI/CashFlow/Kapital imaju samo Excel export (isto kao izvor).
+- **`PoreskiBilansWindow`** (novo, iz `BilansiAprView`-ovog "📜 Poreski Bilans" dugmeta) —
+  Obrasci PB-1 (usklađivanje poreske dobiti), OA (poreska amortizacija po grupama I-V) i PDP
+  (poreska prijava). **Napomena**: `PoreskiBilansService`/`PoreskiBilansModels.cs` su otkriveni
+  kao VEĆ portovani u ranijoj sesiji (commit `3491df9`, pre ove) — servisni sloj je već postojao
+  neiskorišćen, isti obrazac kao `AprProsireniIzvestajiService` gore. Ova sesija je prvo greškom
+  prepisala oba fajla bez prethodnog čitanja (skoro identična, samo doc-komentari drugačiji) —
+  primećeno po `git status` pokazujući "M" umesto "??" na fajlovima za koje se očekivalo da su
+  novi, ispravljeno sa `git checkout --` da se vrati originalni, već-tačan sadržaj. **Pouka**:
+  pre `Write`-a fajla čiji naziv zvuči kao da bi već mogao postojati u ERPi, prvo `Grep`/`Glob`
+  potvrditi da stvarno ne postoji, ne osloniti se samo na sećanje iz ranijeg dela sesije. Jedino
+  je `PoreskiBilansWindow` (UI ekran) stvarno nov — servis je nedirnut, koristi se kakav jeste.
+  **Preneta napomena iz izvora bez izmene**: Obrazac OA koristi ilustrativne/hardkodovane
+  nabavne vrednosti po poreskoj grupi (npr. "I grupa = 5.000.000 RSD"), NE stvarna sredstva iz
+  Faze 4 (Osnovna sredstva) — pravo povezivanje sa registrom sredstava i njihovim amortizacionim
+  grupama je poznati nedostatak, nije nešto što je ova sesija pogoršala ili trebalo da reši.
+- Svi novi ekrani koriste `IconButtonStyle` (icon-only + `ToolTip`) za akcije, ne
+  `ActionButtonStyle` (icon+tekst) kao izvorni ERPiFinansije ekrani — standardni obrazac ovog
+  projekta (vidi §2 gore).
+
+`dotnet build ERPi.slnx` čist, 0 grešaka. **Nijedan od ovih ekrana nije vizuelno proveren kroz
+UI** (isti razlog kao §3d — korisnik testira sam, vidi §4) — posebno `BilansiAprView`-ov
+Poreski Bilans dugme i `DnevnikGlavneKnjigeView`/`ZakljucniListView`-ov PDF export nisu
+pokrenuti dugme-po-dugme, samo je build proveren.
+
+---
+
+## 3q. DOS uvoz fix (Konta duplikati), Sredstva DOS uvoz reskin, Podaci o firmi, podrazumevana lozinka (06.08.2026)
+
+- **Bag: DOS uvoz padao na "UNIQUE constraint failed: Konta.BrojKonta"** — `DosImportService`-ov
+  KONTPLAN.DBF prolaz je svaki red upisivao u privremenu bazu bez provere duplikata, a
+  `Konto.BrojKonta` ima UNIQUE indeks; stari DOS/Clipper kontni planovi znaju da nose dupliran
+  broj konta. Ispravljeno dedup-om po `BrojKonta` (prvo pojavljivanje ostaje) u
+  [DosImportService.cs](ERPiApp/Services/Finansije/DosImportService.cs).
+- **Sredstva DOS uvoz je skrivao pravi uzrok greške** (`ex.Message` bez `ex.InnerException`) —
+  ispravljeno da prikazuje i unutrašnju poruku, isti obrazac kao Finansije DOS uvoz.
+- **Nov ekran `Views/Sredstva/Podesavanja/SredstvaDosImportWindow`** — Sredstva DOS uvoz sad
+  izgleda kao Finansije `DosImportWindow` (skeniranje radnog direktorijuma, lista DOS firmi iz
+  KORISNIC.DBF, log), bez checkbox-ova za module (Sredstva ima samo jedan fiksni skup tabela).
+  Dodatno: bira se odredište — **aktivna firma** (kao ranije) ili **nova firma** (kreira novu
+  ERPi bazu + `Firma` red iz DOS podataka, registruje je u `CompanyRegistryService`, isti put
+  kao `NovaFirmaWindow`). `PodesavanjaSredstvaView` sad samo otvara ovaj dijalog.
+- **Poznat, NAMERNO neodrađen nedostatak DOS uvoza (Robno)** — **ispravljeno u §3r (isti dan,
+  nastavak sesije)**, videti tamo za pun opis. (Istorijska napomena, tačna u trenutku pisanja:
+  DOS uvoz je uvozio samo Robni šifarnik — Magacini + Artikli — a ne i transakcione dokumente;
+  mapping funkcije su postojale ali nisu bile pozvane niti je postojala merge logika u
+  `ErpiFinansijeImporter`.)
+- **Nov tab "🏢 Podaci o firmi" u `PodesavanjaView`** — port ERPiFinansije-inog "Izmena firme"
+  ekrana (Šifra/Naziv/PIB/Matični broj/Adresa/PTT i Mesto/Telefon/Žiro račun + readonly putanja
+  baze), prvi tab u redosledu. `NovaFirmaWindow` je isto dopunjen istim poljima (ranije je imao
+  samo Naziv/Šifra/PIB/Matični broj) — nova i postojeća firma sad imaju isti skup podataka.
+- **Podrazumevana lozinka promenjena sa `admin123` na `admin`** — nova migracija
+  `PromeniPodrazumevanuLozinkuNaAdmin` (PBKDF2 hash generisan van app-a, verifikovan da tačno
+  odgovara "admin" a ne staroj vrednosti). **Namerno NIJE `migrationBuilder.UpdateData`**
+  (bezuslovan UPDATE) — to bi vratilo na podrazumevanu lozinku i firme gde je admin već
+  promenio svoju pravu lozinku. Umesto toga `migrationBuilder.Sql(...)` sa `WHERE LozinkaHash =
+  '<stari hash>'` — dira samo nalog koji i dalje ima staru podrazumevanu lozinku. Provereno na
+  scratch bazi u oba scenarija (svež seed → dobija novi hash; već-promenjena lozinka → ostaje
+  netaknuta). Sve tri UI reference na "admin123" (`LoginWindow` prefill+provera, `MainWindow`
+  upozorenje, `PodesavanjaView` opis toggle-a) ažurirane na "admin".
+- **Greška ove sesije**: `PoreskiBilansService.cs`/`PoreskiBilansModels.cs` su greškom prepisani
+  bez prethodnog čitanja (već postojali, ispravljeno `git checkout --`, vidi §3p) — ponovljena
+  pouka, proveriti `Grep`/`Glob` pre `Write`-a fajla za koji "zvuči" da bi mogao već postojati.
+
+## 3r. DOS uvoz Finansije — Robno/Materijalno dopunjeno na paritet sa ERPiFinansije (06.08.2026, nastavak)
+
+Korisnik je posle testiranja uvoza za "ARHIBEL" primetio: "uvezao je samo artikle materijale, a
+treba sve zivo" — potvrđuje nedostatak zabeležen u §3q. Upoređen [DosImportService.cs](ERPiApp/Services/Finansije/DosImportService.cs)
+(unified ERPi) sa referentnim `ERPiFinansijeApp/Services/DosImportService.cs` (ERPiFinansije,
+puna verzija): unified je čitao samo 6 DBF-ova (KONTPLAN, ANKONT, NALOG, MAGACIN, ARTIKLI,
+M_SIFR), referenca čita 16 vrsta.
+
+**Dopunjeno, raspoređeno po postojećim checkbox modulima u `DosImportWindow`:**
+- **Finansijsko**: PROMENE.DBF → `promeneMap` (in-memory, prosleđuje se u `MapNalogGrupa` da
+  popuni `Opis` stavki naloga; ERPi šema nema zaseban `Promena` model jer se šifre razlikuju po
+  firmi — vidi napomenu u `ERPiFinansijeData.Models.Promena`, pa se ne čuva kao deljeni rečnik).
+- **Robno** (uz postojeće Magacini/Artikli): TARIFE.DBF (`PoreskeTarife`), KALKULAC.DBF+KAL_NAL.DBF
+  (`Kalkulacije`+stavke — ovo je bio i najveći gap: `ErpiFinansijeImporter` je već imao merge kod
+  za Kalkulacije iz Faze 7.1, ali `DosImportService` nikad nije čitao KALKULAC.DBF u temp bazu, pa
+  je uvek bilo 0), MALKULAC.DBF+MAL_NAL.DBF (`MaloprodajneKalkulacije`), RAC_OTP.DBF+RAC_POD.DBF
+  (`RacuniOtpremnice`), NIV_NAL.DBF+P_M_NIV.DBF (`NivelacijeCena`).
+- **Materijalno** (uz postojeći M_SIFR): MAT_KART.DBF+M_KART.DBF (`MaterijalneKartice`),
+  ULAZ.DBF (`UlazNalozi`), TREBOV.DBF (`TrebovanjeNalozi`), MAT_NAL.DBF+ZADUZ.DBF+RAZDUZ.DBF
+  (`PrimopredajaNalozi`) — svrstano pod Materijalno a ne Robno jer unified `UlazStavka`/
+  `TrebovanjeStavka`/`PrimopredajaStavka` imaju `MaterijalId` FK (ne `ArtikalId`), vidi doc-komentar
+  na tim modelima ("Materijalno (ne Robno) knjigovodstvo").
+
+**`ErpiFinansijeImporter.ImportFromDatabaseAsync`** dopunjen sa 9 novih koraka (7–15) koji prenose
+gorenavedene tabele iz temp `AccountingDbContext` u aktivnu `ErpiDbContext`, sa dedup-om po
+prirodnom ključu (isti obrazac kao postojeći Konta/Kalkulacije koraci):
+- Materijali (dedup po `SifraArtikla`) — takođe je bio prisutan bag: M_SIFR se uvozio u temp bazu
+  ali se NIKAD nije prenosio u `destDb.Materijali` (importer koraci 1–6 iz Faze 7.1 ga nisu
+  dodirivali) — sad ima svoj korak i `materijaliDict` koji koriste Ulaz/Trebovanje/Primopredaja.
+- Poreske tarife (dedup po `TarifniBroj`), Materijalne kartice (dedup po tuple
+  `SifraMagacina+SifraArtikla+RedniBroj`, istorijski zapisi bez FK-a po dizajnu).
+- Ulazi/Trebovanja/Primopredaje: `SifraMagacina`/`SifraArtikla` string kodovi iz temp baze
+  (ERPiFinansijeData model ih čuva kao plain string, ne FK) prevedeni na `MagacinId`/`MaterijalId`
+  preko `magaciniDict`/`materijaliDict` (isti string→FK obrazac iz `import-from-source-apps`
+  skill-a). Dedup po broju naloga (Primopredaja dodatno po `VrstaDokumenta+BrojNaloga` jer
+  Primopredaja/Zaduženje/Razduženje dele brojevnu sekvencu).
+- Maloprodajne kalkulacije: isti string→FK obrazac (`SifraMagacinaPrima/Daje`, `SifraDobavljaca`,
+  stavke `SifraArtikla`), dedup po `(BrojKalkulacije, MagacinIdPrima)`.
+- **Računi-Otpremnice i Nivelacije cena su poseban slučaj**: izvorni `ERPiFinansijeData.RacunOtpremnica`/
+  `NivelacijaCena` model (za razliku od Kalkulacija/Maloprodajnih kalkulacija) već čuva prave
+  `int? MagacinId`/`ArtikalId` FK-ove — ali oni pokazuju na temp bazu SVOJIH Magacina/Artikala, ne
+  na `destDb`. Prevod ide u dva koraka: temp `MagacinId`/`ArtikalId` → `Sifra` (učitano iz temp
+  `srcDb.Magacini`/`srcDb.Artikli` u `srcMagaciniByIdTemp`/`srcArtikliByIdTemp` mape) → `destDb`
+  `MagacinId`/`ArtikalId` (preko `magaciniDict`/`artikliDict`). `RacunOtpremnicaStavka.SifraArtikla`
+  je `[NotMapped]` na izvornom modelu pa NE preživljava `AsNoTracking().ToListAsync()` re-query —
+  otud ova dvostepena šema umesto direktnog čitanja stringa sa stavke.
+- `PartnerId` na Računima-Otpremnicama namerno ostaje `null` (izvorni `MapRacunOtpremnice` ga
+  nikad ne popunjava iz DBF-a — trim scope, isto kao u referentnoj ERPiFinansije verziji).
+
+**Build**: `dotnet build ERPiMigration/ERPiMigration.csproj` čisto (0 grešaka). `dotnet build
+ERPiApp/ERPiApp.csproj` — 0 `CS####` grešaka (grep potvrđen), jedina greška je MSB3027/MSB3021
+zaključavanje `.exe`/`.pdb` fajlova od strane žive `ERPiApp`/`netcoredbg` instance koju korisnik
+ima pokrenutu — očekivano, ne compile bag.
+
+**Korisnik je odmah testirao i naišao na dva bug-a u istoj sesiji, oba ispravljena:**
+
+1. **Crash**: uvoz samo Robnog modula za "ARHIBEL" (33 DOS firme, `C:\FIRMEARHSTO\Radni`) pukao
+   na 72%, odmah posle "Uvezeno 8 poreskih tarifa" — `System.ArgumentException: An item with the
+   same key has already been added. Key: 12005`. Uzrok: `magaciniMapTemp`/`artikliMapTemp` u
+   `DosImportService` (nove mape uvedene u ovoj sesiji, koriste se za Kalkulacije/Računi-otpremnice/
+   Nivelacije) su građene direktno preko `ToDictionaryAsync(a => a.SifraArtikla, ...)`, a ARTIKLI.DBF
+   nosi duplirane šifre artikala (isti obrazac bug-a kao KONTPLAN.DBF u §3q, samo za Artikle —
+   Artikal/Magacin dosad nikad nisu bili targetirani dictionary-jem pa se nije primetilo). Ispravljeno
+   na dva mesta: (a) dedup pri upisu u temp bazu (`vidjeneSifreArtikala`/`vidjeneSifreMagacina`
+   HashSet, isti obrazac kao postojeći `vidjeniBrojeviKonta` za Kontni plan — prvo pojavljivanje
+   ostaje, log prijavljuje broj preskočenih duplikata), (b) `magaciniMapTemp`/`artikliMapTemp` sad
+   grade se preko `GroupBy(...).ToDictionary(g => g.Key, g => g.First()...)` kao odbrana u dubinu.
+2. **Gubitak podataka usled crash-a**: pošto je korisnik štiklirao "Obriši postojeće podatke" a
+   brisanje je do sad bilo PRVI korak (commit-uje se odmah, van bilo kakve transakcije), crash iz
+   bug-a (1) je značio da su Robni podaci (Magacini/Artikli/Kalkulacije) u aktivnoj `ARHIBEL` bazi
+   OBRISANI a nikad ponovo napunjeni — `ErpiFinansijeImporter.ImportFromDatabaseAsync` poziv se
+   nalazi POSLE mesta gde je pucalo. Ispravljeno pomeranjem celog brisanja (i za sva tri modula) sa
+   početka metode na mesto neposredno PRE poziva `ErpiFinansijeImporter`-a — tj. tek kad je
+   privremena baza već uspešno popunjena iz svih izabranih DBF-ova. Ako čitanje/mapiranje DBF-a
+   ponovo pukne, brisanje se sad nikad ne izvrši i aktivna baza ostaje netaknuta. Usput dopunjene
+   DELETE liste za Robno/Materijalno (ranije su brisale samo staru petorku
+   Kalkulacije/StavkeKalkulacije/Artikli/Magacini/RobnaKretanja — sad brišu i sve novo ožičene
+   tabele iz ove sesije: RacuniOtpremnice/-Stavke, NivelacijeCena/-Stavke, MaloprodajneKalkulacije/
+   -Stavke, PoreskeTarife za Robno; UlazNalozi/-Stavke, TrebovanjeNalozi/-Stavke, PrimopredajaNalozi/
+   -Stavke, MaterijalneKartice za Materijalno) — inače bi drugi "čist re-import" posle ove sesije
+   ostavljao duple/osirotele zapise u tim tabelama.
+   **Poznato preostalo ograničenje** (nije rešeno, uska ivična situacija): ako korisnik uveze SAMO
+   Robno sa "Obriši postojeće" dok već postoje Materijalno dokumenti (Ulaz/Trebovanje/Primopredaja)
+   koji referenciraju Magacine, brisanje Magacina ih ostavlja sa "obesenim" `MagacinId`-jem (FK je
+   isključen tokom brisanja pa SQLite ne prijavljuje grešku) — rešenje bi zahtevalo ili zajedničko
+   obuhvatanje oba modula u brisanju ili brojanje referenci; odloženo, retka kombinacija.
+
+**Build ponovo proveren posle oba fix-a**: `dotnet build ERPi.slnx` — "Build succeeded", 0
+`CS####` grešaka. **Nije testirano sa stvarnim DBF fajlovima od strane Claude-a** (korisnik sam
+testira UI, vidi [[feedback_user_tests_ui_manually]]) — sledeći korak je da korisnik ponovi uvoz
+za "ARHIBEL" (restartovati app da pokupi build) i proveri da li se sad pojavljuju podaci u
+Kalkulacijama/Nivelacijama/Računima-otpremnicama/Ulazu/Trebovanju/Primopredaji, i da Robni podaci
+(Magacini/Artikli) koji su obrisani u pukom pokušaju sad ponovo postoje posle uspešnog uvoza.
 

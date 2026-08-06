@@ -383,7 +383,7 @@ public class ErpiDbContext : DbContext
             KorisnikId = 1,
             KorisnickoIme = "admin",
             ImeIPrezime = "Administrator",
-            LozinkaHash = "PBKDF2$100000$CnYWiALqycqWTueq6ayEvQ==$hvm9e8z3e+KVeRsego3azOuoTp3q64deikPgUB9/D4o=",
+            LozinkaHash = "PBKDF2$100000$Q5qwVnp/FEFudiM3Pm6TDw==$aQ2LbPzbt/jHw+gAvQKPs3d2WbbeakD5KY5JR9Qx33E=",
             Uloga = UlogaKorisnika.Administrator,
             IsActive = true
         });

@@ -177,8 +177,11 @@
                             <RadioButton x:Name="BtnBlagajna" Content="💰 Dinarska i Devizna Blagajna" Style="{StaticResource NavButtonStyle}" Click="NavBlagajna_Click" ToolTip="Uplatnice, isplatnice, blagajnički dnevnik (2430/2440)"/>
                             <RadioButton x:Name="BtnMestaTroska" Content="🎯 Mesta troška i Projekti" Style="{StaticResource NavButtonStyle}" Click="NavMestaTroska_Click" ToolTip="Analitika, troškovi i profitabilnost po projektima"/>
                             <RadioButton x:Name="BtnDevizno" Content="💱 Devizno &amp; Valviranje" Style="{StaticResource NavButtonStyle}" Click="NavDevizno_Click" ToolTip="Valviranje deviznih konta i obračun kursnih razlika"/>
-                            <RadioButton x:Name="BtnIzvodi" Content="🏦 Uvoz izvoda banke" Style="{StaticResource NavButtonStyle}" Click="NavIzvodi_Click" ToolTip="Uvoz Halcom/Asseco/CAMT/MT940 izvoda"/>
-                            <RadioButton x:Name="BtnBrutoBilans" Content="📄 Finansijski izveštaji" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans, Zaključni list i zvanični finansijski izveštaji"/>
+                            <RadioButton x:Name="BtnDnevnikGlavneKnjige" Content="📖 Dnevnik glavne knjige" Style="{StaticResource NavButtonStyle}" Click="NavDnevnikGlavneKnjige_Click" ToolTip="Hronološki pregled svih proknjiženih naloga sa ukupnim iznosima"/>
+                            <RadioButton x:Name="BtnBrutoBilans" Content="📊 Bruto bilans" Style="{StaticResource NavButtonStyle}" Click="NavBrutoBilans_Click" ToolTip="Bruto bilans — promet i saldo po kontima"/>
+                            <RadioButton x:Name="BtnZakljucniList" Content="📑 Zaključni list" Style="{StaticResource NavButtonStyle}" Click="NavZakljucniList_Click" ToolTip="Totali prometa po sintetičkim (3-cifrenim) kontima za period"/>
+                            <RadioButton x:Name="BtnVrednovanjeZaliha" Content="📦 Vrednovanje zaliha" Style="{StaticResource NavButtonStyle}" Click="NavVrednovanjeZaliha_Click" ToolTip="Trenutno stanje zaliha po magacinima sa jediničnim cenama i ukupnom vrednošću"/>
+                            <RadioButton x:Name="BtnBilansiApr" Content="🏛️ Bilansi (APR)" Style="{StaticResource NavButtonStyle}" Click="NavBilansiApr_Click" ToolTip="Zvanični Bilans stanja, Bilans uspeha, Statistički izveštaj, Cash Flow, Promene na kapitalu i Poreski bilans"/>
 
                             <!-- 📦 ROBNO KNJIGOVODSTVO -->
                             <Separator Background="#334155" Margin="16,8"/>
@@ -298,7 +301,7 @@
             </Border>
 
             <Border Grid.Row="1" x:Name="PnlUpozorenjeLozinka" Background="#FEF3C7" Padding="24,10" Visibility="Collapsed">
-                <TextBlock Text="⚠️ Nalog koristi podrazumevanu lozinku (admin123) — promenite je pre stvarnog rada. Ekran za upravljanje korisnicima dolazi u sledećoj fazi."
+                <TextBlock Text="⚠️ Nalog koristi podrazumevanu lozinku (admin) — promenite je pre stvarnog rada. Ekran za upravljanje korisnicima dolazi u sledećoj fazi."
                            FontSize="12" Foreground="#92400E" TextWrapping="Wrap"/>
             </Border>
 

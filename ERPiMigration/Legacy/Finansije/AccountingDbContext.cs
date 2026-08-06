@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using ERPiFinansijeData.Models;
 
 namespace ERPiFinansijeData;
@@ -100,73 +97,18 @@ public class AccountingDbContext : DbContext
     }
 
     /// <summary>
-    /// Inicijalizuje bazu: detektuje zatečenu šemu, usklađuje istoriju migracija i primenjuje
-    /// nove migracije. Pokriva tri scenarija:
-    /// <list type="number">
-    ///   <item>Nova baza — <c>Migrate()</c> kreira sve od nule.</item>
-    ///   <item>Baza napravljena prethodnom verzijom — tabele postoje, <c>__EFMigrationsHistory</c>
-    ///     ne postoji ili je prazna. Sve poznate migracije se žigošu kao primenjene pre
-    ///     <c>Migrate()</c>, da ne bi pokušao da kreira tabele koje već postoje.</item>
-    ///   <item>Baza sa potpunom istorijom — <c>Migrate()</c> primenjuje samo nove migracije.</item>
-    /// </list>
+    /// Inicijalizuje bazu. Ova (Legacy/Finansije) kopija <c>AccountingDbContext</c> živi u
+    /// <c>ERPiMigration</c> projektu, koji NEMA svoj <c>Migrations</c> folder (za razliku od
+    /// prave <c>ERPiFinansijeData</c> biblioteke) — <c>ctx.Database.GetMigrations()</c> je
+    /// ovde uvek prazna kolekcija, pa je <c>Migrate()</c> no-op i ne kreira nijednu tabelu.
+    /// Jedini pozivalac (<c>DosImportService</c>) ovaj kontekst uvek otvara nad novim,
+    /// privremenim fajlom (GUID ime u temp direktorijumu) koji se briše posle uvoza, pa nema
+    /// potrebe za istorijom migracija — <c>EnsureCreated()</c> kreira šemu direktno iz
+    /// trenutnog modela.
     /// </summary>
     private static void InitializeDatabase(AccountingDbContext ctx)
     {
-        if (PostojiZatecenaSemaBezMigracija(ctx))
-        {
-            OznaciSveMigracijeKaoPrimenjene(ctx);
-        }
-
-        ctx.Database.Migrate();
-    }
-
-    /// <summary>
-    /// Da li baza postoji, sadrži tabele, ali nema nijednu primenjenu migraciju u istoriji.
-    /// To se dešava kad je baza napravljena prethodnom verzijom koja je koristila
-    /// <c>EnsureCreated()</c>, ili kad je <c>Migrate()</c> kreirao tabele ali se
-    /// <c>__EFMigrationsHistory</c> ispraznila ili izbrisala, ili kad je baza
-    /// napravljena drugim modulom (ERPi Zarade) čije tabele uključuju <c>Firme</c>.
-    /// </summary>
-    private static bool PostojiZatecenaSemaBezMigracija(AccountingDbContext ctx)
-    {
-        var creator = ctx.Database.GetService<IRelationalDatabaseCreator>();
-        if (!creator.Exists() || !creator.HasTables())
-            return false;
-
-        // Baza postoji i ima tabele. Proverimo da li ima primenjene migracije.
-        try
-        {
-            var primenjene = ctx.Database.GetAppliedMigrations().ToList();
-            return primenjene.Count == 0;
-        }
-        catch
-        {
-            // __EFMigrationsHistory ne postoji — baza je definitivno zatečena.
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// Upisuje SVE poznate migracije u <c>__EFMigrationsHistory</c> BEZ izvršavanja njihovog
-    /// sadržaja, čime se zatečena baza usvaja u sistem migracija a da se nijedan podatak ne
-    /// dira. Od tog trenutka svaka naredna migracija ide kroz uobičajenu EF proceduru.
-    /// </summary>
-    private static void OznaciSveMigracijeKaoPrimenjene(AccountingDbContext ctx)
-    {
-        ctx.Database.ExecuteSqlRaw(@"
-            CREATE TABLE IF NOT EXISTS __EFMigrationsHistory (
-                MigrationId TEXT NOT NULL CONSTRAINT PK___EFMigrationsHistory PRIMARY KEY,
-                ProductVersion TEXT NOT NULL
-            );");
-
-        var verzija = typeof(DbContext).Assembly.GetName().Version?.ToString() ?? "8.0.16";
-
-        foreach (var migracija in ctx.Database.GetMigrations())
-        {
-            ctx.Database.ExecuteSqlRaw(
-                "INSERT OR IGNORE INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ({0}, {1});",
-                migracija, verzija);
-        }
+        ctx.Database.EnsureCreated();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -63,41 +63,14 @@
                                 <TextBlock Text="Uvoz osnovnih sredstava, kartica, rashoda i prijava iz starih DOS/Clipper DBF fajlova (SREDSTVA, KARTICA, RASHOD, PRIJAVA, KONTPLAN, KORISNIC)." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12" TextWrapping="Wrap"/>
                                 <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,0,0,16"/>
 
-                                <TextBlock Text="Folder sa DBF fajlovima (npr. C:\SREDSTVA\SREDS\KOR28):" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                <Grid Margin="0,0,0,16">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="TxtDbfFolder" Grid.Column="0" Height="36" VerticalContentAlignment="Center" Padding="8,0" Text="C:\SREDSTVA\SREDS\KOR28"/>
-                                    <Button x:Name="BtnIzaberiDbfFolder" Grid.Column="1" Content="📁 Izaberi folder..." Height="36" Padding="16,0" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Click="BtnIzaberiDbfFolder_Click"/>
-                                </Grid>
-
-                                <Border Background="#FFF3CD" CornerRadius="8" Padding="12" Margin="0,0,0,20" BorderBrush="#FFEBA0" BorderThickness="1">
+                                <Border Background="#FFF3CD" CornerRadius="8" Padding="12" Margin="0,0,0,16" BorderBrush="#FFEBA0" BorderThickness="1">
                                     <StackPanel>
                                         <TextBlock Text="⚠️ VAŽNO UPOZORENJE" FontWeight="Bold" Foreground="#856404" FontSize="13" Margin="0,0,0,4"/>
-                                        <TextBlock Text="DBF fajlovi se prvo učitavaju u privremenu bazu, a zatim se odatle uvoze u ovu firmu. Postojeća sredstva (po inventarskom broju) se ne dupliraju — ponovno pokretanje nad istim fajlovima je bezbedno." TextWrapping="Wrap" Foreground="#856404" FontSize="12"/>
+                                        <TextBlock Text="DBF fajlovi se prvo učitavaju u privremenu bazu, a zatim se odatle uvoze. Postojeća sredstva (po inventarskom broju) se ne dupliraju — ponovno pokretanje nad istim fajlovima je bezbedno." TextWrapping="Wrap" Foreground="#856404" FontSize="12"/>
                                     </StackPanel>
                                 </Border>
 
-                                <CheckBox x:Name="ChkBrisiPostojece"
-                                          Content="Obriši postojeće podatke o sredstvima u bazi pre uvoza (pražnjenje registara radi svežeg uvoza)"
-                                          FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"
-                                          Margin="0,0,0,16" IsChecked="False"/>
-
-                                <Button x:Name="BtnPokreniDosUvoz" Content="⚡ Pokreni DOS uvoz" Height="38" Padding="20,0" HorizontalAlignment="Left" Style="{StaticResource ActionButtonStyle}" Click="BtnPokreniDosUvoz_Click"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- STATUS / LOG -->
-                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
-                            <StackPanel>
-                                <TextBlock Text="📋 Tok uvoza" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                                <Border Background="#0F172A" CornerRadius="6" Padding="12">
-                                    <ScrollViewer x:Name="LogScroll" Height="180" VerticalScrollBarVisibility="Auto">
-                                        <TextBlock x:Name="TxtLog" Text="Spreman." FontFamily="Consolas" FontSize="12" Foreground="#E2E8F0" TextWrapping="Wrap"/>
-                                    </ScrollViewer>
-                                </Border>
+                                <Button x:Name="BtnOtvoriDosUvoz" Content="⚡ Uvoz i migracija DOS/DBF podataka..." Height="38" Padding="20,0" HorizontalAlignment="Left" Style="{StaticResource ActionButtonStyle}" Click="BtnOtvoriDosUvoz_Click"/>
                             </StackPanel>
                         </Border>
 

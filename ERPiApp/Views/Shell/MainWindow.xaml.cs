@@ -152,22 +152,28 @@ public partial class MainWindow : Window
         MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.BrutoBilansView(_db);
     }
 
-    private void NavBilansStanja_Click(object sender, RoutedEventArgs e)
+    private void NavBilansiApr_Click(object sender, RoutedEventArgs e)
     {
-        TxtHeaderTitle.Text = "🏛️ Bilans Stanja";
-        MainContentHost.Content = new ERPiApp.Views.Finansije.Bilansi.BilansStanjaView(_db);
+        TxtHeaderTitle.Text = "🏛️ Zvanični Finansijski Izveštaji za APR";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Bilansi.BilansiAprView(_db);
     }
 
-    private void NavBilansUspeha_Click(object sender, RoutedEventArgs e)
+    private void NavDnevnikGlavneKnjige_Click(object sender, RoutedEventArgs e)
     {
-        TxtHeaderTitle.Text = "📈 Bilans Uspeha";
-        MainContentHost.Content = new ERPiApp.Views.Finansije.Bilansi.BilansUspehaView(_db);
+        TxtHeaderTitle.Text = "📖 Dnevnik glavne knjige";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.DnevnikGlavneKnjigeView(_db);
     }
 
-    private void NavIzvodi_Click(object sender, RoutedEventArgs e)
+    private void NavZakljucniList_Click(object sender, RoutedEventArgs e)
     {
-        var win = new ERPiApp.Views.Finansije.Izvodi.UvozIzvodaWindow(_db) { Owner = this };
-        win.ShowDialog();
+        TxtHeaderTitle.Text = "📑 Zaključni list";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Izvestaji.ZakljucniListView(_db);
+    }
+
+    private void NavVrednovanjeZaliha_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📦 Vrednovanje zaliha";
+        MainContentHost.Content = new ERPiApp.Views.Magacin.RobniBrutoBilansView(_db);
     }
 
     private void NavBlagajna_Click(object sender, RoutedEventArgs e)
@@ -190,8 +196,8 @@ public partial class MainWindow : Window
 
     private void NavDevizno_Click(object sender, RoutedEventArgs e)
     {
-        var win = new ERPiApp.Views.Finansije.Devizno.DeviznoValviranjeWindow(_db) { Owner = this };
-        win.ShowDialog();
+        TxtHeaderTitle.Text = "💱 Devizno & Valviranje";
+        MainContentHost.Content = new ERPiApp.Views.Finansije.Devizno.DeviznoValviranjeView(_db);
     }
 
     private void NavRobnoDashboard_Click(object sender, RoutedEventArgs e)

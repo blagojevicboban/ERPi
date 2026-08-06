@@ -32,6 +32,86 @@
 
         <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
 
+            <!-- ── TAB: PODACI O FIRMI ── -->
+            <TabItem Header="🏢 Podaci o firmi">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,12,0,0">
+                    <StackPanel Margin="0,0,0,24">
+                        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="24,20">
+                            <StackPanel>
+                                <TextBlock Text="✏️ Izmena podataka o aktivnoj firmi" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,4"/>
+                                <TextBlock Text="Matični podaci firme — koriste ih SEF/PFR, PDF izveštaji i zaglavlja štampe u celoj aplikaciji." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,20"/>
+
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Šifra firme *" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="TxtFirmaSifra" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="PIB" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="TxtFirmaPib" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Margin="0,0,0,14">
+                                    <TextBlock Text="Naziv firme *" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="TxtFirmaNaziv" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                </StackPanel>
+
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Matični broj" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="TxtFirmaMaticniBroj" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Telefon" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="TxtFirmaTelefon" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Margin="0,0,0,14">
+                                    <TextBlock Text="Adresa" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="TxtFirmaAdresa" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                </StackPanel>
+
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="PTT i Mesto" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="TxtFirmaPttIMesto" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Žiro/Tekući račun" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                        <TextBox x:Name="TxtFirmaZiroRacun" Height="34" VerticalContentAlignment="Center" Padding="8,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Margin="0,0,0,20">
+                                    <TextBlock Text="Fajl baze (samo za pregled)" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="TxtFirmaDbPath" Height="34" VerticalContentAlignment="Center" Padding="8,0" IsReadOnly="True" Background="#F1F5F9" Foreground="{StaticResource TextMutedBrush}"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnSacuvajFirmu" Content="💾 Sačuvaj podatke o firmi" Style="{StaticResource ActionButtonStyle}"
+                                        Height="38" Padding="20,0" HorizontalAlignment="Left" Click="BtnSacuvajFirmu_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <!-- ── TAB: OPŠTE ── -->
             <TabItem Header="🔧 Opšte">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,12,0,0">
@@ -52,7 +132,7 @@
                                     <StackPanel>
                                         <TextBlock Text="⚠️ Info traka o podrazumevanoj lozinci"
                                                    FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
-                                        <TextBlock Text="Prikazuje žutu upozoravajuću traku ispod zaglavlja kada nalog koristi podrazumevanu lozinku (admin123). Po defaultu isključena."
+                                        <TextBlock Text="Prikazuje žutu upozoravajuću traku ispod zaglavlja kada nalog koristi podrazumevanu lozinku (admin). Po defaultu isključena."
                                                    FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                                    Margin="0,4,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>

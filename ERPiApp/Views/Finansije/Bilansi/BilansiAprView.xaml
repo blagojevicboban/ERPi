@@ -1,0 +1,161 @@
+<UserControl x:Class="ERPiApp.Views.Finansije.Bilansi.BilansiAprView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="750" d:DesignWidth="1200">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOOLBAR & FILTERS -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16,12" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnPoreskiBilans" Content="📜" Style="{StaticResource IconButtonStyle}" ToolTip="Poreski Bilans (PB-1 / PDP / OA)" Margin="0,0,8,0" Click="BtnPoreskiBilans_Click"/>
+                    <Button x:Name="BtnOsvezi" Content="🔄" Style="{StaticResource IconButtonStyle}" ToolTip="Osveži obračun svih izveštaja" Click="BtnOsvezi_Click"/>
+                </StackPanel>
+                <WrapPanel VerticalAlignment="Center">
+                    <TextBlock Text="Datum za Bilans Stanja:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                    <DatePicker x:Name="DpDatumStanja" Height="34" Width="130" Margin="0,0,20,0"/>
+
+                    <TextBlock Text="Period za Bilans Uspeha / SI / Cash Flow / Kapital:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                    <DatePicker x:Name="DpOdDatuma" Height="34" Width="120" Margin="0,0,4,0"/>
+                    <TextBlock Text="—" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <DatePicker x:Name="DpDoDatuma" Height="34" Width="120"/>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- TABOVI ZA ZVANIČNE APR IZVEŠTAJE -->
+        <TabControl Grid.Row="1" Background="White">
+            <!-- TAB 1: BILANS STANJA -->
+            <TabItem Header="🏛️ Bilans Stanja (Aktiva / Pasiva)">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="🖨️" Style="{StaticResource IconButtonStyle}" ToolTip="Štampaj Bilans Stanja (PDF)" Margin="0,0,8,0" Click="BtnStampajStanjePdf_Click"/>
+                            <Button Content="📊" Style="{StaticResource IconButtonStyle}" ToolTip="Izvoz u Excel" Click="BtnExportExcelStanja_Click"/>
+                        </StackPanel>
+                        <TextBlock Text="🏛️ Bilans Stanja (Zvanične AOP Pozicije)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1" x:Name="DgBilansStanja" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="AOP" Binding="{Binding AopCode}" Width="70" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Pozicija Bilansa Stanja" Binding="{Binding Naziv}" Width="*"/>
+                            <DataGridTextColumn Header="Konta" Binding="{Binding OpsegKonta}" Width="120"/>
+                            <DataGridTextColumn Header="Iznos (RSD)" Binding="{Binding IznosTekucaGodina, StringFormat=\{0:N2\}}" Width="160" ElementStyle="{StaticResource NumericColumnElementStyle}" FontWeight="Bold"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 2: BILANS USPEHA -->
+            <TabItem Header="📈 Bilans Uspeha (Prihodi / Rashodi / Rezultat)">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="🖨️" Style="{StaticResource IconButtonStyle}" ToolTip="Štampaj Bilans Uspeha (PDF)" Margin="0,0,8,0" Click="BtnStampajUspehaPdf_Click"/>
+                            <Button Content="📊" Style="{StaticResource IconButtonStyle}" ToolTip="Izvoz u Excel" Click="BtnExportExcelUspeha_Click"/>
+                        </StackPanel>
+                        <TextBlock Text="📈 Bilans Uspeha (Zvanične AOP Pozicije)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <DataGrid Grid.Row="1" x:Name="DgBilansUspeha" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="AOP" Binding="{Binding AopCode}" Width="70" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Pozicija Bilansa Uspeha" Binding="{Binding Naziv}" Width="*"/>
+                            <DataGridTextColumn Header="Konta" Binding="{Binding OpsegKonta}" Width="120"/>
+                            <DataGridTextColumn Header="Iznos (RSD)" Binding="{Binding IznosTekucaGodina, StringFormat=\{0:N2\}}" Width="160" ElementStyle="{StaticResource NumericColumnElementStyle}" FontWeight="Bold"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 3: STATISTIČKI IZVEŠTAJ (SI) -->
+            <TabItem Header="📋 Statistički izveštaj (SI)">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <Button DockPanel.Dock="Right" Content="📊" Style="{StaticResource IconButtonStyle}" ToolTip="Izvoz u Excel" Click="BtnExportExcelSI_Click"/>
+                        <TextBlock Text="📋 Statistički podaci za APR i Poresku upravu" FontWeight="Bold" FontSize="14" Foreground="#0284C7" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <DataGrid Grid.Row="1" x:Name="DgStatistickiIzvestaj" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="AOP" Binding="{Binding Aop}" Width="70" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Opis statističke pozicije" Binding="{Binding Opis}" Width="*"/>
+                            <DataGridTextColumn Header="Konto" Binding="{Binding KontoGrupa}" Width="100"/>
+                            <DataGridTextColumn Header="Tekuća god." Binding="{Binding IznosTekuca, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 4: TOKOVI GOTOVINE (CASH FLOW) -->
+            <TabItem Header="💵 Tokovi gotovine (Cash Flow)">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <Button DockPanel.Dock="Right" Content="📊" Style="{StaticResource IconButtonStyle}" ToolTip="Izvoz u Excel" Click="BtnExportExcelCashFlow_Click"/>
+                        <TextBlock Text="💵 Izveštaj o tokovima gotovine (Poslovne, investicione i finansijske aktivnosti)" FontWeight="Bold" FontSize="14" Foreground="#0D9488" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <DataGrid Grid.Row="1" x:Name="DgCashFlow" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="AOP" Binding="{Binding Aop}" Width="70" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Pozicija priliva i odliva" Binding="{Binding Opis}" Width="*"/>
+                            <DataGridTextColumn Header="Tip aktivnosti" Binding="{Binding TipAktivnosti}" Width="120"/>
+                            <DataGridTextColumn Header="Prilivi (RSD)" Binding="{Binding Priliv, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                            <DataGridTextColumn Header="Odlivi (RSD)" Binding="{Binding Odliv, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                            <DataGridTextColumn Header="Neto tok (RSD)" Binding="{Binding NetoPrilivOdliv, StringFormat=\{0:N2\}}" Width="140" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 5: PROMENE NA KAPITALU -->
+            <TabItem Header="📈 Promene na kapitalu">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <Button DockPanel.Dock="Right" Content="📊" Style="{StaticResource IconButtonStyle}" ToolTip="Izvoz u Excel" Click="BtnExportExcelKapital_Click"/>
+                        <TextBlock Text="📈 Izveštaj o promenama na kapitalu u toku godine" FontWeight="Bold" FontSize="14" Foreground="#7C3AED" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <DataGrid Grid.Row="1" x:Name="DgPromeneNaKapitalu" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="AOP" Binding="{Binding Aop}" Width="70" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Opis promene" Binding="{Binding Opis}" Width="*"/>
+                            <DataGridTextColumn Header="Osnovni kapital" Binding="{Binding OsnovniKapital, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                            <DataGridTextColumn Header="Rezerve" Binding="{Binding Rezerve, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                            <DataGridTextColumn Header="Neraspoređena dobit" Binding="{Binding NerasporedjenaDobit, StringFormat=\{0:N2\}}" Width="150" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                            <DataGridTextColumn Header="Gubitak" Binding="{Binding Gubitak, StringFormat=\{0:N2\}}" Width="130" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                            <DataGridTextColumn Header="Ukupno kapital" Binding="{Binding UkupnoKapital, StringFormat=\{0:N2\}}" Width="150" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

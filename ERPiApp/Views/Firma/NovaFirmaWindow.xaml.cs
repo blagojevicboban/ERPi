@@ -59,7 +59,11 @@ public partial class NovaFirmaWindow : Window
                 Sifra = sifra,
                 Naziv = naziv,
                 Pib = string.IsNullOrWhiteSpace(TxtPib.Text) ? null : TxtPib.Text.Trim(),
-                MaticniBroj = string.IsNullOrWhiteSpace(TxtMaticniBroj.Text) ? null : TxtMaticniBroj.Text.Trim()
+                MaticniBroj = string.IsNullOrWhiteSpace(TxtMaticniBroj.Text) ? null : TxtMaticniBroj.Text.Trim(),
+                Adresa = string.IsNullOrWhiteSpace(TxtAdresa.Text) ? null : TxtAdresa.Text.Trim(),
+                PttIMesto = string.IsNullOrWhiteSpace(TxtPttIMesto.Text) ? null : TxtPttIMesto.Text.Trim(),
+                Telefon = string.IsNullOrWhiteSpace(TxtTelefon.Text) ? null : TxtTelefon.Text.Trim(),
+                ZiroRacun = string.IsNullOrWhiteSpace(TxtZiroRacun.Text) ? null : TxtZiroRacun.Text.Trim()
             });
             db.SaveChanges();
         }

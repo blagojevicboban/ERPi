@@ -20,7 +20,7 @@ public partial class LoginWindow : Window
 
 #if DEBUG
         TxtUsername.Text = "admin";
-        TxtPassword.Password = "admin123";
+        TxtPassword.Password = "admin";
 #endif
         TxtUsername.Focus();
 
@@ -70,7 +70,7 @@ public partial class LoginWindow : Window
         // Podrazumevana lozinka iz seed-a je javno poznata (nalazi se u izvornom kodu i
         // migracijama). Faza 2 ovde samo upozorava umesto da blokira (kao ERPiFinansije) —
         // hard-blokiranje čeka ekran za upravljanje korisnicima, koji još ne postoji.
-        var defaultPasswordActive = ErpiDbContext.VerifyPassword("admin123", korisnik.LozinkaHash);
+        var defaultPasswordActive = ErpiDbContext.VerifyPassword("admin", korisnik.LozinkaHash);
 
         var mainWindow = new MainWindow(_db);
         if (defaultPasswordActive) mainWindow.PrikaziUpozorenjeODefaultLozinci();
