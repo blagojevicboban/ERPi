@@ -12,6 +12,8 @@
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="PDFsharp" Version="6.2.4" />
     <PackageReference Include="QuestPDF" Version="2026.5.0" />
+    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.10" />
     <PackageReference Include="Velopack" Version="1.2.0" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />

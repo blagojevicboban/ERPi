@@ -32,6 +32,7 @@ ERPiSetup_v*.exe
 # ─── Ostali privremeni i bekap fajlovi ─────────────────────────────────────────
 *.bak
 *.tmp
+*_wpftmp.csproj
 *.log
 *.png
 *.zip

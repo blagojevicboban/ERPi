@@ -24,8 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
     <ProjectReference Include="..\ERPiMigration\ERPiMigration.csproj" />
-    <ProjectReference Include="..\..\ERPiFinansije\ERPiFinansijeData\ERPiFinansijeData.csproj" />
-    <ProjectReference Include="..\..\ERPiZarade\ERPiZaradeData\ERPiZaradeData.csproj" />
   </ItemGroup>
 
 </Project>

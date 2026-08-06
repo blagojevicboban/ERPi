@@ -8,13 +8,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ERPiData\ERPiData.csproj" />
-    <ProjectReference Include="..\..\ERPiFinansije\ERPiFinansijeData\ERPiFinansijeData.csproj" />
-    <ProjectReference Include="..\..\ERPiZarade\ERPiZaradeData\ERPiZaradeData.csproj" />
-    <ProjectReference Include="..\..\ERPiSredstva\ERPiSredstvaData\ERPiSredstvaData.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DbfDataReader" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
+    <PackageReference Include="Serilog" Version="4.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.10" />
   </ItemGroup>
 

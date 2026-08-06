@@ -1,0 +1,221 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ERPiZaradeData.Models;
+
+/// <summary>
+/// Rod isplate — kojoj <b>poreskoj prijavi</b> isplata pripada.
+///
+/// Ovo nije podvrsta <see cref="VrstaIsplate"/> nego podela iznad nje, i postoji zato što
+/// član 11 Pravilnika o poreskoj prijavi za porez po odbitku obračunski period (polje 1.2)
+/// određuje <b>različito</b> za zaradu i za prihod van radnog odnosa:
+///
+/// <list type="bullet">
+///   <item><b>zarada</b> — „mesec i godina <i>za koji</i> se vrši isplata zarade";</item>
+///   <item><b>van radnog odnosa</b> — mesec <i>isplate</i>, jer meseca „za koji" nema.</item>
+/// </list>
+///
+/// Prijava ima <b>jedno</b> polje 1.2, jedno polje 1.4 (datum plaćanja) i jednu oznaku K/A,
+/// pa julska zarada isplaćena u avgustu i honorar isplaćen istog dana <b>ne mogu</b> u istu
+/// prijavu: prva nosi period 07, drugi 08. Zato je rod deo isplate, a ne obračuna — obračun
+/// naknade ostaje <see cref="ObracunPlate"/> kao i do sada.
+/// </summary>
+public enum RodIsplate
+{
+    /// <summary>
+    /// Isplata zarade iz radnog odnosa. Podrazumevana vrednost, pa su svi zatečeni zapisi
+    /// ovaj rod i ništa se u njima ne menja.
+    /// </summary>
+    Zarada = 0,
+
+    /// <summary>
+    /// Isplata naknada po ugovorima van radnog odnosa. <see cref="Isplata.Godina"/> i
+    /// <see cref="Isplata.Mesec"/> za ovaj rod znače <b>mesec isplate</b>, a ne mesec za koji
+    /// se isplaćuje — to je obračunski period njene prijave.
+    /// </summary>
+    VanRadnogOdnosa = 1
+}
+
+/// <summary>
+/// Vrsta isplate unutar obračunskog meseca.
+///
+/// Vrsta nije ukras — od nje zavisi <b>oznaka za konačnu isplatu</b> na PPP-PD prijavi
+/// (element <c>OznakaZaKonacnu</c>): akontacija nije konačna isplata prihoda, pa se
+/// prijavljuje sa „A", a sve ostalo sa „K".
+///
+/// Vrsta razvrstava isplate <b>unutar</b> roda <see cref="RodIsplate.Zarada"/>. Za rod
+/// <see cref="RodIsplate.VanRadnogOdnosa"/> nijedna od ovih vrednosti ne znači ništa —
+/// honorar nema akontaciju ni trinaestu platu — pa tamo stoji <see cref="Ostalo"/> i ne
+/// prikazuje se. Ne dodavati ovde vrednost „naknada": rod bi se tada mogao pročitati sa dva
+/// mesta i ta dva bi mogla da protivreče jedno drugom.
+/// </summary>
+public enum VrstaIsplate
+{
+    /// <summary>Redovna mesečna zarada; kad je isplata jedna, ovo je ona.</summary>
+    KonacnaZarada = 0,
+
+    /// <summary>Isplata dela zarade pre konačnog obračuna meseca.</summary>
+    Akontacija = 1,
+
+    Bonus = 2,
+
+    TrinaestaPlata = 3,
+
+    Ostalo = 9
+}
+
+/// <summary>
+/// Zapis koji pripada jednoj isplati u mesecu.
+///
+/// Nose ga obračun, radni sat i arhivirana verzija obračuna, i za sva tri važi isto pravilo:
+/// <c>IsplataId == null</c> je <b>prva isplata svog perioda</b>. Zbog ovog interfejsa pravilo
+/// stoji napisano jednom, u <c>IsplataService.Obuhvat</c>, umesto po jednom puta za svaku
+/// tabelu — a upravo se prepisano pravilo najlakše razilazi.
+/// </summary>
+public interface IPripadaIsplati
+{
+    int Godina { get; }
+    int Mesec { get; }
+    int? IsplataId { get; }
+}
+
+/// <summary>
+/// Jedna isplata unutar obračunskog meseca (Faza 2.2).
+///
+/// Do sada je sve bilo vezano za par (godina, mesec), pa je mesec mogao imati tačno jednu
+/// isplatu. Akontacija pa konačna isplata, bonus i 13. plata su međutim <b>zasebne isplate
+/// istog meseca</b>: svaka ima svoj datum, svoju PPP-PD prijavu sa svojim BOP-om i svoj
+/// paket naloga za prenos. Bez ovog entiteta druga isplata je mogla samo da pregazi prvu.
+///
+/// Veza ka prijavi ide preko <see cref="RedniBroj"/>, koji <see cref="PppPdPrijava"/> nosi
+/// od Faze 1.1 upravo zbog ovoga — zato se ovde ne uvodi još jedna, duplirana veza.
+///
+/// Zaključavanje i storniranje ostaju na <see cref="ObracunPlate"/>: isplata je obuhvat,
+/// ne stanje. Drugo mesto koje kaže „ovo je zaključano" bilo bi isti duplikat kao nekadašnji
+/// <c>Zakljucan</c>/<c>Zakljucen</c>.
+/// </summary>
+[Table("Isplate")]
+public class Isplata
+{
+    [Key]
+    public int IsplataId { get; set; }
+
+    /// <summary>
+    /// Obračunski period isplate — ono što ide u polje 1.2 PPP-PD prijave.
+    ///
+    /// Za rod <see cref="RodIsplate.Zarada"/> to je mesec <b>za koji</b> se zarada isplaćuje,
+    /// a za rod <see cref="RodIsplate.VanRadnogOdnosa"/> mesec <b>isplate</b>. Otuda i potreba
+    /// za rodom: bez njega bi honorar isplaćen u avgustu uz julsku zaradu dobio period 07.
+    /// </summary>
+    public int Godina { get; set; }
+    public int Mesec { get; set; }
+
+    /// <summary>
+    /// Redni broj isplate u mesecu; 1 je prva. Isti broj nosi i PPP-PD prijava te isplate,
+    /// pa je on veza između njih.
+    ///
+    /// Broji se <b>kroz oba roda zajedno</b>, jer je to ono što <see cref="PppPdPrijava"/>
+    /// već ključuje parom (Godina, Mesec, RedniBroj). Dva niza brojeva bi tražila da i prijava
+    /// nosi rod — a to bi bio isti duplikat kao nekadašnji <c>Zakljucan</c>/<c>Zakljucen</c>.
+    /// Mesec izgleda ovako: „1. Konačna zarada", „2. Naknade po ugovoru".
+    /// </summary>
+    public int RedniBroj { get; set; } = 1;
+
+    /// <summary>
+    /// Kojoj poreskoj prijavi isplata pripada. Podrazumevano <see cref="RodIsplate.Zarada"/>,
+    /// pa se nijedna zatečena isplata ne menja i program radi isto kao pre — isto pravilo po
+    /// kom su uvedeni <c>ObracunPlate.IsplataId</c> i <c>ObracunPlate.UgovorId</c>.
+    /// </summary>
+    public RodIsplate Rod { get; set; } = RodIsplate.Zarada;
+
+    public VrstaIsplate Vrsta { get; set; } = VrstaIsplate.KonacnaZarada;
+
+    /// <summary>Slobodan opis („Akontacija za mart", „Bonus za projekat X").</summary>
+    [MaxLength(80)]
+    public string Opis { get; set; } = "";
+
+    /// <summary>
+    /// Datum kada novac ide radniku. Merodavan je za datum plaćanja na PPP-PD prijavi i za
+    /// datum valute na nalozima — a on se kod akontacije razlikuje od konačne isplate, što
+    /// je jedan od razloga zašto isplata mora biti zaseban zapis.
+    /// </summary>
+    public DateTime DatumIsplate { get; set; }
+
+    public DateTime DatumKreiranja { get; set; } = DateTime.Now;
+
+    public ICollection<ObracunPlate> Obracuni { get; set; } = [];
+
+    /// <summary>
+    /// Prva isplata meseca. Njoj pripadaju i obračuni bez <see cref="ObracunPlate.IsplataId"/> —
+    /// svi zatečeni, i svi koje napravi kod koji za isplate ne zna.
+    ///
+    /// Rod je uslov jer su takvi zapisi <b>uvek zarade</b>: nastali su pre nego što su ugovori
+    /// uopšte postojali, a obračun naknade svoju isplatu upisuje izričito. Bez tog uslova bi
+    /// isplata naknada koja se zatekne prva u mesecu pokupila tuđe zarade u svoju prijavu —
+    /// tačno ono što se ovim razdvajanjem sprečava. <c>IsplataService.Obezbedi</c> uz to drži
+    /// da je broj 1 uvek zarada, pa se za zatečene podatke ništa ne menja.
+    /// </summary>
+    [NotMapped]
+    public bool JePrva => Rod == RodIsplate.Zarada && RedniBroj <= 1;
+
+    /// <summary>
+    /// Oznaka za konačnu isplatu na PPP-PD prijavi (element <c>OznakaZaKonacnu</c>).
+    /// Akontacija je „A", jer posle nje sledi konačan obračun istog prihoda; sve ostalo je „K".
+    ///
+    /// Za naknade van radnog odnosa je uvek „K": Pravilnik tu oznaku vezuje za „konačnu isplatu
+    /// <b>zarade</b> za obračunski period", a honorar se ne isplaćuje u delovima za period —
+    /// svaka njegova isplata je za sebe konačna.
+    /// </summary>
+    [NotMapped]
+    public string OznakaZaKonacnuIsplatu
+        => Rod == RodIsplate.VanRadnogOdnosa || Vrsta != VrstaIsplate.Akontacija ? "K" : "A";
+
+    /// <summary>
+    /// Da li se na ovoj isplati skidaju obustave — rate kredita i samodoprinos.
+    ///
+    /// Skidaju se <b>samo na konačnoj zaradi</b>, i to je jedini način da rata ostane skinuta
+    /// tačno jednom u mesecu: akontacija, bonus i 13. plata idu bez obustava, jer bi inače
+    /// radnik u istom mesecu platio istu ratu dva ili tri puta. Zato mesec i sme imati samo
+    /// jednu isplatu vrste <see cref="VrstaIsplate.KonacnaZarada"/>.
+    ///
+    /// Naknada van radnog odnosa obustave ne nosi nikada: rata kredita se skida sa zarade, a
+    /// primalac po ugovoru je najčešće i nema.
+    /// </summary>
+    [NotMapped]
+    public bool NosiObustave => Rod == RodIsplate.Zarada && Vrsta == VrstaIsplate.KonacnaZarada;
+
+    /// <summary>Da li isplata obuhvata naknade po ugovorima umesto zarada.</summary>
+    [NotMapped]
+    public bool JeVanRadnogOdnosa => Rod == RodIsplate.VanRadnogOdnosa;
+
+    [NotMapped]
+    public string PeriodStr => $"{Mesec:D2}/{Godina}";
+
+    /// <summary>
+    /// Naziv bez rednog broja — za svrhu na virmanu, gde redni broj ništa ne znači.
+    ///
+    /// Za rod <see cref="RodIsplate.VanRadnogOdnosa"/> se <see cref="Vrsta"/> ne čita: tamo je
+    /// ona bez značenja, pa bi „Ostalo" bilo netačan naziv.
+    /// </summary>
+    [NotMapped]
+    public string NazivKratki => string.IsNullOrWhiteSpace(Opis)
+        ? (Rod == RodIsplate.VanRadnogOdnosa ? NazivRoda : NazivVrste(Vrsta))
+        : Opis.Trim();
+
+    /// <summary>Naziv roda za ekrane i poruke.</summary>
+    [NotMapped]
+    public string NazivRoda => Rod == RodIsplate.VanRadnogOdnosa ? "Naknade po ugovoru" : "Zarada";
+
+    /// <summary>Naziv za padajuće liste; opis ima prednost nad vrstom kad je unet.</summary>
+    [NotMapped]
+    public string Naziv => $"{RedniBroj}. {NazivKratki}";
+
+    public static string NazivVrste(VrstaIsplate vrsta) => vrsta switch
+    {
+        VrstaIsplate.KonacnaZarada => "Konačna zarada",
+        VrstaIsplate.Akontacija => "Akontacija",
+        VrstaIsplate.Bonus => "Bonus",
+        VrstaIsplate.TrinaestaPlata => "13. plata",
+        _ => "Ostalo"
+    };
+}
