@@ -72,8 +72,8 @@ jobs:
       - name: Pakovanje 64-bit i 32-bit (vpk pack)
         run: |
           New-Item -ItemType Directory -Path "ReleasePackage" -Force | Out-Null
-          vpk pack --packId "ERPi" --packVersion $env:VERSION --packDir "publish_output_x64" --mainExe "ERPiApp.exe" --outputDir "ReleasePackage" --packTitle "ERPi Poslovni Sistem" --icon "ERPiApp\app.ico"
-          vpk pack --packId "ERPi32" --packVersion $env:VERSION --packDir "publish_output_x86" --mainExe "ERPiApp.exe" --outputDir "ReleasePackage" --packTitle "ERPi Poslovni Sistem (32-bit)" --icon "ERPiApp\app.ico"
+          vpk pack --packId "ERPi" --channel "win-x64" --packVersion $env:VERSION --packDir "publish_output_x64" --mainExe "ERPiApp.exe" --outputDir "ReleasePackage" --packTitle "ERPi Poslovni Sistem" --icon "ERPiApp\app.ico"
+          vpk pack --packId "ERPi32" --channel "win-x86" --packVersion $env:VERSION --packDir "publish_output_x86" --mainExe "ERPiApp.exe" --outputDir "ReleasePackage" --packTitle "ERPi Poslovni Sistem (32-bit)" --icon "ERPiApp\app.ico"
 
       - name: Objavljivanje na GitHub Releases
         uses: softprops/action-gh-release@v1
