@@ -6,6 +6,10 @@
       Title="Krediti i obustave"
       Background="{StaticResource SurfaceBrush}">
 
+    <Page.Resources>
+        <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+    </Page.Resources>
+
     <Page.DataContext>
         <local:KreditiViewModel x:Name="ViewModel"/>
     </Page.DataContext>

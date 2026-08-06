@@ -6,11 +6,16 @@
       Background="{StaticResource SurfaceBrush}">
 
     <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         <Style x:Key="StornoCelija" TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="#DC2626"/>
         </Style>
+            </ResourceDictionary>
     </Page.Resources>
 
     <Page.DataContext>

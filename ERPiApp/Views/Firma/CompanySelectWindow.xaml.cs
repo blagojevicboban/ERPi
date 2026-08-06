@@ -17,6 +17,9 @@ public partial class CompanySelectWindow : Window
     {
         InitializeComponent();
         UcitajListu();
+
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        TxtVersion.Text = $"ERPi © 2026 Blagojević Boban - v{version?.ToString(3)}";
     }
 
     private void UcitajListu()

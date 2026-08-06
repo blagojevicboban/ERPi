@@ -5,6 +5,10 @@
       Background="{StaticResource SurfaceBrush}">
 
     <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <!-- Cell alignment styles -->
         <Style x:Key="LeftAlignedCell" TargetType="TextBlock">
@@ -54,6 +58,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+            </ResourceDictionary>
     </Page.Resources>
 
     <Grid Margin="24,20,24,16">

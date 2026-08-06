@@ -1363,3 +1363,87 @@ za "ARHIBEL" (restartovati app da pokupi build) i proveri da li se sad pojavljuj
 Kalkulacijama/Nivelacijama/Računima-otpremnicama/Ulazu/Trebovanju/Primopredaji, i da Robni podaci
 (Magacini/Artikli) koji su obrisani u pukom pokušaju sad ponovo postoje posle uspešnog uvoza.
 
+---
+
+## 3s. Zarade — "Radna tabla" (KPI + grafikon) + port dizajna tabela iz ERPiZarade (06.08.2026)
+
+Korisnik je tražio da se za Zarade modul preuzme "Radna tabla" (kao kod Finansije/Sredstva, §3l) i
+dizajn tabela iz ERPiZarade — Zarade module u ERPi je dosad koristio prazan podrazumevani WPF
+izgled `DataGrid`-a (nikad nije bio ni pomenut kao namerno odložen, prosto propušten pri portovanju
+Faze 5).
+
+**Radna tabla** (`ERPiApp/Views/Zarade/Dashboard/`), isti obrazac kao susedna §3l stranica:
+- `DashboardPage.xaml(.cs)` + `DashboardViewModel.cs` — 1:1 port iz
+  `ERPiZaradeApp/Views/Dashboard/DashboardPage(.xaml.cs)`/`DashboardViewModel.cs` (4 KPI kartice:
+  aktivnih radnika / ukupna neto masa / ukupna bruto masa / aktivnih kredita; jedan grafikon —
+  pregled zarada po mesecima za izabranu godinu, kombinovani bar+bar+linija preko LiveChartsCore,
+  već referenciran u `.csproj`). Razlika od izvora: `DashboardViewModel` koristi deljeni
+  `ErpiDbContext.Create(AppConfig.DbPath)` umesto samostalnog `PlataDbContext` — isti
+  `DbSet`/nazivi polja (`Radnici`, `ObracuniPlata`, `Krediti`), 1:1 poklapanje, nije trebalo
+  string→FK transformaciju kao kod Sredstva/Robno.
+- Sidebar (`MainWindow.xaml`): nova prva stavka `BtnZaradeDashboard` "📊 Radna tabla" u
+  `PnlNavZarade`, iznad postojeće "OBRAČUNI" grupe. `TabModulZarade_Click` sad otvara radnu tablu
+  kao landing ekran (bilo je direktno `ObracuniPage`) — isti obrazac kao
+  `TabModulFinansije_Click`/`TabModulSredstva_Click`.
+
+**Dizajn tabela** (`ERPiApp/Views/Zarade/ZaradeStyles.xaml`, nov fajl, isti obrazac kao
+`Views/Sredstva/SredstvaStyles.xaml`):
+- Implicitni `DataGrid`/`DataGridColumnHeader` stilovi 1:1 preneti iz
+  `ERPiZaradeApp/Resources/Styles.xaml` (bela pozadina, samo horizontalne linije, naizmenične
+  redove `#F9FAFB`, header `#F3F4F6` centriran/wrap, `RowHeight=36`/`ColumnHeaderHeight=50`) —
+  oslanjaju se na `BorderBrush`/`TextSecondaryBrush` koje ERPi već ima globalno u `App.xaml`, nije
+  trebalo dupliranje boja.
+- Merge-ovano u svih 29 Zarade `.xaml` fajlova (23 `Page` + 6 `Window`) koji sadrže `<DataGrid`
+  (`../ZaradeStyles.xaml` iz svakog, jedan nivo ispod `Views/Zarade/`) — urađeno skriptovano
+  (Python regex, ne ručno), pošto neki fajlovi već imaju `Page.Resources`/`Window.Resources` blok
+  (obavijeni u `ResourceDictionary`+`MergedDictionaries` da se sačuvaju postojeći konvertori/stilovi
+  kao npr. `RadniciPage`/`ObracunPage`), a neki nemaju nikakav (dodat nov blok). Provereno posle:
+  tačno jedna referenca `ZaradeStyles.xaml` po fajlu, nijedan promašaj/duplikat.
+  `Krediti/KreditiPage.xaml` već je imao lokalni `DataGrid.Style` sa
+  `BasedOn="{StaticResource {x:Type DataGrid}}"` koji je ranije (bez merge-a) tiho padao na OS
+  podrazumevani izgled — sad ispravno nasleđuje novi implicitni stil.
+
+**Build**: `dotnet build ERPi.slnx` čist, 0 upozorenja/0 grešaka. **Nije vizuelno provereno kroz
+UI** (korisnik testira sam, vidi [[feedback_user_tests_ui_manually]]). **Nije commit-ovano.**
+
+---
+
+## 3t. Automatska provera ažuriranja + verzija na prvom ekranu + živi dijalog "Istorija izmena" (06.08.2026, nastavak)
+
+Korisnik je tražio da se doda automatski update "kao i kod ove tri app" — ERPiFinansije/
+ERPiSredstva/ERPiZarade pri pokretanju proveravaju GitHub releases (Velopack) i nude
+preuzimanje/instalaciju u jednom kliku; ERPi je do sad imao samo `VelopackApp.Build().Run()`
+inicijalizaciju (obradu install/update-apply hook-ova), ali nikad aktivnu proveru.
+
+- **Novi `ERPiApp/UpdateDialog.xaml(.cs)`** (koren projekta, namespace `ERPiApp`, isti obrazac
+  kao u sve tri izvorne app) — prikazuje broj nove verzije, dugmad "Kasnije"/"Ažuriraj sada",
+  progress bar tokom preuzimanja, pa `ApplyUpdatesAndRestart`. Koristi resurse koje ERPi već ima
+  globalno (`CardBrush`, `TextPrimaryBrush`, `TextSecondaryBrush`, `PrimaryButton`,
+  `SecondaryButton`) — nije trebalo dodavati nove.
+- **`MainWindow.xaml.cs`**: `CheckForUpdatesAsync()` pozvan iz konstruktora (posle
+  `MainContentHost.Content = new DashboardView(_db)`), `GithubSource` pokazuje na
+  `https://github.com/blagojevicboban/ERPi` sa `token = null` (repo je javan, isti obrazac kao
+  ERPiFinansije/ERPiSredstva — ERPiZarade ima `GetUpdateToken()` fallback jer je taj repo bio
+  privatan u nekom trenutku, ERPi to ne treba).
+- **Verzija na prvom ekranu**: `CompanySelectWindow` (prvi prozor koji se prikazuje pri pokretanju,
+  pre prijave) do sad nije uopšte prikazivao verziju u footeru ("ERPi © 2026 Blagojević Boban" bez
+  broja) — dodat `x:Name="TxtVersion"` i ispisivanje `v{verzija}` u konstruktoru, isti format kao
+  `LoginWindow`.
+- **Živi dijalog "Istorija izmena"**: `ChangelogWindow` je od ranije postojao, ali sa tvrdo
+  ukucanim (hardkodovanim) sadržajem u kodu (samo dve stavke, "v3.0.0"/"v2.5.0" — brojevi verzija
+  se nisu ni poklapali sa stvarnim `version.txt`). Zamenjen verzijom portovanom iz ERPiFinansije/
+  ERPiSredstva koja **učitava `CHANGELOG.md` uživo** (`WebBrowser` + ručni markdown→HTML
+  konvertor, bez spoljne zavisnosti) — ista dugmad/naslov/izgled, `TxtAppVersion` čita stvarnu
+  verziju iz `Assembly.GetName().Version`.
+  - `ERPiApp.csproj`: nov `<Content Include="..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest">` — isti obrazac kao ERPiFinansije (jedan fajl u korenu repoa je
+    izvor istine, ne duplirana kopija kao u ERPiSredstva).
+  - **Nov `CHANGELOG.md` u korenu ERPi repoa** — ERPi ga do sad nije imao uopšte. Sastavljen iz
+    git istorije (`git log --reverse`) i postojećih beleški u ovom fajlu — obuhvata v2.0.0
+    (prvo objedinjeno izdanje), v2.1.0 (samostalni repo), v2.1.1 (DOS uvoz paritet), i
+    "Unreleased" sekciju sa svim izmenama iz ove i prethodne sesije (Radna tabla Zarade + dizajn
+    tabela §3s, auto-update + verzija + ovaj dijalog).
+
+**Build**: `dotnet build ERPi.slnx` čist, 0 upozorenja/0 grešaka; provereno da se `CHANGELOG.md`
+stvarno kopira u `bin/Debug/net8.0-windows/`. **Nije vizuelno provereno kroz UI** (korisnik testira
+sam). **Nije commit-ovano.**
+

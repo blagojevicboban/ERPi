@@ -6,6 +6,10 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{StaticResource SurfaceBrush}">
+
+    <Window.Resources>
+        <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+    </Window.Resources>
     
     <Grid>
         <Grid.RowDefinitions>

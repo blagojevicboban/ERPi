@@ -6,7 +6,12 @@
       Background="{StaticResource SurfaceBrush}">
 
     <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            </ResourceDictionary>
     </Page.Resources>
 
     <!-- DataContext se postavlja u konstruktoru, jer ViewModel prima rod isplate:

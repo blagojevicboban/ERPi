@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,6 +36,32 @@ public partial class MainWindow : Window
         MainContentHost.Content = new DashboardView(_db);
 
         Closed += (_, _) => _db.Dispose();
+
+        // Provera ažuriranja u pozadini
+        _ = CheckForUpdatesAsync();
+    }
+
+    private async System.Threading.Tasks.Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var source = new Velopack.Sources.GithubSource(
+                "https://github.com/blagojevicboban/ERPi",
+                null, // null = javni repozitorijum, nema potrebe za tokenom
+                false);
+            var mgr = new Velopack.UpdateManager(source);
+            var newVersion = await mgr.CheckForUpdatesAsync();
+            if (newVersion != null)
+            {
+                var dialog = new UpdateDialog(newVersion, mgr);
+                dialog.Owner = this;
+                dialog.ShowDialog();
+            }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Greška pri proveri ažuriranja");
+        }
     }
 
     /// <summary>Poziva LoginWindow pre Show() ako je prijavljeni korisnik i dalje na podrazumevanoj lozinci.</summary>
@@ -289,8 +316,8 @@ public partial class MainWindow : Window
         PnlNavZarade.Visibility = Visibility.Visible;
         PnlNavSredstva.Visibility = Visibility.Collapsed;
         PostaviBojuSidebara((Color)FindResource("ZaradeSidebarStartColor"), (Color)FindResource("ZaradeSidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x90, 0xCA, 0xF9)));
-        TxtHeaderTitle.Text = "📁 Obračunski periodi zarada";
-        MainContentHost.Content = new ERPiApp.Views.Zarade.Obracuni.ObracuniPage();
+        TxtHeaderTitle.Text = "📊 Radna tabla";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Dashboard.DashboardPage();
     }
 
     private void TabModulSredstva_Click(object sender, RoutedEventArgs e)
@@ -321,6 +348,12 @@ public partial class MainWindow : Window
     }
 
     // ── Navigacija Zarade ─────────────────────────────────────────────
+
+    private void NavZaradeDashboard_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "📊 Radna tabla";
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Dashboard.DashboardPage();
+    }
 
     private void NavZaradeObracuni_Click(object sender, RoutedEventArgs e)
     {

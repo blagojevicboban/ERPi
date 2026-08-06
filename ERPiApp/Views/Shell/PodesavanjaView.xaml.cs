@@ -316,7 +316,12 @@ public partial class PodesavanjaView : UserControl
             {
                 Owner = Window.GetWindow(this)
             };
-            window.ShowDialog();
+            if (window.ShowDialog() == true && window.NovaFirmaKreirana != null)
+            {
+                MessageBox.Show(
+                    $"Nova firma „{window.NovaFirmaKreirana.Naziv}“ je kreirana i registrovana.\n\nPristupite joj preko „Promeni firmu“ u zaglavlju aplikacije.",
+                    "Nova firma kreirana", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
         catch (Exception ex)
         {

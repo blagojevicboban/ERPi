@@ -79,7 +79,7 @@
                    Margin="24,66,24,0" Visibility="Collapsed"/>
 
         <!-- FOOTER -->
-        <TextBlock Grid.Row="4" Text="ERPi © 2026 Blagojević Boban" FontSize="11"
+        <TextBlock Grid.Row="4" x:Name="TxtVersion" Text="ERPi © 2026 Blagojević Boban" FontSize="11"
                    Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,14,0,16"/>
     </Grid>
 </Window>

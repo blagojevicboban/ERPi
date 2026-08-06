@@ -5,6 +5,10 @@
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource SurfaceBrush}">
 
+    <Window.Resources>
+        <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+    </Window.Resources>
+
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

@@ -217,7 +217,10 @@
 
                         <!-- ZARADE MODUL (KLONIRANO IZ ERPiZarade) -->
                         <StackPanel x:Name="PnlNavZarade" Visibility="Collapsed">
-                            <TextBlock Text="OBRAČUNI" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,6,0,3"/>
+                            <TextBlock Text="RADNA TABLA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,6,0,3"/>
+                            <RadioButton x:Name="BtnZaradeDashboard" Content="📊 Radna tabla" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeDashboard_Click"/>
+
+                            <TextBlock Text="OBRAČUNI" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>
                             <RadioButton x:Name="BtnZaradeObracuni" Content="📁 Obračunski periodi" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradeObracuni_Click"/>
 
                             <TextBlock Text="EVIDENCIJA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,10,0,3"/>

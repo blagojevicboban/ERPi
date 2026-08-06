@@ -4,6 +4,10 @@
       Title="Ostala primanja"
       Background="{StaticResource SurfaceBrush}">
 
+    <Page.Resources>
+        <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+    </Page.Resources>
+
     <Grid Margin="24,20,24,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

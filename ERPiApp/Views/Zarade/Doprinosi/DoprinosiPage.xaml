@@ -5,6 +5,10 @@
       Background="{StaticResource SurfaceBrush}">
 
     <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         <!-- Cell alignment styles -->
         <Style x:Key="LeftAlignedCell" TargetType="TextBlock">
             <Setter Property="Margin" Value="12,0"/>
@@ -16,6 +20,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
+            </ResourceDictionary>
     </Page.Resources>
 
     <Grid Margin="24,20,24,16">

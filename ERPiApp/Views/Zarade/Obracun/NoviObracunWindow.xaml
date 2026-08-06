@@ -7,6 +7,10 @@
         Background="{StaticResource SurfaceBrush}"
         Style="{DynamicResource {x:Type Window}}">
 
+    <Window.Resources>
+        <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

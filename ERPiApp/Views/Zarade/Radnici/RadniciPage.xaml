@@ -10,9 +10,14 @@
     </Page.DataContext>
 
     <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../ZaradeStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         <local:BankCodeToNameConverter x:Key="BankCodeToNameConverter"/>
         <local:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            </ResourceDictionary>
     </Page.Resources>
 
 

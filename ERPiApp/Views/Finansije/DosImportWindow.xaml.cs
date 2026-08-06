@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using ERPiApp.Models;
+using ERPiApp.Services;
 using ERPiData;
 using ERPiApp.Services.Finansije;
 
@@ -12,13 +14,22 @@ namespace ERPiApp.Views.Finansije;
 
 public partial class DosImportWindow : Window
 {
-    private readonly ErpiDbContext _db;
+    private readonly ErpiDbContext _aktivnaDb;
+    private readonly CompanyRegistryService _registry = new();
     private List<DbfFirmaDto> _pronadjeneFirme = new();
+
+    /// <summary>Popunjen samo ako je uvoz urađen u NOVU firmu — pozivalac ga koristi da obavesti
+    /// korisnika da je nova firma kreirana i registrovana (po uzoru na
+    /// <see cref="ERPiApp.Views.Sredstva.Podesavanja.SredstvaDosImportWindow"/>).</summary>
+    public CompanyEntry? NovaFirmaKreirana { get; private set; }
 
     public DosImportWindow(ErpiDbContext db)
     {
         InitializeComponent();
-        _db = db;
+        _aktivnaDb = db;
+
+        var aktivnaFirma = _aktivnaDb.Firme.FirstOrDefault();
+        RbAktivnaFirma.Content = $"🏢 Uvezi u aktivnu firmu: {aktivnaFirma?.Naziv ?? "(nepoznato)"}";
 
         string defaultPath = @"C:\KNJIGE\Radni";
         if (!Directory.Exists(defaultPath))
@@ -37,7 +48,7 @@ public partial class DosImportWindow : Window
             _pronadjeneFirme = DosImportService.Instance.SkenirajRadniDirektorijum(folderPath);
             DgFirme.ItemsSource = _pronadjeneFirme;
             TxtFirmCount.Text = $"Pronađeno: {_pronadjeneFirme.Count} firmi";
-            
+
             if (_pronadjeneFirme.Any())
             {
                 DgFirme.SelectedItem = _pronadjeneFirme[0];
@@ -75,7 +86,29 @@ public partial class DosImportWindow : Window
                 f.IsSelected = (f == izabrana);
             }
             TxtStatus.Text = $"Izabrana firma: {izabrana.Naziv} ({izabrana.Sifra})";
+
+            // Preuzima podatke o firmi iz DOS-a i nudi ih za pregled/ispravku pre uvoza u novu firmu —
+            // korisnik i dalje može ispraviti bilo koje polje pre nego što pokrene uvoz.
+            TxtNovaFirmaNaziv.Text = izabrana.Naziv;
+            TxtNovaFirmaSifra.Text = izabrana.Sifra;
+            TxtNovaFirmaPib.Text = izabrana.Pib;
+            TxtNovaFirmaMb.Text = izabrana.MaticniBroj;
+            TxtNovaFirmaAdresa.Text = izabrana.Adresa;
+            TxtNovaFirmaMesto.Text = izabrana.PttIMesto;
+            TxtNovaFirmaTelefon.Text = izabrana.Telefon;
+            TxtNovaFirmaZiroRacun.Text = izabrana.ZiroRacun;
         }
+    }
+
+    private void Odrediste_Changed(object sender, RoutedEventArgs e)
+    {
+        if (PnlNovaFirma == null) return; // poziva se i tokom InitializeComponent()
+
+        bool novaFirma = RbNovaFirma.IsChecked == true;
+        PnlNovaFirma.Visibility = novaFirma ? Visibility.Visible : Visibility.Collapsed;
+        ChkBrisiPostojece.IsEnabled = !novaFirma; // nova firma je uvek prazna, brisanje nema smisla
+        if (novaFirma) ChkBrisiPostojece.IsChecked = false;
+        BtnStartImport.Content = novaFirma ? "🚀 Pokreni Uvoz u Novu Firmu" : "🚀 Pokreni Uvoz u Aktivnu Firmu";
     }
 
     private async void BtnStartImport_Click(object sender, RoutedEventArgs e)
@@ -97,7 +130,59 @@ public partial class DosImportWindow : Window
             return;
         }
 
-        bool brisiPostojece = ChkBrisiPostojece.IsChecked == true;
+        bool uNovuFirmu = RbNovaFirma.IsChecked == true;
+        ErpiDbContext destDb;
+        string? novaFirmaDbPath = null;
+
+        if (uNovuFirmu)
+        {
+            var naziv = TxtNovaFirmaNaziv.Text.Trim();
+            if (string.IsNullOrEmpty(naziv))
+            {
+                MessageBox.Show("Naziv nove firme je obavezan.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var sifra = TxtNovaFirmaSifra.Text.Trim();
+            if (string.IsNullOrEmpty(sifra)) sifra = "F" + DateTime.Now.ToString("yyyyMMddHHmmss");
+
+            var fileSafeNaziv = string.Concat(naziv.Split(Path.GetInvalidFileNameChars()));
+            novaFirmaDbPath = Path.Combine(_registry.DefaultDataDirectory, $"{sifra}_{fileSafeNaziv}.db");
+
+            if (File.Exists(novaFirmaDbPath))
+            {
+                MessageBox.Show("Baza sa ovim imenom već postoji na disku. Promenite šifru ili naziv nove firme.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                destDb = ErpiDbContext.Create(novaFirmaDbPath);
+                destDb.Firme.Add(new ERPiData.Models.Core.Firma
+                {
+                    Sifra = sifra,
+                    Naziv = naziv,
+                    Pib = string.IsNullOrWhiteSpace(TxtNovaFirmaPib.Text) ? null : TxtNovaFirmaPib.Text.Trim(),
+                    MaticniBroj = string.IsNullOrWhiteSpace(TxtNovaFirmaMb.Text) ? null : TxtNovaFirmaMb.Text.Trim(),
+                    Adresa = string.IsNullOrWhiteSpace(TxtNovaFirmaAdresa.Text) ? null : TxtNovaFirmaAdresa.Text.Trim(),
+                    PttIMesto = string.IsNullOrWhiteSpace(TxtNovaFirmaMesto.Text) ? null : TxtNovaFirmaMesto.Text.Trim(),
+                    Telefon = string.IsNullOrWhiteSpace(TxtNovaFirmaTelefon.Text) ? null : TxtNovaFirmaTelefon.Text.Trim(),
+                    ZiroRacun = string.IsNullOrWhiteSpace(TxtNovaFirmaZiroRacun.Text) ? null : TxtNovaFirmaZiroRacun.Text.Trim()
+                });
+                await destDb.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Kreiranje nove firme nije uspelo: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+        }
+        else
+        {
+            destDb = _aktivnaDb;
+        }
+
+        bool brisiPostojece = !uNovuFirmu && ChkBrisiPostojece.IsChecked == true;
         if (brisiPostojece)
         {
             var res = MessageBox.Show(
@@ -109,7 +194,9 @@ public partial class DosImportWindow : Window
 
         BtnStartImport.IsEnabled = false;
         TxtLog.Text = "";
-        AppendLog($"Započet uvoz firme '{izabranaFirma.Naziv}' ({izabranaFirma.Sifra}) u aktivnu bazu...");
+        AppendLog(uNovuFirmu
+            ? $"Započet uvoz firme '{izabranaFirma.Naziv}' ({izabranaFirma.Sifra}) u NOVU firmu '{TxtNovaFirmaNaziv.Text.Trim()}'..."
+            : $"Započet uvoz firme '{izabranaFirma.Naziv}' ({izabranaFirma.Sifra}) u aktivnu bazu...");
 
         var progressHandler = new Progress<DosImportProgress>(p =>
         {
@@ -125,7 +212,7 @@ public partial class DosImportWindow : Window
         try
         {
             await DosImportService.Instance.UveziJednuFirmuAsync(
-                _db,
+                destDb,
                 izabranaFirma,
                 importFinansijsko,
                 importRobno,
@@ -133,8 +220,31 @@ public partial class DosImportWindow : Window
                 brisiPostojece,
                 progressHandler);
 
-            MessageBox.Show($"Uvoz je uspešno završen za firmu '{izabranaFirma.Naziv}'!\n\nIzabrani moduli su uspešno zavedeni u aktivnu ERPi bazu.",
-                "Uspeh", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (uNovuFirmu && novaFirmaDbPath != null)
+            {
+                var entry = new CompanyEntry
+                {
+                    Sifra = TxtNovaFirmaSifra.Text.Trim(),
+                    Naziv = TxtNovaFirmaNaziv.Text.Trim(),
+                    Pib = TxtNovaFirmaPib.Text.Trim(),
+                    DbPath = novaFirmaDbPath
+                };
+                var companies = _registry.Load();
+                companies.Add(entry);
+                _registry.Save(companies);
+                NovaFirmaKreirana = entry;
+
+                MessageBox.Show(
+                    $"Uvoz je uspešno završen za NOVU firmu '{entry.Naziv}'!\n\nIzabrani moduli su zavedeni u novokreiranu ERPi bazu. Nova firma je registrovana — pristupite joj preko „Promeni firmu“ u zaglavlju aplikacije.",
+                    "Uspeh", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogResult = true;
+            }
+            else
+            {
+                MessageBox.Show($"Uvoz je uspešno završen za firmu '{izabranaFirma.Naziv}'!\n\nIzabrani moduli su uspešno zavedeni u aktivnu ERPi bazu.",
+                    "Uspeh", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogResult = true;
+            }
         }
         catch (Exception ex)
         {
@@ -143,6 +253,7 @@ public partial class DosImportWindow : Window
         }
         finally
         {
+            if (uNovuFirmu) destDb.Dispose(); // aktivna baza ostaje otvorena kod pozivaoca, nova se zatvara ovde
             BtnStartImport.IsEnabled = true;
         }
     }
