@@ -19,6 +19,8 @@ bld/
 [Bb]in/
 [Oo]bj/
 publish_output/
+publish_output_x64/
+publish_output_x86/
 ReleasePackage/
 ERPiSetup_v*.exe
 
@@ -31,6 +33,7 @@ ERPiSetup_v*.exe
 *.bak
 *.tmp
 *.log
+*.png
 *.zip
 *.rar
 *.arj

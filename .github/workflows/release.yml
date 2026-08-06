@@ -1,0 +1,88 @@
+name: Release ERPi
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout kod
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Prevođenje celog rešenja
+        run: dotnet build ERPi.slnx -c Release
+
+  build:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout kod
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Čitanje verzije iz fajla
+        id: get_version
+        run: |
+          $ver = (Get-Content version.txt).Trim()
+          echo "VERSION=$ver" >> $env:GITHUB_ENV
+
+      - name: Prevođenje 64-bit (win-x64)
+        run: |
+          dotnet publish ERPiApp\ERPiApp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=$env:VERSION -o publish_output_x64
+          if (Test-Path "ERPiApp\Resources\Help") {
+              New-Item -ItemType Directory -Path "publish_output_x64\Resources\Help" -Force | Out-Null
+              Copy-Item -Path "ERPiApp\Resources\Help\*" -Destination "publish_output_x64\Resources\Help" -Recurse -Force
+          }
+
+      - name: Prevođenje 32-bit (win-x86)
+        run: |
+          dotnet publish ERPiApp\ERPiApp.csproj -c Release -r win-x86 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=$env:VERSION -o publish_output_x86
+          if (Test-Path "ERPiApp\Resources\Help") {
+              New-Item -ItemType Directory -Path "publish_output_x86\Resources\Help" -Force | Out-Null
+              Copy-Item -Path "ERPiApp\Resources\Help\*" -Destination "publish_output_x86\Resources\Help" -Recurse -Force
+          }
+
+      - name: Instalacija Velopack CLI
+        run: dotnet tool install -g vpk
+
+      - name: Pakovanje 64-bit i 32-bit (vpk pack)
+        run: |
+          New-Item -ItemType Directory -Path "ReleasePackage" -Force | Out-Null
+          vpk pack --packId "ERPi" --packVersion $env:VERSION --packDir "publish_output_x64" --mainExe "ERPiApp.exe" --outputDir "ReleasePackage" --packTitle "ERPi Poslovni Sistem" --icon "ERPiApp\app.ico"
+          vpk pack --packId "ERPi32" --packVersion $env:VERSION --packDir "publish_output_x86" --mainExe "ERPiApp.exe" --outputDir "ReleasePackage" --packTitle "ERPi Poslovni Sistem (32-bit)" --icon "ERPiApp\app.ico"
+
+      - name: Objavljivanje na GitHub Releases
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: ERPi v${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            ReleasePackage/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

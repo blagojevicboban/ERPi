@@ -1155,3 +1155,20 @@ sad se poklapaju tačno sa ERPiSredstva.
 
 **Nije commit-ovano** (samo `SredstvaDbfMigrator.cs` izmenjen, baze su lokalni podaci van repoa).
 
+---
+
+## 3o. Klonirana korisnička uputstva iz sva tri programa u ERPi (06.08.2026)
+
+Uspešno klonirana i objedinjena celokupna korisnička uputstva i help sistem iz sva tri programa (`ERPiFinansije`, `ERPiSredstva`, `ERPiZarade`) u novi, deljeni `ERPiApp.Views.Pomoc` modul:
+
+1. **Objedinjena stranica pomoći (`PomocPage`)**:
+   - Spojeno preko 60 detaljnih tema pomoći iz sva 3 programa podeljenih po modulima (`💰 Finansije`, `🏗️ Osnovna sredstva`, `👥 Zarade`, `🌐 Opšte`).
+   - Pretraga tema u realnom vremenu i filtriranje po modulima.
+   - Dugme `🌐 Otvori HTML Uputstvo` za direktan otvor celovitih HTML priručnika u veb pregledaču.
+   - Generički `EditHelpWindow` pop-up i `ChangelogWindow`.
+2. **HTML Korisnički priručnici (`Resources/Help/`)**:
+   - `uputstvo-finansije.html`, `uputstvo-sredstva.html`, `uputstvo-zarade.html` i objedinjeni `uputstvo-erpi.html` priručnik.
+3. **Povezivanje u Shell / MainWindow**:
+   - Nova stavka `❓ Pomoć & Uputstva` u bočnom meniju i globalni rukovalac tastera **F1** koji otvara ekran pomoći.
+
+

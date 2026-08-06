@@ -14,6 +14,9 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Inicijalizacija Velopack auto-update instalera
+        Velopack.VelopackApp.Build().Run();
+
         // Podesavanje QuestPDF licenciranja (Community izdanje za besplatnu upotrebu)
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 

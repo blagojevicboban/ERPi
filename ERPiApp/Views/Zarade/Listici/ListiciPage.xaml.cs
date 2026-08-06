@@ -250,7 +250,7 @@ public partial class ListiciPage : Page
             Port = 587,
             KoristiSsl = true,
             Korisnik = "",
-            Lozinka = null,
+            Lozinka = "",
             AdresaPosiljaoca = "",
             ImePosiljaoca = ""
         };

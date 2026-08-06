@@ -324,16 +324,9 @@ public class PppPdViewModel : INotifyPropertyChanged
             }
             else
             {
-                if (false)
+                if (jmbg.Length != 13 || !jmbg.All(char.IsDigit))
                 {
-                    if (!JmbgValidator.Validate(jmbg, out string jmbgError))
-                    {
-                        ValidationAlerts.Add($"Zaposleni {o.Radnik.ImeIPrezime} ima neispravan JMBG: {jmbgError}");
-                    }
-                }
-                else if (jmbg.Length != 13 || !jmbg.All(char.IsDigit))
-                {
-                    ValidationAlerts.Add($"Zaposleni {o.Radnik.ImeIPrezime} ima neispravan format JMBG-a (mora imati tačno 13 cifara).");
+                    ValidationAlerts.Add($"Zaposleni {o.Radnik.ImeIPrezime} nema ispravan 13-cifreni JMBG ({jmbg})!");
                 }
             }
             

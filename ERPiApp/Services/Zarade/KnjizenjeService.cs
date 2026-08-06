@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using ERPiData;
 using ERPiData.Models.Zarade;
-using ERPiData;
 
 namespace ERPiApp.Services.Zarade;
 

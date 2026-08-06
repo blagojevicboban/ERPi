@@ -55,11 +55,22 @@ public partial class MainWindow : Window
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.M && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+        if (e.Key == Key.F1)
+        {
+            NavPomoc_Click(sender, e);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.M && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
         {
             BtnToggleSidebar_Click(sender, e);
             e.Handled = true;
         }
+    }
+
+    public void NavPomoc_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "❓ Pomoć i Korisnička Uputstva";
+        MainContentHost.Content = new ERPiApp.Views.Pomoc.PomocPage();
     }
 
     private void BtnToggleSidebar_Click(object sender, RoutedEventArgs e)

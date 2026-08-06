@@ -209,6 +209,7 @@
                             <TextBlock Text="PODEŠAVANJA I SISTEM" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
                             <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka Wizard" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz baze ERPiFinansije ili DOS DBF fajlova"/>
                             <RadioButton x:Name="BtnPodesavanja" Content="🔧 Podešavanja" Style="{StaticResource NavButtonStyle}" Click="NavPodesavanja_Click" ToolTip="Podešavanja aplikacije — info traka, tema, notifikacije"/>
+                            <RadioButton x:Name="BtnPomoc" Content="❓ Pomoć &amp; Uputstva" Style="{StaticResource NavButtonStyle}" Click="NavPomoc_Click" ToolTip="Objedinjeni sistem pomoći i korisnička uputstva za sve module (F1)"/>
                         </StackPanel>
 
                         <!-- ZARADE MODUL (KLONIRANO IZ ERPiZarade) -->
@@ -255,6 +256,7 @@
 
                             <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#7986CB" Margin="24,14,0,3"/>
                             <RadioButton x:Name="BtnZaradePodesavanja" Content="⚙️ Podešavanja" Style="{StaticResource NavButtonStyleZarade}" Click="NavZaradePodesavanja_Click" ToolTip="Uvoz podataka iz ERPiZarade i DOS/DBF fajlova"/>
+                            <RadioButton x:Name="BtnZaradePomoc" Content="❓ Pomoć &amp; Uputstva" Style="{StaticResource NavButtonStyleZarade}" Click="NavPomoc_Click" ToolTip="Objedinjeni sistem pomoći i korisnička uputstva (F1)"/>
                         </StackPanel>
 
                         <!-- SREDSTVA MODUL (KLONIRANO IZ ERPiSredstva) -->
@@ -272,6 +274,7 @@
 
                             <TextBlock Text="PODEŠAVANJA" FontSize="10" FontWeight="SemiBold" Foreground="#52B788" Margin="24,14,0,3"/>
                             <RadioButton x:Name="BtnSredstvaPodesavanja" Content="⚙️ Podešavanja" Style="{StaticResource NavButtonStyleSredstva}" Click="NavSredstvaPodesavanja_Click" ToolTip="DOS/DBF uvoz osnovnih sredstava"/>
+                            <RadioButton x:Name="BtnSredstvaPomoc" Content="❓ Pomoć &amp; Uputstva" Style="{StaticResource NavButtonStyleSredstva}" Click="NavPomoc_Click" ToolTip="Objedinjeni sistem pomoći i korisnička uputstva (F1)"/>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

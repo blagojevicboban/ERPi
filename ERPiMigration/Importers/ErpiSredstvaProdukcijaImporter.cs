@@ -161,7 +161,7 @@ public class ErpiSredstvaProdukcijaImporter
 
                 var ns = new Sredstvo
                 {
-                    InventarskiBroj = ss.InventarskiBroj,
+                    InventarskiBroj = ss.InventarskiBroj ?? string.Empty,
                     Naziv = ss.Naziv,
                     DatumNabavke = ss.DatumNabavke,
                     DatumAktiviranja = ss.DatumAktiviranja,
