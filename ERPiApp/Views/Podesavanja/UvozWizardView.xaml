@@ -39,7 +39,6 @@
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <Button x:Name="BtnAnaliziraj" Content="🔍 Analiziraj podatak" Height="38" Padding="18,0" Margin="0,0,12,0" Style="{StaticResource SecondaryButton}" Click="BtnAnaliziraj_Click"/>
                     <Button x:Name="BtnPokreniUvoz" Content="⚡ Uvoz iz ERPiFinansije" Height="38" Padding="20,0" Margin="0,0,12,0" Style="{StaticResource ActionButtonStyle}" Click="BtnPokreniUvoz_Click"/>
-                    <Button x:Name="BtnPokreniUvozZarade" Content="💼 Uvoz iz ERPiZarade" Height="38" Padding="20,0" Margin="0,0,12,0" Style="{StaticResource ActionButtonStyle}" Click="BtnPokreniUvozZarade_Click"/>
                     <Button x:Name="BtnPokreniUvozDOS" Content="🔄 Uvoz iz DOS / Clipper (DBF)..." Height="38" Padding="18,0" Style="{StaticResource SecondaryButton}" Click="BtnPokreniUvozDOS_Click"/>
                 </StackPanel>
             </StackPanel>

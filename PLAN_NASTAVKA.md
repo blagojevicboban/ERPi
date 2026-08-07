@@ -6,6 +6,57 @@
 >
 > Stanje na dan **05.08.2026** (dopunjeno u istoj sesiji sa Fazom 4, pa Ponude/Predračuni i
 > Narudžbenice — vidi §6), verzija **2.0.0-alpha**.
+>
+> **⚠️ Provera stanja 07.08.2026 (popodne) — vidi §0.** Dokument je od §3e nadalje pisan kao
+> tekući sesijski log i skoro svaka celina do §3w se završava sa "Nije commit-ovano" — te napomene
+> su **zastarele**. Sve što je opisano u §3e–§3w je u međuvremenu commit-ovano i push-ovano na
+> `origin/main` (verzije 2.1.0 → 2.4.0, radno stablo čisto). Ne verovati pojedinačnim "Nije
+> commit-ovano" rečenicama dalje u tekstu bez provere §0.
+
+---
+
+## 0. Provera stanja (ovaj razgovor, 07.08.2026 popodne)
+
+Korisnik je tražio proveru da li plan odgovara trenutnom stanju repoa. Provereno direktno (`git
+status`, `git log`, `dotnet build`, `dotnet test`):
+
+- **`git status` → radno stablo čisto, `main` je u sinhronizaciji sa `origin/main`.** Sve što
+  dokument dalje u tekstu (§3e i nadalje) opisuje kao "Nije commit-ovano"/"NIJE commit-ovano" je
+  **stvarno commit-ovano** kroz četiri objedinjujuća commit-a istog dana/prethodnog dana:
+  - `b376fc0` v2.2.0 — Zarade Radna tabla i dizajn tabela, auto-update, dijalog Istorija izmena,
+    DOS uvoz paritet (pokriva §3e/§3f/§3h/§3j/§3k/§3l/§3m/§3n/§3o/§3p/§3q).
+  - `b8accb8` v2.3.0 — Zarade/sidebar usklađeni sa ERPiZarade, fix isplata naknada i DOS uvoza
+    sredstava (pokriva §3r/§3s).
+  - `2e3322a` / `b68b102` v2.4.0 — Nalog readonly/rasknjiži, Kompenzacije/Putni nalozi/
+    Korisnici/Kursna lista, Račun-otpremnica usluge+SEF/PFR, Zarade izvoz+analitika (pokriva
+    §3t/§3u/§3v/§3w u potpunosti — svi fajlovi navedeni u tim odeljcima, uključujući migraciju
+    `DodajUsluguNaRacunOtpremnicuStavku`, su u ovom commit-u).
+  - Faze 4 (Sredstva) i 5 (Zarade) stabla (`ERPiApp/Views/Sredstva`, `ERPiData/Models/Sredstva`,
+    `ERPiApp/Views/Zarade`, `ERPiData/Models/Zarade`) su takođe potvrđeno praćena u git-u (106 +
+    41 + 14 + 8 fajlova), ne untracked.
+- **§1 tabela, red "8 — Velopack pakovanje i CI/CD — ⬜" je pogrešna/zastarela** —
+  `.github/workflows/release.yml` postoji i repo ima objavljene tagove `v2.0.0` → `v2.4.0`
+  (Velopack izdanja). Ovo je zapravo ✅, ne ⬜.
+- **`dotnet build ERPi.slnx`** — čist, **0 grešaka, 0 upozorenja** (potvrđeno u ovom razgovoru).
+- **`dotnet test ERPiData.Tests`** — **56/56 prolazi** (dokument na više mesta pominje "55" —
+  blago zastarelo, jedan test je dodat u međuvremenu, nije bitno).
+- **`CHANGELOG.md` nema unos za 2.4.0** — poslednji zapisan unos je `[2.3.0]`, iako `version.txt`
+  već pokazuje `2.4.0` i tag `v2.4.0` postoji. Sitan propust, vredi dopuniti pri sledećem radu na
+  ovom modulu (ne blokira ništa).
+- **Šta OSTAJE stvarno tačno i dalje** (nije stalo commit-ovanjem):
+  - **Ništa nije vizuelno provereno kroz UI dugme-po-dugme** — ovo ostaje tačno za skoro sve
+    novoportovane ekrane pomenute u §3e–§3w; korisnik i dalje sam testira (vidi §4,
+    [[feedback_user_tests_ui_manually]]).
+  - **Faza 6 (automatsko knjiženje Zarade/Sredstva → Nalog) — i dalje ⬜, potvrđeno u ovoj proveri**
+    (`grep` za `IzvorModula` van modela/migracija ne nalazi nijedan servis koji ga stvarno
+    koristi) — šema ima kuku, logika ne postoji.
+  - DOS uvoz Sredstava/Zarade sa pravim DBF fajlovima — Sredstva je testirano i bag ispravljen
+    (§3n, vidi i [[project_sredstva_dbf_migrator_aggregate_bug]]), Zarade DOS uvoz ostaje
+    netestiran sa pravim DBF fajlovima (§3f).
+  - "NEIZABRANE" stavke iz §3t/§3u istraživanja i dalje čekaju: ESIR maloprodajna fiskalizacija,
+    Backup tab (pogrešan "Zarade" namespace), DMS UI, `FirmeView` (CRUD nad bilo kojom firmom),
+    audit/`Promena` istorija izmena, pun PDV KIR/KPR (§3g), globalni F1 Pomoć hub za Finansije/
+    Sredstva (samo Zarade ima nešto slično, ostalo je per-dialog).
 
 ---
 
@@ -30,13 +81,13 @@
 | **3.10**| Putni nalozi (`PutniNaloziView`, `PutniNalogModels`, `PutniNalogService`) | ✅ |
 | **3.11**| Kompenzacije (`KompenzacijeView`, `KompenzacijaModels`, `KompenzacijaService`, Pametno skeniranje) | ✅ |
 | **3.12**| Komercijala, Trgovina & DMS (`RacuniOtpremnice`, `Nivelacije`, `Maloprodaja`, `UvoznaKalkulacija`, `PdvEvidencija`, `PpPdvXmlGenerator`) | ✅ Sve komponente prenesene, ožičene u sidebar/tabove i pokrivene xUnit testovima |
-| **4** | Osnovna sredstva | 🔶 (kompletan UI preneto, vidi §3h/§3j — ostaje DOS uvoz i pun F1 hub, ništa commit-ovano) |
-| **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | 🔶 (u toku, vidi §3e) |
+| **4** | Osnovna sredstva | 🔶 (kompletan UI + DOS uvoz preneto i **commit-ovano** — vidi §0/§3h/§3j/§3k/§3n; ostaje samo pun F1 hub + dugme-po-dugme UI provera) |
+| **5** | Obračun zarada — jedini modul sa realnim produkcionim korisnicima danas | 🔶 (kompletan UI, radna tabla, DOS uvoz **commit-ovano** — vidi §0/§3e/§3f/§3s; ostaje globalni F1 hub + DOS uvoz test sa pravim DBF + dugme-po-dugme UI provera) |
 | **6** | Automatsko knjiženje (Zarade/Sredstva → Nalog) | ⬜ (šema već ima kuku: `Nalog.IzvorModula`/`IzvorId`) |
 | **7.1** | `ERPiMigration` — direktan `ErpiFinansijeImporter` (uvoz iz `baza.db` / `AccountingDbContext` u `ErpiDbContext`) + `UvozWizardView` | ✅ |
 | 7.2a | DOS import Zarade — `ZaradeDbfMigrator` (DBF → privremena ERPiZaradeData baza → `ErpiZaradeProdukcijaImporter`) + `PodesavanjaZaradeView` | ✅ (vidi §3f) |
-| 7.2b | DOS import Finansije/Sredstva | ✅ (Sredstva vidi §3k; Finansije Robno/Materijalno dopunjeno na paritet sa ERPiFinansije u §3r) |
-| **8** | Velopack pakovanje i CI/CD | ⬜ |
+| 7.2b | DOS import Finansije/Sredstva | ✅ (Sredstva vidi §3k, potvrđeno protiv realnih podataka i progres traka popravljena u §3x; Finansije Robno/Materijalno dopunjeno na paritet sa ERPiFinansije u §3r) |
+| **8** | Velopack pakovanje i CI/CD | ✅ (ispravljeno 07.08.2026, vidi §0 — `release.yml` postoji, tagovi v2.0.0→v2.4.0 objavljeni) |
 
 ---
 
@@ -933,6 +984,32 @@ ekrane sa realnim podacima.
 
 ## Sledeći koraci
 
+**⚠️ Ostatak ove sekcije ispod je istorijski (pisan 05.08.2026, pre nego što su Faza 4/5 i §3t–§3w
+commit-ovani) — tekst koji kaže "Nije commit-ovano"/"ne commit-ovati dok korisnik ne kaže" više NE
+važi, vidi §0. Ostavljeno nepromenjeno ispod radi istorijskog traga; aktuelan predlog sledećeg
+koraka je ovaj pasus.**
+
+Stanje 07.08.2026 (§0): Faze 1–5, 7.1, 7.2a/b i 8 su ✅/🔶 i **sve commit-ovane** na `origin/main`
+(verzija 2.4.0). Realno preostaje:
+1. **Vizuelna provera kroz UI** — daleko najveća preostala stavka. Skoro ništa portovano od Faze 4
+   nadalje nije dugme-po-dugme kliknuto (korisnik testira sam, §4). Prirodan redosled: Sredstva
+   (registar→prijava→kartica→amortizacija→rashod→popis→revalorizacija→izveštaji), pa Zarade
+   ekrani, pa §3t–§3w novi ekrani (Kompenzacije/Putni nalozi/Korisnici/Kursna lista/Račun-
+   otpremnica usluge/SEF-PFR).
+2. **Faza 6 — automatsko knjiženje (Zarade/Sredstva → Nalog)** — i dalje ⬜, potvrđeno u §0. Sad
+   kad su oba modula u istoj bazi i commit-ovana, ovo je realan sledeći razvojni korak, ne samo
+   priprema.
+3. **§3g/§3t "NEIZABRANE" liste** — PDV evidencija (KIR/KPR), Korisnici/prava pristupa su urađeni
+   u §3t; ostaje ESIR maloprodajna fiskalizacija, Backup tab reorg, DMS UI, `FirmeView` CRUD nad
+   bilo kojom firmom, `Promena`/audit istorija izmena, globalni F1 Pomoć hub za Finansije/Sredstva.
+4. DOS uvoz Zarada sa pravim DBF fajlovima — jedino Sredstva DOS uvoz je stvarno testiran/popravljen
+   (§3n); Zarade DOS uvoz (§3f) čeka prvi pravi test.
+5. Sitno: `CHANGELOG.md` nema unos za 2.4.0 (§0).
+
+---
+
+*(Istorijski tekst, pisan 05.08.2026 — vidi upozorenje iznad)*
+
 Faze 3.5–3.12 su implementirane, commit-ovane i push-ovane na `origin/main` (05.08.2026), ali
 **3.12 je delimično netačno označena** — videti §3g za ispravku. §3d ("Poznati nedostaci u Fazi
 3.5–3.12", vizuelna provera + čišćenje legacy kolona u `KontaView`) ostaje važeće uporedo.
@@ -942,12 +1019,7 @@ prijava, rashod, amortizacija + poreska amortizacija/Obrazac OA iz §3h; Popis, 
 Izveštaji iz §3j; DOS/DBF uvoz — `SredstvaDbfMigrator`/`ErpiSredstvaProdukcijaImporter`/
 `PodesavanjaSredstvaView` — iz §3k, sve u nastavku iste sesije). Ostaje samo pun F1 Pomoc hub
 (opštiji nedostatak, isti kao Finansije/Zarade) — portovanje iz ERPiSredstva se može smatrati
-završenim. **Nije commit-ovano** — celo stablo `ERPiData/Models/Sredstva`,
-`ERPiData/Services/Sredstva`, `ERPiApp/Views/Sredstva`, `ERPiMigration/Importers/SredstvaDbfMigrator.cs`
-+ `ErpiSredstvaProdukcijaImporter.cs`, migracija `DodajOsnovnaSredstva` i prateća migracija
-`PdvZapisRacunOtpremnicaSefPolja` (pre-postojeća neprimenjena šema izdvojena u sopstvenu migraciju
-pri generisanju — videti §3h) su i dalje untracked/modified u `git status`; ne commit-ovati dok
-korisnik ne kaže.
+završenim.
 
 Preporučeni redosled sledećeg rada (bilo koji redosled je razuman, ovo je samo predlog):
 1. **Korisnik pokrene DOS uvoz** (§3k) protiv pravih DBF fajlova i vizuelno proveri Fazu 4 kroz UI
@@ -1713,4 +1785,37 @@ sesije na §3v stavkama u isto vreme — build je bio čist i pre i posle, nije 
 ekran nije vizuelno proveren kroz UI** (korisnik testira sam — posebno proveriti da čisto-uslužni
 račun bez magacina radi kroz ceo tok, i da se SEF/Fiskalizuj dugmad ispravno uključuju/isključuju
 po tipu partnera). **Ništa nije commit-ovano.**
+
+---
+
+## 3x. DOS uvoz Sredstava — potvrđen protiv realnih DBF podataka (ARHIBEL), progres traka popravljena (07.08.2026)
+
+Korisnik je pokrenuo `SredstvaDosImportWindow` (§3q reskin) protiv stvarnog DOS foldera
+(`C:\FIRME\ARHIBEL\SREDSTVA`, firma KOR25 "ARHIBEL" Pirot) i potvrdio: **podaci posle uvoza su OK**
+— poređeno sa uvozom u samostalnu ERPiSredstva instalaciju, registar se poklapa (isti test kakav je
+§3n već potvrdio za PSSS PIROT; ARHIBEL je i tada bila proverena kao "0 razilaženja").
+
+**Primećeno i ispravljeno u istoj sesiji**: progres traka u dijalogu je skakala samo na tri fiksne
+vrednosti (15% pre čitanja DBF-a → 60% pre EF-to-EF prenosa → 100% na kraju) i ostajala "zaglavljena"
+kroz ceo trajanje obe faze, bez stvarne povratne informacije koliko je uvoz odmakao — pogotovo
+primetno na firmama sa dosta kartica (istorija po godinama za svako sredstvo).
+
+**Fix (bez menjanja mapiranja/dedup logike, samo dodat progres kanal, isti stil kao postojeći `log`
+callback)**:
+- [`SredstvaDbfMigrator.MigrateAsync`](ERPiMigration/Importers/SredstvaDbfMigrator.cs) sad prima
+  opcioni `Action<int>? onProgress` i javlja grubi 0-100 podprogres posle svakog od 6 koraka
+  (Firma/Dobavljači/Sredstva/Kartice+rekalkulacija/Rashodi/Prijave — usput ispravljena i
+  inkonzistentna numeracija u log porukama, `[n/5]`→`[n/6]`, kozmetički bag bez funkcionalnog
+  uticaja).
+- [`ErpiSredstvaProdukcijaImporter.ImportFromDatabaseAsync`](ERPiMigration/Importers/ErpiSredstvaProdukcijaImporter.cs)
+  isto tako prima opcioni `Action<int>? onProgress`, javlja 0-100 posle svake od 9 EF-to-EF faza
+  (Dobavljači→Partneri/Sredstva/Kartice/Prijave/Rashodi/Komisije/Članovi/Popisi/Popisne stavke).
+- [`SredstvaDosImportWindow`](ERPiApp/Views/Sredstva/Podesavanja/SredstvaDosImportWindow.xaml.cs)
+  dobio `SetProgress(percent, status?)` helper; DBF-čitanje faza skalira svoj podprogres u traku
+  15-60%, EF-to-EF faza u 60-95% (100% je i dalje fiksni završni checkpoint) — traka se sad realno
+  pomera tokom oba koraka umesto da stoji.
+
+`dotnet build ERPi.slnx` čist (0 grešaka/upozorenja) posle izmene. Signatura oba metoda je
+backward-compatible (`onProgress` opcioni parametar, default `null`) — postojeći pozivi bez njega i
+dalje rade nepromenjeno. **Nije commit-ovano.**
 

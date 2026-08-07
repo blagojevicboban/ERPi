@@ -32,12 +32,16 @@ public class SredstvaDbfMigrationResult
 /// i hardkodovane putanje (<c>C:\SREDSTVA\SREDS\KOR28\</c>) su zamenjene parametrom
 /// <paramref name="dbfDir"/>. Za razliku od Zarade (koja ima poseban MESEC.DBF za aktivni
 /// period), Sredstva DBF format nema period-osetljive tabele — sve se čita u jednom prolazu.
+/// <paramref name="onProgress"/> javlja grubu procentualnu poziciju (0-100) posle svakog od 6
+/// koraka (Firma/Dobavljači/Sredstva/Kartice/Rashodi/Prijave) — pozivalac je skalira u svoj
+/// segment progres bara (vidi <see cref="ERPiApp.Views.Sredstva.Podesavanja.SredstvaDosImportWindow"/>).
 /// </summary>
 public static class SredstvaDbfMigrator
 {
-    public static async Task<SredstvaDbfMigrationResult> MigrateAsync(string dbfDir, string sqliteDb, Action<string>? log = null)
+    public static async Task<SredstvaDbfMigrationResult> MigrateAsync(string dbfDir, string sqliteDb, Action<string>? log = null, Action<int>? onProgress = null)
     {
         void Log(string s) => log?.Invoke(s);
+        void Progress(int percent) => onProgress?.Invoke(percent);
 
         var result = new SredstvaDbfMigrationResult();
 
@@ -128,7 +132,8 @@ public static class SredstvaDbfMigrator
 
         db.Firme.Add(firma);
         await db.SaveChangesAsync();
-        Log($"[1/5] Firma kreirana (ID={firma.Id}).");
+        Log($"[1/6] Firma kreirana (ID={firma.Id}).");
+        Progress(10);
 
         // ── 2. DOBAVLJAČI (KONTPLAN.DBF) ──
         var dobavljaciMap = new Dictionary<int, int>(); // konto -> db.Id
@@ -160,7 +165,8 @@ public static class SredstvaDbfMigrator
         {
             Log("[!] Nema KONTPLAN.DBF — Prijave neće imati dobavljača.");
         }
-        Log($"[2/5] Dobavljači uvezeni: {dobavljaciMap.Count}");
+        Log($"[2/6] Dobavljači uvezeni: {dobavljaciMap.Count}");
+        Progress(25);
 
         // ── 3. SREDSTVA (SREDSTVA.DBF) ──
         var sredstvaMap = new Dictionary<int, int>(); // legacySifra -> db.Id
@@ -206,7 +212,8 @@ public static class SredstvaDbfMigrator
                 sredstvaMap[s.LegacySifra] = s.Id;
             result.UvezenoSredstava = batch.Count;
         }
-        Log($"[3/5] Sredstva uvezena: {sredstvaMap.Count}");
+        Log($"[3/6] Sredstva uvezena: {sredstvaMap.Count}");
+        Progress(40);
 
         // ── 4. KARTICE (KARTICA.DBF) ──
         var karticaDbf = RequireDbf("KARTICA.DBF");
@@ -242,7 +249,7 @@ public static class SredstvaDbfMigrator
             db.Kartice.AddRange(karticeBatch);
             await db.SaveChangesAsync();
             result.UvezenoKartica = karticeBatch.Count;
-            Log($"[4/5] Kartice uvezene: {karticeBatch.Count} (preskočeno: {karticeSkip})");
+            Log($"[4/6] Kartice uvezene: {karticeBatch.Count} (preskočeno: {karticeSkip})");
 
             // Dopunjujemo Konto za Sredstvo ako je bilo prazno u SREDSTVA.DBF
             var kontoIzKartica = karticeBatch
@@ -286,6 +293,7 @@ public static class SredstvaDbfMigrator
         {
             Log("[!] Nema KARTICA.DBF — sredstva neće imati istoriju promena.");
         }
+        Progress(70);
 
         // ── 5. RASHODI (RASHOD.DBF) ──
         var rashodDbf = RequireDbf("RASHOD.DBF");
@@ -319,7 +327,7 @@ public static class SredstvaDbfMigrator
             db.Rashodi.AddRange(rashodiBatch);
             await db.SaveChangesAsync();
             result.UvezenoRashoda = rashodiBatch.Count;
-            Log($"[5/5] Rashodi uvezeni: {rashodiBatch.Count} (preskočeno: {rashodiSkip})");
+            Log($"[5/6] Rashodi uvezeni: {rashodiBatch.Count} (preskočeno: {rashodiSkip})");
 
             // Označavamo JeAktivno = false za rashodovana sredstva
             var rashodovanaSredstvaIds = rashodiBatch
@@ -341,6 +349,7 @@ public static class SredstvaDbfMigrator
         {
             Log("[!] Nema RASHOD.DBF.");
         }
+        Progress(85);
 
         // ── 6. PRIJAVE (PRIJAVA.DBF) ──
         var prijavaDbf = RequireDbf("PRIJAVA.DBF");
@@ -395,6 +404,7 @@ public static class SredstvaDbfMigrator
         {
             Log("[!] Nema PRIJAVA.DBF.");
         }
+        Progress(100);
 
         Log("[OK] Kompletna DOS/DBF migracija Sredstava završena.");
         result.Uspesno = true;

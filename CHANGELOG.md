@@ -4,6 +4,55 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.4.0] - 2026-08-07
+
+### 📖 Nalog — pregled proknjiženog naloga
+- Dupli klik na stavku u Kartici konta sad stvarno otvara nalog (do sad je prikazivao samo
+  poruku sa detaljima stavke, iako je tooltip odavno obećavao otvaranje) — dodat i kontekst-meni
+  (desni klik) sa "👁️ Pregledaj nalog" / "✏️ Izmeni / Rasknjiži nalog".
+- Proknjiženi nalozi se sad otvaraju u readonly/pregled režimu (polja i grid zaključani), sa
+  jedinim aktivnim dugmetom "🔓 Rasknjiži i izmeni" (samo administrator, uz potvrdu) — isto
+  ponašanje iz Nalozi liste i iz Kartice konta.
+
+### 🧮 Kompenzacije, Putni nalozi — Nova/Izmeni
+- Kompenzacije konačno imaju editor ("➕ Nova"/"✏️ Izmeni") — dupli klik na kandidata u
+  "Pametnom skeniranju" predpopunjava novu kompenzaciju sa tim partnerom.
+- Putni nalozi konačno imaju editor ("➕ Nova"/"✏️ Izmeni") umesto poruke "biće dostupno u
+  narednom prikazu".
+- Novo: "📤 Izvoz putnih naloga za Zarade" — pravi JSON fajl koji obračun zarada (Isplata
+  naknada) ume da učita, po mesecu/godini; uvozni lanac Finansije→Zarade je sada kompletan.
+
+### 👤 Korisnici i uloge
+- Nov ekran za upravljanje korisnicima i njihovim ulogama (do sad se korisnici nisu mogli
+  administrirati kroz UI, samo kroz prijavu) — dostupan iz nove stavke "👤 Korisnici i uloge" u
+  bočnom meniju.
+
+### 💱 Kursna lista
+- Nov ekran za pregled kursne liste. Usput ispravljen bag: dugme "Kursna lista" u Partnerima je
+  greškom otvaralo prozor za devizno valorizovanje, ne kursnu listu.
+
+### 🧾 Račun-otpremnica — prava PDF štampa, konverzija predračuna, uslužne stavke
+- Dugme "🖨️ PDF" na Računima-otpremnicama sad stvarno generiše i otvara PDF (ranije je samo
+  prikazivalo poruku o uspehu, bez ijednog fajla).
+- Novo dugme "🔄 Pretvori u fakturu" pretvara predračun u pravi račun.
+- Stavke računa-otpremnice sad mogu biti i **usluga** (opis + jedinica mere, bez šifre artikla) —
+  magacin je obavezan samo ako račun ima bar jednu robnu stavku, čisto uslužni računi se
+  knjiže/čuvaju bez magacina.
+
+### 🚀 SEF e-Fakture i PFR fiskalizacija — od mock podataka do pravih poziva
+- "Fakture" ekran (SEF) je do sad radio nad izmišljenim podacima (lažni iznosi, lokalna promena
+  statusa bez ijednog mrežnog poziva) — sad prikazuje prave proknjižene Račune-otpremnice i zove
+  stvarni SEF servis za slanje/status/UBL izvoz.
+- SEF i Fiskalizuj dugmad se sad automatski uključuju/isključuju po tipu partnera (pravno lice
+  s PIB-om → SEF, fizičko lice/bez partnera → fiskalni račun), u skladu sa Zakonom o
+  fiskalizaciji.
+- Nova PFR fiskalizacija računa-otpremnice stavka-po-stavka (ne više jedna zbirna stavka).
+- Nov ekran za preuzimanje ulaznih e-faktura sa SEF-a ("📥" dugme u Fakturama).
+
+### 📊 Analitički drill-down bruto bilansa
+- Novo "🔎" dugme u Bruto bilansu otvara analitički pregled prometa grupisan po partneru (ne
+  samo po kontu), sa poštovanjem već izabranog perioda.
+
 ## [2.3.0] - 2026-08-07
 
 ### 🎨 Zarade modul i sidebar usklađeni sa ERPiZarade

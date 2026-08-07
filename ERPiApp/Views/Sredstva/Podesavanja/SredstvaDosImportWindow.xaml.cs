@@ -185,7 +185,7 @@ public partial class SredstvaDosImportWindow : Window
 
         BtnStartImport.IsEnabled = false;
         TxtLog.Text = "";
-        PbProgress.Value = 0;
+        SetProgress(0, "Pokrećem uvoz...");
         AppendLog($"Pokrećem DOS uvoz iz: {izabranaFirma.FolderPath}");
 
         var tempDb = Path.Combine(Path.GetTempPath(), $"erpi_sredstva_dos_{Guid.NewGuid():N}.db");
@@ -204,9 +204,11 @@ public partial class SredstvaDosImportWindow : Window
                 AppendLog("[OK] Postojeći podaci obrisani iz baze.");
             }
 
-            PbProgress.Value = 15;
-            TxtStatus.Text = "Čitanje DOS/DBF fajlova...";
-            var migracija = await SredstvaDbfMigrator.MigrateAsync(izabranaFirma.FolderPath, tempDb, AppendLog);
+            SetProgress(15, "Čitanje DOS/DBF fajlova...");
+            // Faza 1 (čitanje DBF-a) zauzima 15-60% traku; migrator javlja svoj 0-100 podprogres
+            // posle svakog od 6 koraka (Firma/Dobavljači/Sredstva/Kartice/Rashodi/Prijave).
+            var migracija = await SredstvaDbfMigrator.MigrateAsync(izabranaFirma.FolderPath, tempDb, AppendLog,
+                onProgress: p => SetProgress(15 + p * 45 / 100, "Čitanje DOS/DBF fajlova..."));
 
             if (!migracija.Uspesno)
             {
@@ -215,8 +217,7 @@ public partial class SredstvaDosImportWindow : Window
                 return;
             }
 
-            PbProgress.Value = 60;
-            TxtStatus.Text = "Prenos u ERPi bazu...";
+            SetProgress(60, "Prenos u ERPi bazu...");
             AppendLog("Prosleđujem privremenu bazu u uvoz prema ERPi...");
 
             var options = new DbContextOptionsBuilder<SredstvaDbContext>()
@@ -225,15 +226,16 @@ public partial class SredstvaDosImportWindow : Window
 
             using var srcDb = new SredstvaDbContext(options);
             var importer = new ErpiSredstvaProdukcijaImporter(destDb);
-            var res = await importer.ImportFromDatabaseAsync(srcDb);
+            // Faza 2 (EF-to-EF prenos) zauzima 60-95% traku; importer javlja svoj 0-100 podprogres
+            // posle svake od 9 faza (Dobavljači/Sredstva/Kartice/Prijave/Rashodi/Komisije/Članovi/Popisi/Stavke).
+            var res = await importer.ImportFromDatabaseAsync(srcDb,
+                onProgress: p => SetProgress(60 + p * 35 / 100, "Prenos u ERPi bazu..."));
 
-            PbProgress.Value = 100;
+            SetProgress(100, "Uvoz završen");
 
             if (res.Uspesno)
             {
                 AppendLog("[OK] DOS uvoz uspešan.");
-                TxtStatus.Text = "Uvoz završen";
-                TxtPercentage.Text = "100%";
 
                 if (uNovuFirmu && novaFirmaDbPath != null)
                 {
@@ -293,5 +295,17 @@ public partial class SredstvaDosImportWindow : Window
     {
         TxtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
         TxtLog.ScrollToEnd();
+    }
+
+    /// <summary>Ažurira progres traku/procenat/status tekst odjednom — pozivano i sa fiksnim
+    /// checkpoint-ima (0/15/60/100) i sa granularnim onProgress callback-ovima iz
+    /// <see cref="SredstvaDbfMigrator"/>/<see cref="ErpiSredstvaProdukcijaImporter"/> tokom uvoza,
+    /// da traka realno prati napredak umesto da satima stoji na istoj vrednosti.</summary>
+    private void SetProgress(int percent, string? status = null)
+    {
+        percent = Math.Clamp(percent, 0, 100);
+        PbProgress.Value = percent;
+        TxtPercentage.Text = $"{percent}%";
+        if (status != null) TxtStatus.Text = status;
     }
 }

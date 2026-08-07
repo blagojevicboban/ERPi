@@ -39,6 +39,10 @@ public class SredstvaImportResult
 /// <see cref="ErpiFinansijeImporter"/>); izvorni zaseban <c>Dobavljac</c> model postaje
 /// <see cref="Partner"/> (JeDobavljac = true), pošto ERPi namerno nije preneo Dobavljac kao
 /// zaseban entitet (§3h u PLAN_NASTAVKA.md).
+/// <para/>
+/// <c>onProgress</c> parametar <see cref="ImportFromDatabaseAsync"/>-a javlja grubu procentualnu
+/// poziciju (0-100) posle svake od 9 faza (Dobavljači→Partneri/Sredstva/Kartice/Prijave/Rashodi/
+/// Komisije/Članovi/Popisi/Popisne stavke) — isti obrazac kao <see cref="SredstvaDbfMigrator"/>.
 /// </summary>
 public class ErpiSredstvaProdukcijaImporter
 {
@@ -49,9 +53,10 @@ public class ErpiSredstvaProdukcijaImporter
         _destDb = destDb;
     }
 
-    public async Task<SredstvaImportResult> ImportFromDatabaseAsync(SredstvaDbContext srcDb)
+    public async Task<SredstvaImportResult> ImportFromDatabaseAsync(SredstvaDbContext srcDb, Action<int>? onProgress = null)
     {
         var result = new SredstvaImportResult();
+        void Progress(int percent) => onProgress?.Invoke(percent);
 
         try
         {
@@ -114,6 +119,7 @@ public class ErpiSredstvaProdukcijaImporter
                 result.UvezenoPartneraDobavljaca++;
             }
             await _destDb.SaveChangesAsync();
+            Progress(11);
 
             var partnerIdBySrcDobavljacId = srcDobavljaci.ToDictionary(
                 sd => sd.Id,
@@ -187,6 +193,7 @@ public class ErpiSredstvaProdukcijaImporter
                 existingSredstvaByInvBroj[invBroj] = ns.Id;
                 result.UvezenoSredstava++;
             }
+            Progress(22);
 
             // 3. Kartice (dedup po SredstvoId(dest) + RedBroj — RedBroj je sekvencijalan po sredstvu)
             var srcKartice = await srcDb.Kartice.AsNoTracking().ToListAsync();
@@ -225,6 +232,7 @@ public class ErpiSredstvaProdukcijaImporter
                 result.UvezenoKartica++;
             }
             await _destDb.SaveChangesAsync();
+            Progress(44);
 
             // 4. Prijave (dedup po BrojNaloga + RedBroj)
             var srcPrijave = await srcDb.Prijave.AsNoTracking().ToListAsync();
@@ -275,6 +283,7 @@ public class ErpiSredstvaProdukcijaImporter
                 result.UvezenoPrijava++;
             }
             await _destDb.SaveChangesAsync();
+            Progress(55);
 
             // 5. Rashodi (dedup po BrojNaloga + RedBroj — nema string reference, prost port)
             var srcRashodi = await srcDb.Rashodi.AsNoTracking().ToListAsync();
@@ -327,6 +336,7 @@ public class ErpiSredstvaProdukcijaImporter
                 foreach (var s in zaUpdateAktivno) s.JeAktivno = false;
                 await _destDb.SaveChangesAsync();
             }
+            Progress(66);
 
             // 6. Komisije (dedup po Naziv + DatumKreiranja)
             var srcKomisije = await srcDb.Komisije.AsNoTracking().ToListAsync();
@@ -358,6 +368,7 @@ public class ErpiSredstvaProdukcijaImporter
                 existingKomisijeKeys.Add(kljuc);
                 result.UvezenoKomisija++;
             }
+            Progress(77);
 
             // 7. Članovi komisije (dedup po KomisijaId(dest) + ImePrezime + Uloga)
             var srcClanovi = await srcDb.ClanoviKomisije.AsNoTracking().ToListAsync();
@@ -383,6 +394,7 @@ public class ErpiSredstvaProdukcijaImporter
                 result.UvezenoClanovaKomisije++;
             }
             await _destDb.SaveChangesAsync();
+            Progress(88);
 
             // 8. Popisi (dedup po Godina + KomisijaId(dest) + DatumPopisa)
             var srcPopisi = await srcDb.Popisi.AsNoTracking().ToListAsync();
@@ -447,6 +459,7 @@ public class ErpiSredstvaProdukcijaImporter
                 result.UvezenoPopisnihStavki++;
             }
             await _destDb.SaveChangesAsync();
+            Progress(100);
 
             result.Uspesno = true;
         }
