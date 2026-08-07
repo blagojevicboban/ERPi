@@ -10,7 +10,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="SidebarColumn" Width="240"/>
+            <ColumnDefinition x:Name="SidebarColumn" Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -134,12 +134,12 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <RadioButton x:Name="TabModulFinansije" Grid.Column="0" Content="📊 Finansije" IsChecked="True"
-                                 Style="{StaticResource NavButtonStyle}" Click="TabModulFinansije_Click" ToolTip="Glavna knjiga, magacin, SEF"/>
-                    <RadioButton x:Name="TabModulZarade" Grid.Column="1" Content="👥 Zarade"
-                                 Style="{StaticResource NavButtonStyle}" Click="TabModulZarade_Click" ToolTip="Obračun zarada, ugovori, PPP-PD"/>
-                    <RadioButton x:Name="TabModulSredstva" Grid.Column="2" Content="🏛️ Sredstva"
-                                 Style="{StaticResource NavButtonStyle}" Click="TabModulSredstva_Click" ToolTip="Osnovna sredstva"/>
+                    <RadioButton x:Name="TabModulFinansije" Grid.Column="0" Content="📊" FontSize="16" IsChecked="True"
+                                 Style="{StaticResource ModulTabButtonStyle}" Click="TabModulFinansije_Click" ToolTip="Finansije — Glavna knjiga, magacin, SEF"/>
+                    <RadioButton x:Name="TabModulZarade" Grid.Column="1" Content="👥" FontSize="16"
+                                 Style="{StaticResource ModulTabZaradeStyle}" Click="TabModulZarade_Click" ToolTip="Zarade — Obračun zarada, ugovori, PPP-PD"/>
+                    <RadioButton x:Name="TabModulSredstva" Grid.Column="2" Content="🏛️" FontSize="16"
+                                 Style="{StaticResource ModulTabSredstvaStyle}" Click="TabModulSredstva_Click" ToolTip="Sredstva — Osnovna sredstva"/>
                 </Grid>
 
                 <!-- Korisnik + Odjava -->
@@ -160,7 +160,8 @@
                 </Border>
 
                 <TextBlock DockPanel.Dock="Bottom" x:Name="VersionText" Text="v2.0.0-alpha  •  2026"
-                           FontSize="11" Foreground="#38BDF8" TextAlignment="Center" Margin="0,0,0,12"/>
+                           FontSize="11" Foreground="#38BDF8" TextAlignment="Center" Margin="0,0,0,12"
+                           Cursor="Hand" ToolTip="Prikaži changelog" MouseLeftButtonUp="VersionText_MouseLeftButtonUp"/>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid>
@@ -308,7 +309,10 @@
                            FontSize="12" Foreground="#92400E" TextWrapping="Wrap"/>
             </Border>
 
-            <Frame x:Name="MainContentHost" Grid.Row="2" Margin="24" NavigationUIVisibility="Hidden"/>
+            <!-- Bez Margin — svaka strana (Views/**) nosi svoju ivičnu marginu, isto kao u sva tri
+                 samostalna app-a (ERPiFinansije/ERPiSredstva/ERPiZarade MainFrame nema Margin).
+                 Dupli razmak (ovde + margina stranice) pravio je uočljivo veće ivice nego u ERPiZarade. -->
+            <Frame x:Name="MainContentHost" Grid.Row="2" NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
 </Window>

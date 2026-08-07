@@ -5,6 +5,72 @@
          samostalnom ERPiZarade. Boje se oslanjaju na deljene BorderBrush/TextSecondaryBrush
          resurse već definisane globalno u App.xaml, isti obrazac kao SredstvaStyles.xaml. -->
 
+    <!-- ── Boje za Zarade modul (1:1 iz ERPiZaradeApp/Resources/Styles.xaml) ───────── -->
+    <Color x:Key="ZaradePrimaryColor">#2D1B42</Color>
+    <Color x:Key="ZaradePrimaryLightColor">#43305F</Color>
+    <SolidColorBrush x:Key="ZaradePrimaryBrush" Color="{StaticResource ZaradePrimaryColor}"/>
+    <SolidColorBrush x:Key="ZaradePrimaryLightBrush" Color="{StaticResource ZaradePrimaryLightColor}"/>
+
+    <!-- ── Zarade dugmad — isti x:Key kao globalni PrimaryButton/SecondaryButton u App.xaml,
+         ali sa ljubičastom paletom ERPiZarade; ova strana (merge-ovana po stranici) ih preklapa
+         za sve Views/Zarade ekrane, isti obrazac kao SredstvaStyles.xaml. -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource ZaradePrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource ZaradePrimaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource ZaradePrimaryLightBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}"
+                            BorderBrush="{StaticResource ZaradePrimaryLightBrush}" BorderThickness="1.5">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#EEF2FF"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ── DataGrid ───────────────────────────────────────────────── -->
     <Style TargetType="DataGrid">
         <Setter Property="Background" Value="White"/>

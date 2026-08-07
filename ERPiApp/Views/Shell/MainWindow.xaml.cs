@@ -17,11 +17,23 @@ public partial class MainWindow : Window
 {
     private readonly ErpiDbContext _db;
 
+    // Pamti poslednju kliknutu stavku menija po modulu, da se pri povratku na modul
+    // ne otvara uvek Radna tabla nego se nastavlja tamo gde je korisnik bio.
+    private RadioButton? _lastFinansijeBtn;
+    private RadioButton? _lastZaradeBtn;
+    private RadioButton? _lastSredstvaBtn;
+
     public MainWindow(ErpiDbContext db)
     {
         InitializeComponent();
         _db = db;
         ErpiDbContext.EnsureDbSchemaUpdated(_db);
+
+        // Hvata (bubble-uje) klik svake stavke menija unutar modula da bi zapamtili poslednju
+        // aktivnu stavku — ne diramo pojedinačne NavXxx_Click handlere.
+        PnlNavFinansije.AddHandler(RadioButton.ClickEvent, new RoutedEventHandler((s, e) => _lastFinansijeBtn = e.OriginalSource as RadioButton));
+        PnlNavZarade.AddHandler(RadioButton.ClickEvent, new RoutedEventHandler((s, e) => _lastZaradeBtn = e.OriginalSource as RadioButton));
+        PnlNavSredstva.AddHandler(RadioButton.ClickEvent, new RoutedEventHandler((s, e) => _lastSredstvaBtn = e.OriginalSource as RadioButton));
 
         WindowState = AppConfig.StartMaximized ? WindowState.Maximized : WindowState.Normal;
 
@@ -110,15 +122,17 @@ public partial class MainWindow : Window
             PnlFirmaDetails.Visibility = Visibility.Collapsed;
             PnlModulSwitcher.Visibility = Visibility.Collapsed;
             SetNavHeadersVisibility(Visibility.Collapsed);
+            SetNavButtonsCollapsed(true);
         }
         else
         {
-            SidebarColumn.Width = new GridLength(240);
+            SidebarColumn.Width = new GridLength(220);
             TxtBrandTitle.Visibility = Visibility.Visible;
             TxtBrandSubtitle.Visibility = Visibility.Visible;
             PnlFirmaDetails.Visibility = Visibility.Visible;
             PnlModulSwitcher.Visibility = Visibility.Visible;
             SetNavHeadersVisibility(Visibility.Visible);
+            SetNavButtonsCollapsed(false);
         }
     }
 
@@ -133,6 +147,40 @@ public partial class MainWindow : Window
             {
                 if (child is TextBlock or Separator)
                     child.Visibility = vidljivost;
+            }
+        }
+    }
+
+    /// <summary>Kad se bočni meni sklopi na uzanu traku (64px), stavke menija (npr. "📊 Radna tabla") bi se
+    /// inače sekle na pola — umesto toga ostavljamo samo vodeću ikonicu, centriranu, a puni naziv seli u
+    /// ToolTip. Original tekst se čuva u <see cref="RadioButton.Tag"/> (neiskorišćen za ništa drugo na ovim
+    /// dugmadima) i vraća pri ponovnom širenju menija.</summary>
+    private void SetNavButtonsCollapsed(bool sklopljeno)
+    {
+        foreach (var panel in new[] { PnlNavFinansije, PnlNavZarade, PnlNavSredstva })
+        {
+            foreach (var dugme in panel.Children.OfType<RadioButton>())
+            {
+                if (sklopljeno)
+                {
+                    if (dugme.Content is string tekst)
+                    {
+                        dugme.Tag = tekst;
+                        var razmak = tekst.IndexOf(' ');
+                        dugme.Content = razmak > 0 ? tekst[..razmak] : tekst;
+                        dugme.ToolTip ??= tekst;
+                    }
+                    dugme.HorizontalContentAlignment = HorizontalAlignment.Center;
+                }
+                else
+                {
+                    if (dugme.Tag is string puniTekst)
+                    {
+                        dugme.Content = puniTekst;
+                        dugme.Tag = null;
+                    }
+                    dugme.HorizontalContentAlignment = HorizontalAlignment.Left;
+                }
             }
         }
     }
@@ -291,6 +339,9 @@ public partial class MainWindow : Window
 
     private void BtnOdjava_Click(object sender, RoutedEventArgs e) => PromeniFirmu();
 
+    private void VersionText_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
+        new ERPiApp.Views.Pomoc.ChangelogWindow { Owner = this }.ShowDialog();
+
     private void PromeniFirmu()
     {
         AppSession.Ocisti();
@@ -306,8 +357,7 @@ public partial class MainWindow : Window
         PnlNavZarade.Visibility = Visibility.Collapsed;
         PnlNavSredstva.Visibility = Visibility.Collapsed;
         PostaviBojuSidebara((Color)FindResource("SidebarStartColor"), (Color)FindResource("SidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8)));
-        TxtHeaderTitle.Text = "📊 Radna tabla";
-        MainContentHost.Content = new DashboardView(_db);
+        AktiviirajPoslednjuStavku(_lastFinansijeBtn, BtnDashboard);
     }
 
     private void TabModulZarade_Click(object sender, RoutedEventArgs e)
@@ -316,8 +366,7 @@ public partial class MainWindow : Window
         PnlNavZarade.Visibility = Visibility.Visible;
         PnlNavSredstva.Visibility = Visibility.Collapsed;
         PostaviBojuSidebara((Color)FindResource("ZaradeSidebarStartColor"), (Color)FindResource("ZaradeSidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x90, 0xCA, 0xF9)));
-        TxtHeaderTitle.Text = "📊 Radna tabla";
-        MainContentHost.Content = new ERPiApp.Views.Zarade.Dashboard.DashboardPage();
+        AktiviirajPoslednjuStavku(_lastZaradeBtn, BtnZaradeDashboard);
     }
 
     private void TabModulSredstva_Click(object sender, RoutedEventArgs e)
@@ -326,8 +375,19 @@ public partial class MainWindow : Window
         PnlNavZarade.Visibility = Visibility.Collapsed;
         PnlNavSredstva.Visibility = Visibility.Visible;
         PostaviBojuSidebara((Color)FindResource("SredstvaSidebarStartColor"), (Color)FindResource("SredstvaSidebarEndColor"), new SolidColorBrush(Color.FromRgb(0x95, 0xD5, 0xB2)));
-        TxtHeaderTitle.Text = "📊 Radna tabla";
-        MainContentHost.Content = new ERPiApp.Views.Sredstva.Dashboard.SredstvaDashboardPage(_db);
+        AktiviirajPoslednjuStavku(_lastSredstvaBtn, BtnSredstvaDashboard);
+    }
+
+    /// <summary>
+    /// Otvara stavku menija na kojoj je korisnik bio poslednji put u ovom modulu (ako postoji),
+    /// umesto da uvek vraća na Radnu tablu. Prvi put kad se modul otvori (nema zapamćene stavke)
+    /// koristi se podrazumevana Radna tabla dugmeta datog modula.
+    /// </summary>
+    private void AktiviirajPoslednjuStavku(RadioButton? poslednja, RadioButton podrazumevana)
+    {
+        var cilj = poslednja ?? podrazumevana;
+        cilj.IsChecked = true;
+        cilj.RaiseEvent(new RoutedEventArgs(RadioButton.ClickEvent));
     }
 
     /// <summary>
@@ -448,7 +508,7 @@ public partial class MainWindow : Window
     private void NavZaradeIsplateNaknada_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "💸 Isplate naknada van radnog odnosa";
-        MainContentHost.Content = new ERPiApp.Views.Zarade.Isplate.IsplatePage();
+        MainContentHost.Content = new ERPiApp.Views.Zarade.Isplate.IsplatePage(ERPiData.Models.Zarade.RodIsplate.VanRadnogOdnosa);
     }
 
     private void NavZaradeUgovori_Click(object sender, RoutedEventArgs e)

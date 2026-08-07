@@ -22,6 +22,7 @@ public partial class PodesavanjaZaradeView : UserControl
 {
     private readonly ErpiDbContext _db;
     private readonly StringBuilder _log = new();
+    private ZaradeUvozProgressWindow? _progressWin;
 
     public PodesavanjaZaradeView(ErpiDbContext db)
     {
@@ -45,6 +46,7 @@ public partial class PodesavanjaZaradeView : UserControl
         _log.AppendLine(poruka);
         TxtLog.Text = _log.ToString();
         LogScroll.ScrollToEnd();
+        _progressWin?.AppendLog(poruka);
     }
 
     private void BtnIzaberiZaradeBazu_Click(object sender, RoutedEventArgs e)
@@ -88,6 +90,11 @@ public partial class PodesavanjaZaradeView : UserControl
         BtnPokreniUvozZarade.IsEnabled = false;
         BtnPokreniDosUvoz.IsEnabled = false;
 
+        var ownerWindow = Window.GetWindow(this);
+        _progressWin = new ZaradeUvozProgressWindow("Uvoz iz ERPiZarade") { Owner = ownerWindow };
+        if (ownerWindow != null) ownerWindow.IsEnabled = false;
+        _progressWin.Show();
+
         try
         {
             Log($"Otvaram ERPiZarade bazu: {path}");
@@ -98,6 +105,7 @@ public partial class PodesavanjaZaradeView : UserControl
             using var srcDb = new PlataDbContext(options);
 
             var importer = new ErpiZaradeProdukcijaImporter(_db);
+            Log("Uvoz podataka u toku...");
             var res = await importer.ImportFromDatabaseAsync(srcDb);
 
             if (res.Uspesno)
@@ -127,6 +135,9 @@ public partial class PodesavanjaZaradeView : UserControl
         }
         finally
         {
+            _progressWin?.Close();
+            _progressWin = null;
+            if (ownerWindow != null) ownerWindow.IsEnabled = true;
             BtnPokreniUvozZarade.IsEnabled = true;
             BtnPokreniDosUvoz.IsEnabled = true;
         }
@@ -143,6 +154,11 @@ public partial class PodesavanjaZaradeView : UserControl
 
         BtnPokreniUvozZarade.IsEnabled = false;
         BtnPokreniDosUvoz.IsEnabled = false;
+
+        var ownerWindow = Window.GetWindow(this);
+        _progressWin = new ZaradeUvozProgressWindow("DOS uvoz") { Owner = ownerWindow };
+        if (ownerWindow != null) ownerWindow.IsEnabled = false;
+        _progressWin.Show();
 
         var tempDb = Path.Combine(Path.GetTempPath(), $"erpi_zarade_dos_{Guid.NewGuid():N}.db");
         try
@@ -189,6 +205,9 @@ public partial class PodesavanjaZaradeView : UserControl
         finally
         {
             try { if (File.Exists(tempDb)) File.Delete(tempDb); } catch { /* ignoriši - privremeni fajl */ }
+            _progressWin?.Close();
+            _progressWin = null;
+            if (ownerWindow != null) ownerWindow.IsEnabled = true;
             BtnPokreniUvozZarade.IsEnabled = true;
             BtnPokreniDosUvoz.IsEnabled = true;
         }

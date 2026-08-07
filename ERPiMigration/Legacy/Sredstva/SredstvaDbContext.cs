@@ -56,7 +56,16 @@ public class SredstvaDbContext : DbContext
             OznaciSveMigracijeKaoPrimenjene(ctx);
         }
 
-        ctx.Database.Migrate();
+        // Ova (Legacy/Sredstva) kopija SredstvaDbContext-a živi u ERPiMigration projektu, koji
+        // NEMA svoj Migrations folder (za razliku od prave ERPiSredstvaData biblioteke u
+        // samostalnom ERPiSredstva repou) — ctx.Database.GetMigrations() je ovde uvek prazna
+        // kolekcija, pa je Migrate() no-op i ne kreira nijednu tabelu ("no such table: Firme"
+        // pri prvom SaveChangesAsync). Jedini pozivalac (SredstvaDbfMigrator) ovaj kontekst
+        // uvek otvara nad novim, privremenim fajlom (GUID ime u temp direktorijumu) koji se
+        // briše posle uvoza, pa nema potrebe za istorijom migracija — EnsureCreated() kreira
+        // šemu direktno iz trenutnog modela. Isti fix je ranije primenjen na AccountingDbContext
+        // (Legacy/Finansije) iz istog razloga.
+        ctx.Database.EnsureCreated();
 
         return ctx;
     }

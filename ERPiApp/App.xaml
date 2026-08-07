@@ -20,6 +20,8 @@
         <Color x:Key="ZaradeSidebarEndColor">#43305F</Color>
         <Color x:Key="SredstvaSidebarStartColor">#1B4332</Color>
         <Color x:Key="SredstvaSidebarEndColor">#2D6A4F</Color>
+        <SolidColorBrush x:Key="ZaradeSidebarEndBrush" Color="{StaticResource ZaradeSidebarEndColor}"/>
+        <SolidColorBrush x:Key="SredstvaSidebarEndBrush" Color="{StaticResource SredstvaSidebarEndColor}"/>
         <Color x:Key="BackgroundColor">#F8FAFC</Color>
         <Color x:Key="SurfaceColor">#FFFFFF</Color>
         <Color x:Key="TextColor">#0F172A</Color>
@@ -120,13 +122,14 @@
         </Style>
 
         <Style x:Key="NavButtonStyle" TargetType="RadioButton">
-            <Setter Property="Height" Value="42"/>
+            <!-- Font i visina stavke preuzeti 1:1 iz ERPiZarade NavButton stila (Resources/Styles.xaml) —
+                 auto-visina preko Padding umesto fiksnog Height, bez FontWeight po podrazumevanom stanju.
+                 Boje (Foreground/Background/hover/checked) su namerno netaknute, ostaju po meniju kako jesu. -->
             <Setter Property="Margin" Value="10,2"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#94A3B8"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Padding" Value="16,7"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
@@ -192,6 +195,64 @@
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#22FFFFFF"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modul switcher (PnlModulSwitcher, 3 dugmeta na vrhu sidebara) — svaka od tri kartice
+             dobija svoju boju kad je aktivna (umesto zajedničke plave iz NavButtonStyle), i tanju
+             marginu/padding nego regularne nav stavke jer su zbijene jedna do druge u koloni od 220px. -->
+        <Style x:Key="ModulTabButtonStyle" TargetType="RadioButton" BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Margin" Value="3,2"/>
+            <Setter Property="Padding" Value="6,7"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#38BDF8"/>
+        </Style>
+
+        <Style x:Key="ModulTabZaradeStyle" TargetType="RadioButton" BasedOn="{StaticResource ModulTabButtonStyle}">
+            <Setter Property="Foreground" Value="#B8AFD9"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#18FFFFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource ZaradeSidebarEndBrush}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModulTabSredstvaStyle" TargetType="RadioButton" BasedOn="{StaticResource ModulTabButtonStyle}">
+            <Setter Property="Foreground" Value="#A8D5C2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#18FFFFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SredstvaSidebarEndBrush}"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>

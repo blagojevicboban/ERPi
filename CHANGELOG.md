@@ -4,6 +4,43 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.3.0] - 2026-08-07
+
+### 🎨 Zarade modul i sidebar usklađeni sa ERPiZarade
+- Dugmad u celom Zarade modulu (PrimaryButton/SecondaryButton) sad nose ljubičastu paletu
+  samostalnog ERPiZarade (#2D1B42/#43305F) umesto opšte plave — isti obrazac po kom je ranije
+  urađen SredstvaStyles.xaml, preko jedne merge-ovane ZaradeStyles.xaml pa nije trebalo dirati
+  pojedinačne strane.
+- Uklonjena duplirana ivična margina — `MainContentHost` (Frame) više ne nosi sopstveni
+  `Margin="24"` pored margine svake strane, isto kao u sva tri samostalna app-a; ranije se
+  zbrajalo (do 48px) i pravilo primetno veće ivice nego u ERPiZarade.
+- Širina bočnog menija 240→220px (usklađeno sa ERPiZarade/ERPiSredstva).
+- Preklopnik modula (Finansije/Zarade/Sredstva dugmad na vrhu menija) sad ima manju unutrašnju
+  marginu (rešen problem sečenja teksta u uskoj koloni) i svaki modul svoju boju kad je aktivan
+  — plava/ljubičasta/zelena — umesto zajedničke plave za sva tri; boje neaktivnog stanja takođe
+  prate paletu svog modula (ista ljubičasta/zelena nijansa kao u listi stavki menija ispod).
+- Broj verzije u dnu menija je sad klikabilan — otvara dijalog "Istorija izmena" (isti prozor
+  dostupan i iz Pomoći).
+
+### 🐛 Ispravke
+- "Isplate naknada van radnog odnosa" je otvarala isti tok kao "Isplate zarada" (nedostajao
+  parametar roda isplate) — prikazivala vrste isplate koje postoje samo kod zarade (akontacija,
+  13. plata...) umesto ekrana sa samo datumom, kakav naknade zahtevaju.
+- Uvoz Osnovnih sredstava iz DOS/DBF baze (Legacy `SredstvaDbContext`) pravio praznu bazu bez
+  ijedne tabele ("no such table: Firme") jer taj kontekst nema svoj Migrations folder pa je
+  `Migrate()` bio no-op; zamenjeno sa `EnsureCreated()` (isti fix kao ranije za Finansije).
+
+### 🧭 Navigacija
+- Povratak na modul (klik na Finansije/Zarade/Sredstva tab) sad otvara stavku menija na kojoj je
+  korisnik poslednji put bio u tom modulu, ne uvek Radnu tablu.
+- Kad se bočni meni sklopi na uzanu traku, stavke menija ostaju samo sa vodećom ikonicom
+  (umesto da im se tekst seče na pola) — pun naziv se seli u ToolTip.
+
+### 📥 Uvoz Zarada — vizuelna povratna informacija
+- Uvoz iz ERPiZarade i DOS/DBF uvoz Zarada sad prikazuju mali dijalog sa indikatorom napretka i
+  uživo logom dok traje (operacija zna da potraje po nekoliko minuta bez ijedne druge povratne
+  informacije) — isti obrazac kao progres dijalozi u Finansijama/Sredstvima.
+
 ## [2.2.0] - 2026-08-06
 
 ### 📊 Radna tabla za Zarade modul + redizajn tabela
