@@ -67,5 +67,16 @@ public partial class ZakljucniListView : UserControl
     }
 
     private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
-        => ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(DgZakljucniList, "Zaključni list", "Zakljucni_List");
+        => ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(
+            DgZakljucniList,
+            "Zaključni list",
+            "Zakljucni_List",
+            jeStavkaZaZbir: item => item is ZakljucniListRed red && red.Tip == BrutoBilansRedTip.Detalj,
+            rowStyler: item => item is ZakljucniListRed red
+                ? red.Tip switch
+                {
+                    BrutoBilansRedTip.KlasaTotal => ("#E2E8F0", true),
+                    _ => (null, false)
+                }
+                : (null, false));
 }

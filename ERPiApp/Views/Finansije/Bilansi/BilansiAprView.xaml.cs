@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -49,8 +50,46 @@ public partial class BilansiAprView : UserControl
     {
         try
         {
-            DgBilansStanja.ItemsSource = await _bilansService.GetBilansStanjaAsync(DpDatumStanja.SelectedDate);
-            DgBilansUspeha.ItemsSource = await _bilansService.GetBilansUspehaAsync(DpOdDatuma.SelectedDate, DpDoDatuma.SelectedDate);
+            var bilansStanjaPozicije = await _bilansService.GetBilansStanjaAsync(DpDatumStanja.SelectedDate);
+            DgBilansStanja.ItemsSource = bilansStanjaPozicije;
+
+            var ukAktiva = bilansStanjaPozicije.FirstOrDefault(p => p.AopCode == "0010")?.IznosTekucaGodina ?? 0m;
+            var ukPasiva = bilansStanjaPozicije.FirstOrDefault(p => p.AopCode == "0410")?.IznosTekucaGodina ?? 0m;
+
+            if (ukAktiva == ukPasiva)
+            {
+                TxtStatusRavnoteze.Text = $"✅ Bilans Stanja je U RAVNOTEŽI! (Aktiva = Pasiva = {ukAktiva:N2} RSD)";
+                TxtStatusRavnoteze.Foreground = System.Windows.Media.Brushes.DarkGreen;
+            }
+            else
+            {
+                decimal razlika = ukAktiva - ukPasiva;
+                TxtStatusRavnoteze.Text = $"⚠️ Postoji razlika u Bilansu Stanja: Aktiva ({ukAktiva:N2}) - Pasiva ({ukPasiva:N2}) = Razlika {razlika:N2} RSD";
+                TxtStatusRavnoteze.Foreground = System.Windows.Media.Brushes.Red;
+            }
+
+            var bilansUspehaPozicije = await _bilansService.GetBilansUspehaAsync(DpOdDatuma.SelectedDate, DpDoDatuma.SelectedDate);
+            DgBilansUspeha.ItemsSource = bilansUspehaPozicije;
+
+            var netoDobitak = bilansUspehaPozicije.FirstOrDefault(p => p.AopCode == "1030")?.IznosTekucaGodina ?? 0m;
+            var netoGubitak = bilansUspehaPozicije.FirstOrDefault(p => p.AopCode == "1031")?.IznosTekucaGodina ?? 0m;
+
+            if (netoDobitak > 0)
+            {
+                TxtNetoRezultat.Text = $"🎉 OSTVAREN JE NETO DOBITAK PERIODA: {netoDobitak:N2} RSD";
+                TxtNetoRezultat.Foreground = System.Windows.Media.Brushes.DarkGreen;
+            }
+            else if (netoGubitak > 0)
+            {
+                TxtNetoRezultat.Text = $"🔻 OSTVAREN JE NETO GUBITAK PERIODA: {netoGubitak:N2} RSD";
+                TxtNetoRezultat.Foreground = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                TxtNetoRezultat.Text = "⚖️ Rezultat poslovanja je 0.00 RSD";
+                TxtNetoRezultat.Foreground = System.Windows.Media.Brushes.Blue;
+            }
+
             DgStatistickiIzvestaj.ItemsSource = await _aprService.GenerisiStatistickiIzvestajAsync(Godina);
             DgCashFlow.ItemsSource = await _aprService.GenerisiCashFlowAsync(Godina);
             DgPromeneNaKapitalu.ItemsSource = await _aprService.GenerisiPromeneNaKapitaluAsync(Godina);

@@ -327,6 +327,66 @@ public class BrutoBilansService
 
         if (tekucaKlasa != null) ZatvoriKlasu(tekucaKlasa);
 
+        // Rekapitulacija po klasama na dnu (K L A S A : 0..7 i K L A S A : U)
+        rezultat.Add(new ZakljucniListRed
+        {
+            BrojKonta = "",
+            NazivKonta = "R E K A P I T U L A C I J A",
+            Tip = BrutoBilansRedTip.SintetikaTotal
+        });
+
+        var klaseTotali = rezultat
+            .Where(r => r.Tip == BrutoBilansRedTip.KlasaTotal)
+            .ToList();
+
+        decimal rekapUkPocDug = 0, rekapUkPocPot = 0;
+        decimal rekapUkPromDug = 0, rekapUkPromPot = 0;
+        decimal rekapUkUkDug = 0, rekapUkUkPot = 0;
+        decimal rekapUkSalDug = 0, rekapUkSalPot = 0;
+
+        foreach (var kt in klaseTotali)
+        {
+            var rKlasa = new ZakljucniListRed
+            {
+                BrojKonta = "",
+                NazivKonta = kt.NazivKonta.Replace("KLASA :", "K L A S A : "),
+                PocetnoDuguje = kt.PocetnoDuguje,
+                PocetnoPotrazuje = kt.PocetnoPotrazuje,
+                PrometDuguje = kt.PrometDuguje,
+                PrometPotrazuje = kt.PrometPotrazuje,
+                UkupnoDuguje = kt.UkupnoDuguje,
+                UkupnoPotrazuje = kt.UkupnoPotrazuje,
+                SaldoDuguje = kt.SaldoDuguje,
+                SaldoPotrazuje = kt.SaldoPotrazuje,
+                Tip = BrutoBilansRedTip.KlasaTotal
+            };
+            rezultat.Add(rKlasa);
+
+            rekapUkPocDug += kt.PocetnoDuguje;
+            rekapUkPocPot += kt.PocetnoPotrazuje;
+            rekapUkPromDug += kt.PrometDuguje;
+            rekapUkPromPot += kt.PrometPotrazuje;
+            rekapUkUkDug += kt.UkupnoDuguje;
+            rekapUkUkPot += kt.UkupnoPotrazuje;
+            rekapUkSalDug += kt.SaldoDuguje;
+            rekapUkSalPot += kt.SaldoPotrazuje;
+        }
+
+        rezultat.Add(new ZakljucniListRed
+        {
+            BrojKonta = "",
+            NazivKonta = "K L A S A :  U",
+            PocetnoDuguje = rekapUkPocDug,
+            PocetnoPotrazuje = rekapUkPocPot,
+            PrometDuguje = rekapUkPromDug,
+            PrometPotrazuje = rekapUkPromPot,
+            UkupnoDuguje = rekapUkUkDug,
+            UkupnoPotrazuje = rekapUkUkPot,
+            SaldoDuguje = rekapUkSalDug,
+            SaldoPotrazuje = rekapUkSalPot,
+            Tip = BrutoBilansRedTip.KlasaTotal
+        });
+
         return rezultat;
     }
 

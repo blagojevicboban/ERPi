@@ -28,6 +28,8 @@
                                 <Button x:Name="BtnNovoMesto" Content="➕ Novo mesto troška / projekat" Style="{StaticResource ActionButtonStyle}" Background="#4338CA" Margin="0,2,8,2" ToolTip="Kreiraj novo mesto troška ili projektni centar" Click="BtnNovoMesto_Click"/>
                                 <Button x:Name="BtnIzmeni" Content="✏️ Izmeni" Style="{StaticResource ActionButtonStyle}" Background="#4B5563" Margin="0,2,8,2" ToolTip="Izmeni izabrano mesto troška" Click="BtnIzmeni_Click"/>
                                 <Button x:Name="BtnObrisi" Content="🗑️ Obriši" Style="{StaticResource ActionButtonStyle}" Background="#EF4444" Margin="0,2,8,2" ToolTip="Obriši izabrano mesto troška" Click="BtnObrisi_Click"/>
+                                <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource ActionButtonStyle}" Background="#059669" Width="36" Padding="0" ToolTip="Izvoz šifarnika u Excel" Margin="0,2,8,2" Click="BtnExportExcel_Click"/>
+                                <Button x:Name="BtnStampa" Content="🖨️" Style="{StaticResource ActionButtonStyle}" Background="#4F46E5" Width="36" Padding="0" ToolTip="Štampaj šifarnik mesta troška (PDF)" Margin="0,2,0,2" Click="BtnStampa_Click"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>

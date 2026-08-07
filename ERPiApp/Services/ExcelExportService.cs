@@ -22,7 +22,8 @@ public static class ExcelExportService
         string title,
         string defaultFileName,
         Func<object, bool>? jeStavkaZaZbir = null,
-        Func<object, (string? hexBoja, bool bold)>? rowStyler = null)
+        Func<object, (string? hexBoja, bool bold)>? rowStyler = null,
+        List<(string Text, double FontSize, bool Bold, string? ColorHex)>? headerLines = null)
     {
         if (dataGrid == null || dataGrid.ItemsSource == null)
         {
@@ -51,18 +52,37 @@ public static class ExcelExportService
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Izveštaj");
 
-        // 1. Naslov izveštaja
-        worksheet.Cell(1, 1).Value = title;
-        worksheet.Cell(1, 1).Style.Font.Bold = true;
-        worksheet.Cell(1, 1).Style.Font.FontSize = 14;
-        worksheet.Cell(1, 1).Style.Font.FontColor = XLColor.FromHtml("#1E293B");
+        // 1. Naslov izveštaja (isto zaglavlje kao u PDF/štampi, ako je prosleđeno)
+        int headerLineCount;
+        if (headerLines != null && headerLines.Count > 0)
+        {
+            headerLineCount = headerLines.Count;
+            for (int i = 0; i < headerLines.Count; i++)
+            {
+                var (text, fontSize, bold, colorHex) = headerLines[i];
+                var headerCell = worksheet.Cell(i + 1, 1);
+                headerCell.Value = text;
+                headerCell.Style.Font.Bold = bold;
+                headerCell.Style.Font.FontSize = fontSize;
+                headerCell.Style.Font.FontColor = XLColor.FromHtml(colorHex ?? "#1E293B");
+            }
+        }
+        else
+        {
+            worksheet.Cell(1, 1).Value = title;
+            worksheet.Cell(1, 1).Style.Font.Bold = true;
+            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
+            worksheet.Cell(1, 1).Style.Font.FontColor = XLColor.FromHtml("#1E293B");
 
-        worksheet.Cell(2, 1).Value = $"Datum izvoza: {DateTime.Now:dd.MM.yyyy. HH:mm}";
-        worksheet.Cell(2, 1).Style.Font.Italic = true;
-        worksheet.Cell(2, 1).Style.Font.FontSize = 9;
-        worksheet.Cell(2, 1).Style.Font.FontColor = XLColor.FromHtml("#64748B");
+            worksheet.Cell(2, 1).Value = $"Datum izvoza: {DateTime.Now:dd.MM.yyyy. HH:mm}";
+            worksheet.Cell(2, 1).Style.Font.Italic = true;
+            worksheet.Cell(2, 1).Style.Font.FontSize = 9;
+            worksheet.Cell(2, 1).Style.Font.FontColor = XLColor.FromHtml("#64748B");
 
-        int startRow = 4;
+            headerLineCount = 2;
+        }
+
+        int startRow = headerLineCount + 2;
 
         // 2. Zaglavlje tabele
         for (int c = 0; c < columns.Count; c++)

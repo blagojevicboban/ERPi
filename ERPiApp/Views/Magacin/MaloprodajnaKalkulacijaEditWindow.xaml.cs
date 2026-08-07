@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -15,19 +16,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Magacin;
 
-public partial class KalkulacijaEditWindow : Window
+public partial class MaloprodajnaKalkulacijaEditWindow : Window
 {
     private readonly ErpiDbContext _db;
-    private readonly KalkulacijaService _service;
-    private readonly ObservableCollection<StavkaKalkulacije> _stavke = new();
-    private readonly Kalkulacija? _existingKalkulacija;
+    private readonly ObservableCollection<MaloprodajnaKalkulacijaStavka> _stavke = new();
+    private readonly MaloprodajnaKalkulacija? _existingKalkulacija;
     private bool _updating;
 
-    public KalkulacijaEditWindow(ErpiDbContext db, Kalkulacija? existingKalkulacija = null)
+    public MaloprodajnaKalkulacijaEditWindow(ErpiDbContext db, MaloprodajnaKalkulacija? existingKalkulacija = null)
     {
         InitializeComponent();
         _db = db;
-        _service = new KalkulacijaService(_db);
         _existingKalkulacija = existingKalkulacija;
         DgStavke.ItemsSource = _stavke;
         TxtPoreskaStopaProcenat.Text = "20";
@@ -38,33 +37,36 @@ public partial class KalkulacijaEditWindow : Window
     {
         try
         {
-            var magacini = await _db.Magacini.OrderBy(m => m.SifraMagacina).ToListAsync();
-            CmbMagacin.ItemsSource = magacini;
+            var magacini = await _db.Magacini.AsNoTracking().OrderBy(m => m.NazivMagacina).ToListAsync();
+            var mpMagacini = magacini.Where(m => m.VrstaMagacina == "Maloprodaja").ToList();
+            var magaciniZaPrikaz = mpMagacini.Count > 0 ? mpMagacini : magacini;
 
-            var partneri = await _db.Partneri.Where(p => p.JeDobavljac).OrderBy(p => p.SifraPartnera).ThenBy(p => p.Naziv).ToListAsync();
+            CmbMagacinPrima.ItemsSource = magaciniZaPrikaz;
+            CmbMagacinDaje.ItemsSource = magacini;
+            var partneri = await _db.Partneri.AsNoTracking().Where(p => p.JeDobavljac).OrderBy(p => p.SifraPartnera).ThenBy(p => p.Naziv).ToListAsync();
             PartnerPicker.Poveži(CmbPartner, partneri);
 
-            var artikli = await _db.Artikli.OrderBy(a => a.SifraArtikla).ToListAsync();
-            ColArtikal.ItemsSource = artikli;
-
-            var konta = await _db.Konta.ToListAsync();
+            var konta = await _db.Konta.AsNoTracking().ToListAsync();
             KontoPicker.PoveziDobavljace(CmbKontoDobavljaca, konta);
+
+            ColArtikal.ItemsSource = await _db.Artikli.AsNoTracking().OrderBy(a => a.SifraArtikla).ToListAsync();
 
             if (_existingKalkulacija != null)
             {
-                Title = $"Izmena kalkulacije #{_existingKalkulacija.BrojKalkulacije}";
+                Title = $"Izmena MP kalkulacije #{_existingKalkulacija.BrojKalkulacije}";
                 TxtBrojKalkulacije.Text = _existingKalkulacija.BrojKalkulacije.ToString();
                 DpDatum.SelectedDate = _existingKalkulacija.Datum;
-                CmbMagacin.SelectedValue = _existingKalkulacija.MagacinId;
-                PartnerPicker.PostaviPartnera(CmbPartner, _existingKalkulacija.PartnerId);
+                CmbMagacinPrima.SelectedValue = _existingKalkulacija.MagacinIdPrima;
+                CmbMagacinDaje.SelectedValue = _existingKalkulacija.MagacinIdDaje;
+                PartnerPicker.PostaviPartnera(CmbPartner, _existingKalkulacija.DobavljacId);
                 if (_existingKalkulacija.KontoDobavljacaId.HasValue && konta.FirstOrDefault(k => k.KontoId == _existingKalkulacija.KontoDobavljacaId.Value) is { } kDob)
                 {
                     KontoPicker.PostaviKonto(CmbKontoDobavljaca, kDob.BrojKonta);
                 }
-                TxtBrojRacuna.Text = _existingKalkulacija.BrojRacuna ?? _existingKalkulacija.BrojFaktureDobavljaca;
-                DpDatumRacuna.SelectedDate = _existingKalkulacija.DatumRacuna ?? _existingKalkulacija.DatumFakture;
                 TxtBrojOtpremnice.Text = _existingKalkulacija.BrojOtpremnice;
                 DpDatumOtpremnice.SelectedDate = _existingKalkulacija.DatumOtpremnice;
+                TxtBrojRacuna.Text = _existingKalkulacija.BrojRacuna;
+
                 TxtTransportniTroskovi.Text = _existingKalkulacija.TransportniTroskovi.ToString("N2");
                 TxtTroskoviUskladistenja.Text = _existingKalkulacija.TroskoviUskladistenja.ToString("N2");
                 TxtUtovarIstovar.Text = _existingKalkulacija.UtovarIstovar.ToString("N2");
@@ -72,6 +74,7 @@ public partial class KalkulacijaEditWindow : Window
                 TxtOstaliTroskovi.Text = _existingKalkulacija.OstaliTroskovi.ToString("N2");
                 TxtMarzaProcenat.Text = _existingKalkulacija.MarzaProcenat.ToString("N2");
                 TxtPoreskaStopaProcenat.Text = _existingKalkulacija.PoreskaStopaProcenat.ToString("N2");
+                TxtRabatPri.Text = _existingKalkulacija.RabatPri.ToString("N2");
 
                 if (_existingKalkulacija.Stavke.Count == 0)
                 {
@@ -80,7 +83,7 @@ public partial class KalkulacijaEditWindow : Window
 
                 foreach (var s in _existingKalkulacija.Stavke.OrderBy(s => s.RedniBroj))
                 {
-                    _stavke.Add(new StavkaKalkulacije
+                    _stavke.Add(new MaloprodajnaKalkulacijaStavka
                     {
                         RedniBroj = s.RedniBroj,
                         ArtikalId = s.ArtikalId,
@@ -93,10 +96,11 @@ public partial class KalkulacijaEditWindow : Window
             else
             {
                 DpDatum.SelectedDate = DateTime.Now;
-                if (magacini.Count > 0) CmbMagacin.SelectedIndex = 0;
+                if (magaciniZaPrikaz.Count > 0) CmbMagacinPrima.SelectedIndex = 0;
 
-                int max = await _db.Kalkulacije.Select(k => (int?)k.BrojKalkulacije).MaxAsync() ?? 0;
+                int max = await _db.MaloprodajneKalkulacije.Select(k => (int?)k.BrojKalkulacije).MaxAsync() ?? 0;
                 TxtBrojKalkulacije.Text = (max + 1).ToString();
+                TxtPoreskaStopaProcenat.Text = "20";
             }
         }
         catch (Exception ex)
@@ -112,28 +116,25 @@ public partial class KalkulacijaEditWindow : Window
 
     private static decimal ParseUneto(string text)
     {
-        if (string.IsNullOrWhiteSpace(text)) return 0m;
         if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var v)) return v;
         if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out v)) return v;
         return 0m;
     }
 
-    private Kalkulacija SkupiUnos()
+    private MaloprodajnaKalkulacija SkupiUnos()
     {
-        return new Kalkulacija
+        return new MaloprodajnaKalkulacija
         {
-            KalkulacijaId = _existingKalkulacija?.KalkulacijaId ?? 0,
+            MaloprodajnaKalkulacijaId = _existingKalkulacija?.MaloprodajnaKalkulacijaId ?? 0,
             BrojKalkulacije = int.TryParse(TxtBrojKalkulacije.Text.Trim(), out int brojKalk) ? brojKalk : 0,
             Datum = DpDatum.SelectedDate ?? DateTime.Now,
-            MagacinId = CmbMagacin.SelectedValue is int mId ? mId : 0,
-            PartnerId = PartnerPicker.IzabraniPartner(CmbPartner)?.PartnerId ?? (CmbPartner.SelectedValue as int?),
+            MagacinIdPrima = (CmbMagacinPrima.SelectedValue as int?) ?? 0,
+            MagacinIdDaje = CmbMagacinDaje.SelectedValue as int?,
+            DobavljacId = PartnerPicker.IzabraniPartner(CmbPartner)?.PartnerId ?? (CmbPartner.SelectedValue as int?),
             KontoDobavljacaId = (CmbKontoDobavljaca.SelectedItem as Konto)?.KontoId ?? (CmbKontoDobavljaca.SelectedValue as int?),
-            BrojRacuna = TxtBrojRacuna.Text.Trim(),
-            DatumRacuna = DpDatumRacuna.SelectedDate,
-            BrojFaktureDobavljaca = TxtBrojRacuna.Text.Trim(),
-            DatumFakture = DpDatumRacuna.SelectedDate,
             BrojOtpremnice = TxtBrojOtpremnice.Text.Trim(),
             DatumOtpremnice = DpDatumOtpremnice.SelectedDate,
+            BrojRacuna = TxtBrojRacuna.Text.Trim(),
             NabavnaVrednost = ParseUneto(TxtNabavnaVrednost.Text),
             TransportniTroskovi = ParseUneto(TxtTransportniTroskovi.Text),
             TroskoviUskladistenja = ParseUneto(TxtTroskoviUskladistenja.Text),
@@ -142,6 +143,9 @@ public partial class KalkulacijaEditWindow : Window
             OstaliTroskovi = ParseUneto(TxtOstaliTroskovi.Text),
             MarzaProcenat = ParseUneto(TxtMarzaProcenat.Text),
             PoreskaStopaProcenat = ParseUneto(TxtPoreskaStopaProcenat.Text),
+            RabatPri = ParseUneto(TxtRabatPri.Text),
+            IsKnjizen = _existingKalkulacija?.IsKnjizen ?? false,
+            IsTrgovinskiKnjizen = _existingKalkulacija?.IsTrgovinskiKnjizen ?? false,
             Stavke = _stavke.ToList()
         };
     }
@@ -150,13 +154,13 @@ public partial class KalkulacijaEditWindow : Window
 
     private void BtnDodajStavku_Click(object sender, RoutedEventArgs e)
     {
-        _stavke.Add(new StavkaKalkulacije { RedniBroj = _stavke.Count + 1, PdvStopa = ParseUneto(TxtPoreskaStopaProcenat.Text) });
+        _stavke.Add(new MaloprodajnaKalkulacijaStavka { RedniBroj = _stavke.Count + 1 });
         Prikazi();
     }
 
     private void BtnObrisiStavku_Click(object sender, RoutedEventArgs e)
     {
-        if (DgStavke.SelectedItem is StavkaKalkulacije selektovana)
+        if (DgStavke.SelectedItem is MaloprodajnaKalkulacijaStavka selektovana)
         {
             _stavke.Remove(selektovana);
             int i = 1;
@@ -179,7 +183,7 @@ public partial class KalkulacijaEditWindow : Window
             var k = SkupiUnos();
             if (k.Stavke.Count > 0)
             {
-                KalkulacijaService.IzracunajSaStavkama(k);
+                MaloprodajnaKalkulacijaService.IzracunajSaStavkama(k);
                 TxtNabavnaVrednost.Text = k.NabavnaVrednost.ToString("N2");
                 TxtNabavnaVrednost.IsReadOnly = true;
                 DgStavke.CommitEdit(DataGridEditingUnit.Cell, true);
@@ -189,14 +193,15 @@ public partial class KalkulacijaEditWindow : Window
             else
             {
                 TxtNabavnaVrednost.IsReadOnly = false;
-                KalkulacijaService.Izracunaj(k);
+                MaloprodajnaKalkulacijaService.Izracunaj(k);
             }
 
-            TxtSvegaTroskovi.Text = $"{k.SvegaTroskovi:N2} RSD";
-            TxtSvegaNabavno.Text = $"{k.SvegaNabavno:N2} RSD";
-            TxtRazlika.Text = $"{k.Razlika:N2} RSD";
-            TxtPorez.Text = $"{k.Porez:N2} RSD";
-            TxtProdajnaVrednost.Text = $"{k.ProdajnaVrednost:N2} RSD";
+            TxtSvegaTroskovi.Text = k.SvegaTroskovi.ToString("N2");
+            TxtSvegaNabavno.Text = k.SvegaNabavno.ToString("N2");
+            TxtRazlika.Text = k.Razlika.ToString("N2");
+            TxtPorez.Text = k.Porez.ToString("N2");
+            TxtRabatIznos.Text = k.RabatIznos.ToString("N2");
+            TxtProdajnaVrednost.Text = k.ProdajnaVrednost.ToString("N2");
         }
         finally
         {
@@ -206,24 +211,29 @@ public partial class KalkulacijaEditWindow : Window
 
     private async void BtnSnimi_Click(object sender, RoutedEventArgs e)
     {
-        var k = SkupiUnos();
-        if (k.MagacinId <= 0)
+        if (!int.TryParse(TxtBrojKalkulacije.Text.Trim(), out _))
         {
-            MessageBox.Show("Izaberite magacin ulaza robe.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Unesite ispravan broj kalkulacije.", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (CmbMagacinPrima.SelectedValue == null)
+        {
+            MessageBox.Show("Izaberite magacin prima (prodavnicu).", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         foreach (var s in _stavke)
         {
-            if (s.ArtikalId <= 0)
+            if (s.ArtikalId == 0)
             {
-                MessageBox.Show("Svaka stavka mora imati izabran artikal.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Svaka stavka mora imati izabran artikal.", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
         }
 
         try
         {
-            await _service.SaveKalkulacijuAsync(k);
+            var service = new MaloprodajnaKalkulacijaService(_db);
+            await service.SaveKalkulacijuAsync(SkupiUnos());
             DialogResult = true;
             Close();
         }

@@ -76,6 +76,7 @@ public class MaloprodajnaKalkulacijaService
             .Include(k => k.MagacinPrima)
             .Include(k => k.MagacinDaje)
             .Include(k => k.Dobavljac)
+            .Include(k => k.KontoDobavljaca)
             .Include(k => k.Stavke).ThenInclude(s => s.Artikal)
             .AsQueryable();
 
@@ -119,6 +120,7 @@ public class MaloprodajnaKalkulacijaService
             existing.MagacinIdPrima = kalkulacija.MagacinIdPrima;
             existing.MagacinIdDaje = kalkulacija.MagacinIdDaje;
             existing.DobavljacId = kalkulacija.DobavljacId;
+            existing.KontoDobavljacaId = kalkulacija.KontoDobavljacaId;
             existing.BrojOtpremnice = kalkulacija.BrojOtpremnice;
             existing.DatumOtpremnice = kalkulacija.DatumOtpremnice;
             existing.BrojRacuna = kalkulacija.BrojRacuna;
@@ -203,8 +205,13 @@ public class MaloprodajnaKalkulacijaService
         var kontoRoba = await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta == RobnaKonta.RobaMaloprodaja);
         var kontoPdv = await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta == RobnaKonta.UkalkulisaniPdvZaStopu(kalkulacija.PoreskaStopaProcenat));
         var kontoRazlika = await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta == RobnaKonta.RazlikaUCeniMaloprodaja);
-        var kontoDobavljac = await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta == "4350")
-                           ?? await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta.StartsWith("435"));
+        int? dobavljacKontoId = kalkulacija.KontoDobavljacaId;
+        if (!dobavljacKontoId.HasValue)
+        {
+            var kontoDobavljac = await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta == "4350")
+                               ?? await _db.Konta.FirstOrDefaultAsync(k => k.BrojKonta.StartsWith("435"));
+            dobavljacKontoId = kontoDobavljac?.KontoId;
+        }
 
         var nalog = new Nalog
         {
@@ -257,12 +264,12 @@ public class MaloprodajnaKalkulacijaService
             });
         }
 
-        if (kontoDobavljac != null)
+        if (dobavljacKontoId.HasValue)
         {
             nalog.Stavke.Add(new StavkaNaloga
             {
                 RedniBroj = rb++,
-                KontoId = kontoDobavljac.KontoId,
+                KontoId = dobavljacKontoId.Value,
                 Opis = opis,
                 BrojDokumenta = kalkulacija.BrojRacuna,
                 Duguje = 0m,

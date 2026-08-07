@@ -15,8 +15,13 @@
         <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <Button x:Name="BtnKnjizi" Content="⚡ Knjiži selektovanu MP kalkulaciju" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Click="BtnKnjizi_Click" Margin="0,0,10,0"/>
-                    <Button x:Name="BtnRasknjizi" Content="↩️ Rasknjiži MP kalkulaciju" Style="{StaticResource ActionButtonStyle}" Background="#F59E0B" Click="BtnRasknjizi_Click" Margin="0,0,10,0"/>
+                    <Button x:Name="BtnNova" Content="➕ Nova MP kalkulacija" Style="{StaticResource ActionButtonStyle}" Background="#2563EB" Click="BtnNova_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnIzmeni" Content="✏️ Izmeni" Style="{StaticResource ActionButtonStyle}" Background="#475569" Click="BtnIzmeni_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnObrisi" Content="🗑 Obriši" Style="{StaticResource ActionButtonStyle}" Background="#DC2626" Click="BtnObrisi_Click" Margin="0,0,16,0"/>
+                    <Button x:Name="BtnKnjizi" Content="⚡ Knjiži" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Click="BtnKnjizi_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnRasknjizi" Content="↩️ Rasknjiži" Style="{StaticResource ActionButtonStyle}" Background="#F59E0B" Click="BtnRasknjizi_Click" Margin="0,0,16,0"/>
+                    <Button x:Name="BtnExportExcel" Content="📊 Excel" Style="{StaticResource ActionButtonStyle}" Background="#16A34A" Click="BtnExportExcel_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnStampajPdf" Content="🖨️ PDF" Style="{StaticResource ActionButtonStyle}" Background="#0284C7" Click="BtnStampajPdf_Click" Margin="0,0,10,0"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
@@ -28,7 +33,7 @@
 
         <!-- GRID -->
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-            <DataGrid x:Name="DgKalkulacije" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+            <DataGrid x:Name="DgKalkulacije" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" MouseDoubleClick="DgKalkulacije_MouseDoubleClick">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Broj" Binding="{Binding BrojKalkulacije}" Width="80"/>
                     <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="100"/>

@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using ERPiApp.Services;
 using ERPiData;
 using ERPiData.Models.Core;
+using FirmaModel = ERPiData.Models.Core.Firma;
 using ERPiData.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Finansije.MestaTroska;
 
@@ -126,6 +131,26 @@ public partial class MestaTroskaView : UserControl
                     MessageBox.Show(ex.Message, "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
+        }
+    }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        => ExcelExportService.ExportDataGridToExcel(DgMestaTroska, "Šifarnik mesta troška i projekata", "Mesta_Troska");
+
+    private async void BtnStampa_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+            var pdfBytes = PdfReportService.GenerisiSifarnikMestaTroskaPdf(firma, _svaMesta);
+
+            string tempPath = Path.Combine(Path.GetTempPath(), $"Mesta_Troska_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            Process.Start(new ProcessStartInfo { FileName = tempPath, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju šifarnika: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

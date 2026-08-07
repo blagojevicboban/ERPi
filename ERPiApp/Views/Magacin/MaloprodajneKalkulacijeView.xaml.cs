@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using ERPiData;
 using ERPiData.Models.Magacin;
 using ERPiData.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Magacin;
 
@@ -99,6 +100,101 @@ public partial class MaloprodajneKalkulacijeView : UserControl
         catch (Exception ex)
         {
             MessageBox.Show($"Greška pri rasknjižavanju kalkulacije: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+    private void BtnNova_Click(object sender, RoutedEventArgs e) => OtveriZaIzmenu(null);
+
+    private void BtnIzmeni_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgKalkulacije.SelectedItem is MaloprodajnaKalkulacija selektovana)
+        {
+            OtveriZaIzmenu(selektovana);
+        }
+        else
+        {
+            MessageBox.Show("Izaberite MP kalkulaciju za izmenu.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void DgKalkulacije_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DgKalkulacije.SelectedItem is MaloprodajnaKalkulacija selektovana)
+        {
+            OtveriZaIzmenu(selektovana);
+        }
+    }
+
+    private async void OtveriZaIzmenu(MaloprodajnaKalkulacija? kalk)
+    {
+        MaloprodajnaKalkulacija? puna = kalk;
+        if (kalk != null)
+        {
+            puna = await _db.MaloprodajneKalkulacije
+                .Include(k => k.Stavke)
+                .FirstOrDefaultAsync(k => k.MaloprodajnaKalkulacijaId == kalk.MaloprodajnaKalkulacijaId);
+        }
+
+        var win = new MaloprodajnaKalkulacijaEditWindow(_db, puna) { Owner = Window.GetWindow(this) };
+        if (win.ShowDialog() == true)
+        {
+            UcitajPodatke();
+        }
+    }
+
+    private void BtnObrisi_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgKalkulacije.SelectedItem is MaloprodajnaKalkulacija kalkulacija)
+        {
+            if (kalkulacija.IsKnjizen)
+            {
+                MessageBox.Show("Proknjižena kalkulacija se ne može brisati. Prvo je rasknjižite.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var res = MessageBox.Show($"Da li ste sigurni da želite da obrišete MP kalkulaciju br. {kalkulacija.BrojKalkulacije}?",
+                "Potvrda brisanja", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (res == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    var k = _db.MaloprodajneKalkulacije.Find(kalkulacija.MaloprodajnaKalkulacijaId);
+                    if (k != null)
+                    {
+                        _db.MaloprodajneKalkulacije.Remove(k);
+                        _db.SaveChanges();
+                        UcitajPodatke();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Greška pri brisanju kalkulacije: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        else
+        {
+            MessageBox.Show("Izaberite MP kalkulaciju za brisanje.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        => Services.ExcelExportService.ExportDataGridToExcel(DgKalkulacije, "MP_Kalkulacije", "Maloprodajne Kalkulacije");
+
+    private void BtnStampajPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgKalkulacije.SelectedItem is not MaloprodajnaKalkulacija selektovana)
+        {
+            MessageBox.Show("Izaberite MP kalkulaciju za štampu.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            MessageBox.Show($"Priprema PDF štampanog dokumenta za MP kalkulaciju br. {selektovana.BrojKalkulacije}...", "PDF Štampa", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju PDF štampanog dokumenta: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

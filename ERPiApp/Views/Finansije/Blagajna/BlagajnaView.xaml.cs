@@ -1,11 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using ERPiApp.Services;
 using ERPiData;
+using ERPiData.Models.Core;
+using FirmaModel = ERPiData.Models.Core.Firma;
 using ERPiData.Models.Finansije;
 using ERPiData.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Finansije.Blagajna;
 
@@ -178,6 +185,56 @@ public partial class BlagajnaView : UserControl
                     MessageBox.Show(msg, "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+    }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        => ExcelExportService.ExportDataGridToExcel(DgBlagajnickiNalozi, "Evidencija naloga blagajne", "NaloziBlagajne");
+
+    private async void BtnStampa_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgBlagajnickiNalozi?.SelectedItem is not BlagajnickiNalog bn)
+        {
+            MessageBox.Show("Molimo izaberite nalog blagajne za štampu.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        try
+        {
+            var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+            var pdfBytes = PdfReportService.GenerisiBlagajnickiNalogPdf(firma, bn);
+
+            string siguranBroj = string.Join("_", (bn.BrojNaloga ?? "Nalog").Split(Path.GetInvalidFileNameChars()));
+            string tempPath = Path.Combine(Path.GetTempPath(), $"BlagajnickiNalog_{siguranBroj}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            Process.Start(new ProcessStartInfo { FileName = tempPath, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju štampanog naloga: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void BtnStampaDnevnik_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+
+            VrstaBlagajne vrsta = CmbDnevnikBlagajna?.SelectedIndex == 1 ? VrstaBlagajne.Devizna : VrstaBlagajne.Dinarska;
+            DateTime odD = DpDnevnikOd?.SelectedDate ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            DateTime doD = DpDnevnikDo?.SelectedDate ?? DateTime.Today;
+
+            var (redovi, summary) = await _service.GetBlagajnickiDnevnikAsync(vrsta, odD, doD);
+            var pdfBytes = PdfReportService.GenerisiBlagajnickiDnevnikPdf(firma, vrsta, odD, doD, redovi, summary);
+
+            string tempPath = Path.Combine(Path.GetTempPath(), $"BlagajnickiDnevnik_{vrsta}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            Process.Start(new ProcessStartInfo { FileName = tempPath, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju Dnevnika blagajne: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

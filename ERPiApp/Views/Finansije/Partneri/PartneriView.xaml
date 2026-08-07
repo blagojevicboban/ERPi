@@ -56,10 +56,10 @@
                     <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock Text="Saldo: " VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
                         <TextBlock x:Name="TxtSaldoPartnera" Text="0,00" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Foreground="#7C3AED" Margin="0,0,16,0"/>
-                        <Button x:Name="BtnKursnaLista" Content="💱 Kursna lista NBS" Style="{StaticResource PrimaryButtonStyle}" Background="#0284C7" Margin="0,2,10,2" ToolTip="Prikaz kursne liste NBS" Click="BtnKursnaLista_Click"/>
-                        <Button x:Name="BtnVerifikujRacun" Content="🔍 Verifikuj račun (NBS)" Style="{StaticResource PrimaryButtonStyle}" Background="#0D9488" Margin="0,2,10,2" ToolTip="Provera tekućeg računa u NBS registru" Click="BtnVerifikujRacun_Click"/>
-                        <Button x:Name="BtnStampajIOS" Content="🖨️ IOS PDF" Style="{StaticResource PrimaryButtonStyle}" Background="#7C3AED" Margin="0,2,10,2" Click="BtnStampajIOS_Click"/>
-                        <Button x:Name="BtnObracunKamate" Content="💰 Obračun kamate" Style="{StaticResource PrimaryButtonStyle}" Background="#D97706" Margin="0,2,10,2" IsEnabled="False" Click="BtnObracunKamate_Click"/>
+                        <Button x:Name="BtnKursnaLista" Content="💱" Style="{StaticResource PrimaryButtonStyle}" Background="#0284C7" Width="36" Padding="0" Margin="0,2,10,2" ToolTip="Prikaz kursne liste NBS" Click="BtnKursnaLista_Click"/>
+                        <Button x:Name="BtnVerifikujRacun" Content="🔍" Style="{StaticResource PrimaryButtonStyle}" Background="#0D9488" Width="36" Padding="0" Margin="0,2,10,2" ToolTip="Provera tekućeg računa u NBS registru" Click="BtnVerifikujRacun_Click"/>
+                        <Button x:Name="BtnStampajIOS" Content="🖨️" Style="{StaticResource PrimaryButtonStyle}" Background="#7C3AED" Width="36" Padding="0" Margin="0,2,10,2" ToolTip="Izvezi IOS (PDF)" Click="BtnStampajIOS_Click"/>
+                        <Button x:Name="BtnObracunKamate" Content="💰" Style="{StaticResource PrimaryButtonStyle}" Background="#D97706" Width="36" Padding="0" Margin="0,2,10,2" IsEnabled="False" ToolTip="Obračun kamate je moguć samo za konto kupca (204/120)" Click="BtnObracunKamate_Click"/>
                         <Button x:Name="BtnExportExcelPartneri" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource PrimaryButtonStyle}" Background="#059669" Width="36" Padding="0" Margin="0,2,0,2" ToolTip="Izvoz kartice partnera u Excel" Click="BtnExportExcelPartneri_Click"/>
                     </WrapPanel>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">

@@ -89,12 +89,22 @@ public partial class KalkulacijeView : UserControl
 
     private void OtveriZaIzmenu()
     {
-        if (DgKalkulacije.SelectedItem is Kalkulacija kalkulacija)
+        if (DgKalkulacije.SelectedItem is Kalkulacija selektovana)
         {
-            var win = new KalkulacijaEditWindow(_db, kalkulacija.KalkulacijaId) { Owner = Window.GetWindow(this) };
-            if (win.ShowDialog() == true)
+            var puna = _db.Kalkulacije
+                .Include(k => k.Magacin)
+                .Include(k => k.Partner)
+                .Include(k => k.KontoDobavljaca)
+                .Include(k => k.Stavke).ThenInclude(s => s.Artikal)
+                .FirstOrDefault(k => k.KalkulacijaId == selektovana.KalkulacijaId);
+
+            if (puna != null)
             {
-                UcitajKalkulacije();
+                var win = new KalkulacijaEditWindow(_db, puna) { Owner = Window.GetWindow(this) };
+                if (win.ShowDialog() == true)
+                {
+                    UcitajKalkulacije();
+                }
             }
         }
     }

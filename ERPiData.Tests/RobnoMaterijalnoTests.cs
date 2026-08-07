@@ -306,5 +306,119 @@ public class RobnoMaterijalnoTests
         Assert.Equal(11700m, uvoz.CarinaRsd);
         Assert.Equal(158700m, uvoz.UkupnaNabavnaVrednostRsd); // 117000 + 11700 + 30000
     }
+
+    [Fact]
+    public async Task KalkulacijaService_IzracunajSaStavkama_RaspodeljujeZavisneTroskoviIZapisujeUGlavnuKnjigu()
+    {
+        using var db = CreateInMemoryDb();
+        var partner = new Partner { SifraPartnera = "SUP1", Naziv = "Domaći Dobavljač DOO" };
+        var magacin = new Magacin { SifraMagacina = "VP01", NazivMagacina = "Veleprodaja" };
+        var artikal1 = new Artikal { SifraArtikla = "A1", Naziv = "Artikal 1" };
+        var artikal2 = new Artikal { SifraArtikla = "A2", Naziv = "Artikal 2" };
+        var kontoDob = new Konto { BrojKonta = "4350", NazivKonta = "Dobavljači u zemlji" };
+        var robniKonto = new Konto { BrojKonta = "1320", NazivKonta = "Roba u veleprodaji" };
+
+        db.Partneri.Add(partner);
+        db.Magacini.Add(magacin);
+        db.Artikli.AddRange(artikal1, artikal2);
+        db.Konta.AddRange(kontoDob, robniKonto);
+        await db.SaveChangesAsync();
+
+        var kalk = new Kalkulacija
+        {
+            BrojKalkulacije = 101,
+            Datum = DateTime.Today,
+            MagacinId = magacin.MagacinId,
+            PartnerId = partner.PartnerId,
+            KontoDobavljacaId = kontoDob.KontoId,
+            BrojRacuna = "INV-101",
+            TransportniTroskovi = 3000m,
+            TroskoviUskladistenja = 2000m, // ukupno zavisnih troškova = 5000
+            MarzaProcenat = 10m,
+            PoreskaStopaProcenat = 20m
+        };
+
+        // Stavka 1: 100 * 100 = 10,000 RSD (50% učešća -> 2,500 RSD troškova)
+        // Stavka 2: 100 * 100 = 10,000 RSD (50% učešća -> 2,500 RSD troškova)
+        kalk.Stavke.Add(new StavkaKalkulacije { ArtikalId = artikal1.ArtikalId, Kolicina = 100m, NabavnaCena = 100m });
+        kalk.Stavke.Add(new StavkaKalkulacije { ArtikalId = artikal2.ArtikalId, Kolicina = 100m, NabavnaCena = 100m });
+
+        KalkulacijaService.IzracunajSaStavkama(kalk);
+
+        Assert.Equal(5000m, kalk.SvegaTroskovi);
+        Assert.Equal(20000m, kalk.NabavnaVrednost);
+        Assert.Equal(25000m, kalk.SvegaNabavno); // 20000 + 5000
+        Assert.Equal(2500m, kalk.Razlika); // 10% od 25000
+        Assert.Equal(5500m, kalk.Porez); // 20% od (25000 + 2500)
+        Assert.Equal(33000m, kalk.ProdajnaVrednost); // 25000 + 2500 + 5500
+
+        Assert.Equal(2500m, kalk.Stavke[0].Troskovi);
+        Assert.Equal(2500m, kalk.Stavke[1].Troskovi);
+        Assert.Equal(12500m, kalk.Stavke[0].NabavnaVrednost);
+
+        var service = new KalkulacijaService(db);
+        await service.SaveKalkulacijuAsync(kalk);
+        await service.KnjiziKalkulacijuAsync(kalk.KalkulacijaId);
+
+        var osvezena = await service.GetKalkulacijaByIdAsync(kalk.KalkulacijaId);
+        Assert.NotNull(osvezena);
+        Assert.True(osvezena!.IsKnjizen);
+        Assert.NotNull(osvezena.NalogId);
+    }
+
+    [Fact]
+    public async Task MaloprodajnaKalkulacijaService_IzracunajSaStavkama_RaspodeljujeZavisneTroskoviIZapisujeUGlavnuKnjigu()
+    {
+        using var db = CreateInMemoryDb();
+        var partner = new Partner { SifraPartnera = "P1", Naziv = "Test Dobavljač", Pib = "100000001" };
+        var magacin = new Magacin { SifraMagacina = "MP1", NazivMagacina = "Prodavnica 1", VrstaMagacina = "Maloprodaja" };
+        var artikal1 = new Artikal { SifraArtikla = "A1", Naziv = "Artikal 1", JedinicaMere = "kom", NabavnaCena = 100m };
+        var artikal2 = new Artikal { SifraArtikla = "A2", Naziv = "Artikal 2", JedinicaMere = "kom", NabavnaCena = 100m };
+        var kontoDob = new Konto { BrojKonta = "4350", NazivKonta = "Dobavljači u zemlji" };
+        var kontoRobaMP = new Konto { BrojKonta = "1340", NazivKonta = "Roba u maloprodaji" };
+        var kontoPdvMP = new Konto { BrojKonta = "1344", NazivKonta = "Ukalkulisani PDV" };
+        var kontoRazlikaMP = new Konto { BrojKonta = "1348", NazivKonta = "Ukalkulisana razlika u ceni" };
+
+        db.Partneri.Add(partner);
+        db.Magacini.Add(magacin);
+        db.Artikli.AddRange(artikal1, artikal2);
+        db.Konta.AddRange(kontoDob, kontoRobaMP, kontoPdvMP, kontoRazlikaMP);
+        await db.SaveChangesAsync();
+
+        var kalk = new MaloprodajnaKalkulacija
+        {
+            BrojKalkulacije = 201,
+            Datum = DateTime.Today,
+            MagacinIdPrima = magacin.MagacinId,
+            DobavljacId = partner.PartnerId,
+            KontoDobavljacaId = kontoDob.KontoId,
+            BrojRacuna = "MP-INV-201",
+            TransportniTroskovi = 1000m,
+            MarzaProcenat = 20m,
+            PoreskaStopaProcenat = 20m
+        };
+
+        kalk.Stavke.Add(new MaloprodajnaKalkulacijaStavka { ArtikalId = artikal1.ArtikalId, Kolicina = 10m, NabavnaCena = 100m }); // Iznos = 1000
+        kalk.Stavke.Add(new MaloprodajnaKalkulacijaStavka { ArtikalId = artikal2.ArtikalId, Kolicina = 10m, NabavnaCena = 100m }); // Iznos = 1000
+
+        MaloprodajnaKalkulacijaService.IzracunajSaStavkama(kalk);
+
+        Assert.Equal(1000m, kalk.SvegaTroskovi);
+        Assert.Equal(2000m, kalk.NabavnaVrednost);
+        Assert.Equal(3000m, kalk.SvegaNabavno); // 2000 + 1000
+        Assert.Equal(600m, kalk.Razlika); // 20% od 3000
+        Assert.Equal(720m, kalk.Porez); // 20% od (3000 + 600)
+        Assert.Equal(4320m, kalk.ProdajnaVrednost); // 3000 + 600 + 720
+
+        var service = new MaloprodajnaKalkulacijaService(db);
+        await service.SaveKalkulacijuAsync(kalk);
+        await service.KnjiziKalkulacijuAsync(kalk.MaloprodajnaKalkulacijaId);
+
+        var sacuvana = (await service.GetKalkulacijeAsync()).FirstOrDefault(k => k.MaloprodajnaKalkulacijaId == kalk.MaloprodajnaKalkulacijaId);
+        Assert.NotNull(sacuvana);
+        Assert.True(sacuvana!.IsKnjizen);
+        Assert.NotNull(sacuvana.NalogId);
+    }
 }
+
 

@@ -229,18 +229,43 @@ public class ErpiFinansijeImporter
 
                 if (mag != null)
                 {
+                    int? kontoDobId = null;
+                    if (!string.IsNullOrWhiteSpace(sk.SifraDobavljaca) && existingKonta.TryGetValue(sk.SifraDobavljaca.Trim(), out var kDob))
+                    {
+                        kontoDobId = kDob.KontoId;
+                    }
+
                     var nk = new ERPiData.Models.Magacin.Kalkulacija
                     {
                         MagacinId = mag.MagacinId,
                         PartnerId = dob?.PartnerId,
+                        KontoDobavljacaId = kontoDobId,
                         BrojKalkulacije = sk.BrojKalkulacije,
                         BrojFaktureDobavljaca = sk.BrojRacuna ?? sk.BrojOtpremnice,
                         Datum = sk.Datum,
                         DatumFakture = sk.DatumRacuna ?? sk.DatumOtpremnice,
-                        VrstaKalkulacije = "Ulazna",
-                        UkupnoNabavna = sk.NabavnaVrednost,
+                        BrojOtpremnice = sk.BrojOtpremnice,
+                        DatumOtpremnice = sk.DatumOtpremnice,
+                        BrojRacuna = sk.BrojRacuna,
+                        DatumRacuna = sk.DatumRacuna,
+                        VrstaKalkulacije = "Veleprodaja",
+                        NabavnaVrednost = sk.NabavnaVrednost,
+                        TransportniTroskovi = sk.TransportniTroskovi,
+                        TroskoviUskladistenja = sk.TroskoviUskladistenja,
+                        UtovarIstovar = sk.UtovarIstovar,
+                        TransportnoOsiguranje = sk.TransportnoOsiguranje,
+                        OstaliTroskovi = sk.OstaliTroskovi,
+                        SvegaTroskovi = sk.SvegaTroskovi,
+                        SvegaNabavno = sk.SvegaNabavno != 0 ? sk.SvegaNabavno : sk.NabavnaVrednost,
+                        Razlika = sk.Razlika,
+                        MarzaProcenat = sk.MarzaProcenat,
+                        Porez = sk.Porez,
+                        PoreskaStopaProcenat = sk.PoreskaStopaProcenat,
+                        ProdajnaVrednost = sk.ProdajnaVrednost,
+                        UkupnoNabavna = sk.SvegaNabavno != 0 ? sk.SvegaNabavno : sk.NabavnaVrednost,
                         UkupnoProdajna = sk.ProdajnaVrednost,
-                        UkupnoPdv = sk.Porez
+                        UkupnoPdv = sk.Porez,
+                        IsKnjizen = sk.IsKnjizen
                     };
 
                     foreach (var st in sk.Stavke)
@@ -250,13 +275,24 @@ public class ErpiFinansijeImporter
                         {
                             nk.Stavke.Add(new ERPiData.Models.Magacin.StavkaKalkulacije
                             {
+                                RedniBroj = st.RedniBroj,
                                 ArtikalId = art.ArtikalId,
                                 Kolicina = st.Kolicina,
                                 NabavnaCena = st.NabavnaCena,
+                                Iznos = st.Iznos,
+                                Troskovi = st.Troskovi,
+                                NabavnaVrednost = st.NabavnaVrednost,
+                                RazlikaProcenat = st.RazlikaProcenat,
+                                RazlikaIznos = st.RazlikaIznos,
+                                ProdajnaVrednostBezPoreza = st.ProdajnaVrednostBezPoreza,
+                                PorezProcenat = st.PorezProcenat,
+                                PorezIznos = st.PorezIznos,
+                                ProdajnaVrednost = st.ProdajnaVrednost,
+                                ProdajnaCena = st.ProdajnaCena,
+                                StaraCena = st.StaraCena,
                                 MarzaProcenat = st.RazlikaProcenat,
                                 PdvStopa = st.PorezProcenat,
-                                ProdajnaCena = st.ProdajnaCena,
-                                IznosNabavni = st.NabavnaVrednost,
+                                IznosNabavni = st.NabavnaVrednost != 0 ? st.NabavnaVrednost : st.Iznos,
                                 IznosPdv = st.PorezIznos,
                                 IznosProdajni = st.ProdajnaVrednost
                             });
@@ -502,6 +538,12 @@ public class ErpiFinansijeImporter
                 magaciniDict.TryGetValue(sm2.SifraMagacinaDaje ?? "", out var magDaje);
                 partneriBySifra.TryGetValue(sm2.SifraDobavljaca ?? "", out var dob2);
 
+                int? kontoDob2Id = null;
+                if (!string.IsNullOrWhiteSpace(sm2.SifraDobavljaca) && existingKonta.TryGetValue(sm2.SifraDobavljaca.Trim(), out var kDob2))
+                {
+                    kontoDob2Id = kDob2.KontoId;
+                }
+
                 var nmk = new ERPiData.Models.Magacin.MaloprodajnaKalkulacija
                 {
                     BrojKalkulacije = sm2.BrojKalkulacije,
@@ -509,6 +551,7 @@ public class ErpiFinansijeImporter
                     MagacinIdPrima = magPrima.MagacinId,
                     MagacinIdDaje = magDaje?.MagacinId,
                     DobavljacId = dob2?.PartnerId,
+                    KontoDobavljacaId = kontoDob2Id,
                     BrojOtpremnice = sm2.BrojOtpremnice,
                     DatumOtpremnice = sm2.DatumOtpremnice,
                     BrojRacuna = sm2.BrojRacuna,

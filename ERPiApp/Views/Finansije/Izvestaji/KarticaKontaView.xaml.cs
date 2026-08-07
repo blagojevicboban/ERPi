@@ -354,6 +354,25 @@ public partial class KarticaKontaView : UserControl
         }
     }
 
-    private void BtnExportExcelKartica_Click(object sender, RoutedEventArgs e)
-        => ExcelExportService.ExportDataGridToExcel(DgKartica, TxtNaslovKonta.Text, "Kartica_Konta");
+    private async void BtnExportExcelKartica_Click(object sender, RoutedEventArgs e)
+    {
+        if (LstKonta.SelectedItem is not KontoIzbor izbor) return;
+        var konto = izbor.Konto;
+
+        var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+        var odDatuma = DpKarticaOd.SelectedDate;
+        var doDatuma = DpKarticaDo.SelectedDate;
+
+        var headerLines = new List<(string Text, double FontSize, bool Bold, string? ColorHex)>
+        {
+            (firma.Naziv, 14, true, "#2563EB"),
+            ($"{firma.Adresa}, {firma.PttIMesto} | PIB: {firma.Pib ?? "---"} | Žiro: {firma.ZiroRacun ?? "---"}", 9, false, "#64748B"),
+            ("KARTICA KONTA", 16, true, "#1E293B"),
+            ($"{konto.BrojKonta} — {konto.NazivKonta}", 12, true, "#1E293B"),
+        };
+        if (odDatuma.HasValue || doDatuma.HasValue)
+            headerLines.Add(($"Period: {odDatuma?.ToString("dd.MM.yyyy") ?? "---"} - {doDatuma?.ToString("dd.MM.yyyy") ?? "---"}", 9, false, "#64748B"));
+
+        ExcelExportService.ExportDataGridToExcel(DgKartica, TxtNaslovKonta.Text, "Kartica_Konta", headerLines: headerLines);
+    }
 }

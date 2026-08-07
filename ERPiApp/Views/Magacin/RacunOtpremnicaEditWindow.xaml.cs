@@ -9,6 +9,7 @@ using ERPiData;
 using ERPiData.Models.Core;
 using ERPiData.Models.Magacin;
 using ERPiData.Services;
+using ERPiApp.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Magacin;
@@ -35,8 +36,8 @@ public partial class RacunOtpremnicaEditWindow : Window
             var artikli = _db.Artikli.OrderBy(a => a.Naziv).ToList();
             ColArtikal.ItemsSource = artikli;
 
-            var partneri = _db.Partneri.Where(p => p.JeKupac).OrderBy(p => p.Naziv).ToList();
-            CmbPartner.ItemsSource = partneri;
+            var partneri = _db.Partneri.Where(p => p.JeKupac).OrderBy(p => p.SifraPartnera).ThenBy(p => p.Naziv).ToList();
+            PartnerPicker.Poveži(CmbPartner, partneri);
 
             var magacini = _db.Magacini.OrderBy(m => m.SifraMagacina).ToList();
             CmbMagacin.ItemsSource = magacini;
@@ -51,10 +52,7 @@ public partial class RacunOtpremnicaEditWindow : Window
                 TxtBrojRacuna.IsReadOnly = true;
                 TxtBrojOtpremnice.Text = _existingRacun.BrojOtpremnice ?? _existingRacun.BrojRacuna.ToString();
                 DpDatum.SelectedDate = _existingRacun.DatumRacuna;
-                if (_existingRacun.PartnerId.HasValue)
-                {
-                    CmbPartner.SelectedItem = partneri.FirstOrDefault(p => p.PartnerId == _existingRacun.PartnerId.Value);
-                }
+                PartnerPicker.PostaviPartnera(CmbPartner, _existingRacun.PartnerId);
                 TxtRokPlacanja.Text = _existingRacun.RokPlacanjaDana.ToString();
                 CmbNacinPlacanja.Text = _existingRacun.NacinPlacanja ?? "Virman (račun)";
                 if (_existingRacun.MagacinId.HasValue)
@@ -133,7 +131,7 @@ public partial class RacunOtpremnicaEditWindow : Window
             return;
         }
 
-        Partner? partner = CmbPartner.SelectedItem as Partner;
+        Partner? partner = PartnerPicker.IzabraniPartner(CmbPartner) ?? CmbPartner.SelectedItem as Partner;
         ERPiData.Models.Magacin.Magacin? magacin = CmbMagacin.SelectedItem as ERPiData.Models.Magacin.Magacin;
 
         int.TryParse(TxtRokPlacanja.Text, out int rokDana);

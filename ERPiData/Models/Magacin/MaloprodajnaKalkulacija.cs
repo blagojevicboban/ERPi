@@ -28,6 +28,10 @@ public class MaloprodajnaKalkulacija
     [ForeignKey(nameof(DobavljacId))]
     public Partner? Dobavljac { get; set; }
 
+    public int? KontoDobavljacaId { get; set; }
+    [ForeignKey(nameof(KontoDobavljacaId))]
+    public Konto? KontoDobavljaca { get; set; }
+
     [MaxLength(30)]
     public string? BrojOtpremnice { get; set; }
     public DateTime? DatumOtpremnice { get; set; }

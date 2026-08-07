@@ -76,8 +76,23 @@ public partial class BrutoBilansView : UserControl
         }
     }
 
-    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
-        => ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(DgBrutoBilans, "Bruto Bilans", "Bruto_Bilans");
+    private async void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+    {
+        var firma = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_db.Firme);
+
+        var headerLines = new List<(string Text, double FontSize, bool Bold, string? ColorHex)>();
+        if (firma != null)
+        {
+            headerLines.Add((firma.Naziv, 14, true, "#2563EB"));
+            if (!string.IsNullOrEmpty(firma.Pib))
+                headerLines.Add(($"PIB: {firma.Pib}", 9, false, "#64748B"));
+        }
+        headerLines.Add(("BRUTO BILANS", 16, true, "#1E293B"));
+        if (DpOd.SelectedDate.HasValue || DpDo.SelectedDate.HasValue)
+            headerLines.Add(($"Period: {DpOd.SelectedDate?.ToString("dd.MM.yyyy.") ?? "—"} - {DpDo.SelectedDate?.ToString("dd.MM.yyyy.") ?? "—"}", 9, false, "#64748B"));
+
+        ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(DgBrutoBilans, "Bruto Bilans", "Bruto_Bilans", headerLines: headerLines);
+    }
 
     private async void BtnAnalitike_Click(object sender, RoutedEventArgs e)
     {

@@ -32,8 +32,7 @@
                     <WrapPanel Grid.Column="1" VerticalAlignment="Center">
                         <Button x:Name="BtnOpenIos" Content="📄 Pregled Otvorenih Stavki (IOS)" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Margin="0,0,10,6" Click="BtnOpenIos_Click"/>
                         <Button x:Name="BtnOpenBrutoBilans" Content="📊 Bruto Bilans &amp; Izveštaji" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Margin="0,0,10,6" Background="#475569" Click="BtnOpenBrutoBilans_Click"/>
-                        <Button x:Name="BtnNewNalog" Content="📖 Glavna Knjiga &amp; Nalozi" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Margin="0,0,10,6" Background="#0D9488" Click="BtnNewNalog_Click"/>
-                        <Button x:Name="BtnDosImport" Content="📥 Uvoz Podataka Wizard" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Margin="0,0,0,6" Background="#7C3AED" Click="BtnDosImport_Click"/>
+                        <Button x:Name="BtnNewNalog" Content="📖 Glavna Knjiga &amp; Nalozi" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Margin="0,0,0,6" Background="#0D9488" Click="BtnNewNalog_Click"/>
                     </WrapPanel>
                 </Grid>
             </Border>

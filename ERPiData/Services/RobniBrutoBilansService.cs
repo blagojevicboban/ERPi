@@ -93,9 +93,14 @@ public class RobniBrutoBilansService
                 decimal ukIzlazKol = g.Sum(k => k.Izlaz);
                 decimal ukIzlazVred = g.Sum(k => k.Potrazuje);
 
-                decimal zadnjeStanjeKol = last?.Stanje ?? (ukUlazKol - ukIzlazKol);
-                decimal zadnjiSaldoVred = last?.Saldo ?? (ukUlazVred - ukIzlazVred);
-                decimal zadnjaCena = last?.Cena ?? (rob?.ProdajnaCena ?? 0m);
+                decimal zadnjeStanjeKol = (last != null && last.Stanje != 0m) ? last.Stanje : (ukUlazKol - ukIzlazKol);
+                decimal zadnjiSaldoVred = (last != null && last.Saldo != 0m) ? last.Saldo : (ukUlazVred - ukIzlazVred);
+                decimal zadnjaCena = (last != null && last.Cena != 0m) ? last.Cena : (rob?.ProdajnaCena ?? 0m);
+
+                if (zadnjiSaldoVred == 0m && zadnjeStanjeKol != 0m)
+                {
+                    zadnjiSaldoVred = zadnjeStanjeKol * zadnjaCena;
+                }
 
                 return new RobniBrutoBilansRed
                 {

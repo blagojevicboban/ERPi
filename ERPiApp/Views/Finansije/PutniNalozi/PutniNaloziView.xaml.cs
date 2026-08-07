@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using ERPiApp.Services;
 using ERPiData;
+using ERPiData.Models.Core;
+using FirmaModel = ERPiData.Models.Core.Firma;
 using ERPiData.Models.Finansije;
 using ERPiData.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Finansije.PutniNalozi;
 
@@ -156,6 +162,34 @@ public partial class PutniNaloziView : UserControl
                     MessageBox.Show(msg, "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+    }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        => ExcelExportService.ExportDataGridToExcel(DgPutniNalozi, "Evidencija putnih naloga i dnevnica", "PutniNalozi");
+
+    private async void BtnStampa_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgPutniNalozi?.SelectedItem is not PutniNalog pn)
+        {
+            MessageBox.Show("Izaberite putni nalog za štampu.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            var full = await _service.GetPutniNalogByIdAsync(pn.PutniNalogId) ?? pn;
+            var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+
+            var pdfBytes = PdfReportService.GenerisiPutniNalogPdf(firma, full);
+            string siguranBroj = string.Join("_", (full.BrojNaloga ?? "PN").Split(Path.GetInvalidFileNameChars()));
+            string tempPath = Path.Combine(Path.GetTempPath(), $"PutniNalog_{siguranBroj}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            Process.Start(new ProcessStartInfo { FileName = tempPath, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju obrasca Putnog Naloga: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

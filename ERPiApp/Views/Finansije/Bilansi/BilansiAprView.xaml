@@ -37,6 +37,7 @@
                 <Grid Margin="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -48,7 +49,9 @@
                         <TextBlock Text="🏛️ Bilans Stanja (Zvanične AOP Pozicije)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
                     </DockPanel>
 
-                    <DataGrid Grid.Row="1" x:Name="DgBilansStanja" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                    <TextBlock Grid.Row="1" x:Name="TxtStatusRavnoteze" Margin="0,0,0,10" FontWeight="Bold"/>
+
+                    <DataGrid Grid.Row="2" x:Name="DgBilansStanja" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="AOP" Binding="{Binding AopCode}" Width="70" FontWeight="Bold"/>
                             <DataGridTextColumn Header="Pozicija Bilansa Stanja" Binding="{Binding Naziv}" Width="*"/>
@@ -64,6 +67,7 @@
                 <Grid Margin="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -75,7 +79,9 @@
                         <TextBlock Text="📈 Bilans Uspeha (Zvanične AOP Pozicije)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
                     </DockPanel>
 
-                    <DataGrid Grid.Row="1" x:Name="DgBilansUspeha" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                    <TextBlock Grid.Row="1" x:Name="TxtNetoRezultat" Margin="0,0,0,10" FontWeight="Bold"/>
+
+                    <DataGrid Grid.Row="2" x:Name="DgBilansUspeha" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="AOP" Binding="{Binding AopCode}" Width="70" FontWeight="Bold"/>
                             <DataGridTextColumn Header="Pozicija Bilansa Uspeha" Binding="{Binding Naziv}" Width="*"/>

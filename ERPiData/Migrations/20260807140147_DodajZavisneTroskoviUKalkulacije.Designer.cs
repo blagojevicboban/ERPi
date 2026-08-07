@@ -3,6 +3,7 @@ using System;
 using ERPiData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERPiData.Migrations
 {
     [DbContext(typeof(ErpiDbContext))]
-    partial class ErpiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807140147_DodajZavisneTroskoviUKalkulacije")]
+    partial class DodajZavisneTroskoviUKalkulacije
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -1362,9 +1365,6 @@ namespace ERPiData.Migrations
                     b.Property<bool>("IsTrgovinskiKnjizen")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("KontoDobavljacaId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("MagacinIdDaje")
                         .HasColumnType("INTEGER");
 
@@ -1422,8 +1422,6 @@ namespace ERPiData.Migrations
                     b.HasKey("MaloprodajnaKalkulacijaId");
 
                     b.HasIndex("DobavljacId");
-
-                    b.HasIndex("KontoDobavljacaId");
 
                     b.HasIndex("MagacinIdDaje");
 
@@ -5305,10 +5303,6 @@ namespace ERPiData.Migrations
                         .WithMany()
                         .HasForeignKey("DobavljacId");
 
-                    b.HasOne("ERPiData.Models.Core.Konto", "KontoDobavljaca")
-                        .WithMany()
-                        .HasForeignKey("KontoDobavljacaId");
-
                     b.HasOne("ERPiData.Models.Magacin.Magacin", "MagacinDaje")
                         .WithMany()
                         .HasForeignKey("MagacinIdDaje");
@@ -5324,8 +5318,6 @@ namespace ERPiData.Migrations
                         .HasForeignKey("NalogId");
 
                     b.Navigation("Dobavljac");
-
-                    b.Navigation("KontoDobavljaca");
 
                     b.Navigation("MagacinDaje");
 

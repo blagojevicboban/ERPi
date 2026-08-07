@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:svc="clr-namespace:ERPiData.Services;assembly=ERPiData"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200">
     <Grid Margin="16">
@@ -32,6 +33,16 @@
         <!-- DATA GRID -->
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
             <DataGrid x:Name="DgZakljucniList" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Tip}" Value="{x:Static svc:BrutoBilansRedTip.KlasaTotal}">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Background" Value="#E2E8F0"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Konto" Binding="{Binding BrojKonta}" Width="70" FontWeight="Bold"/>
                     <DataGridTextColumn Header="Naziv konta" Binding="{Binding NazivKonta}" Width="*"/>

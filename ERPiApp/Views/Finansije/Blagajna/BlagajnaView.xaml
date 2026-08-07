@@ -25,6 +25,8 @@
                                 <Button x:Name="BtnIzmeni" Content="✏️ Izmeni" Style="{StaticResource ActionButtonStyle}" Background="#4B5563" Margin="0,2,8,2" ToolTip="Izmeni izabrani blagajnički nalog" Click="BtnIzmeni_Click"/>
                                 <Button x:Name="BtnObrisi" Content="🗑️ Obriši" Style="{StaticResource ActionButtonStyle}" Background="#EF4444" Margin="0,2,8,2" ToolTip="Obriši izabrani blagajnički nalog" Click="BtnObrisi_Click"/>
                                 <Button x:Name="BtnKnjizi" Content="✅ Proknjiži u GK" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Margin="0,2,8,2" ToolTip="Proknjiži izabrane naloge u Glavnu knjigu" Click="BtnKnjizi_Click"/>
+                                <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource ActionButtonStyle}" Background="#059669" Width="36" Padding="0" ToolTip="Izvoz spiska naloga u Excel" Margin="0,2,8,2" Click="BtnExportExcel_Click"/>
+                                <Button x:Name="BtnStampa" Content="🖨️" Style="{StaticResource ActionButtonStyle}" Background="#4F46E5" Width="36" Padding="0" ToolTip="Štampaj Uplatnicu / Isplatnicu za izabrani nalog" Margin="0,2,0,2" Click="BtnStampa_Click"/>
                             </WrapPanel>
                             <WrapPanel VerticalAlignment="Center">
                                 <StackPanel Orientation="Vertical" Margin="0,0,16,0" VerticalAlignment="Center">
@@ -93,6 +95,7 @@
                                 </StackPanel>
 
                                 <Button Content="🔄 Osveži Dnevnik" Style="{StaticResource ActionButtonStyle}" Height="34" Padding="14,0" VerticalAlignment="Bottom" ToolTip="Učitaj podatke dnevnika za izabrani period" Click="BtnOsveziDnevnik_Click"/>
+                                <Button x:Name="BtnStampaDnevnik" Content="🖨️" Style="{StaticResource ActionButtonStyle}" Background="#4F46E5" Width="34" Height="34" Padding="0" VerticalAlignment="Bottom" Margin="8,0,0,0" ToolTip="Generiši i odštampaj Blagajnički Dnevnik u PDF formatu" Click="BtnStampaDnevnik_Click"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>

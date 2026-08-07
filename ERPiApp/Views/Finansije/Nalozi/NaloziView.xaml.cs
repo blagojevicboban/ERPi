@@ -264,11 +264,6 @@ public partial class NaloziView : UserControl
         }
     }
 
-    private void BtnUvozZarada_Click(object sender, RoutedEventArgs e)
-    {
-        MessageBox.Show("Nalog zarada automatski se knjiži iz modula ERPiZarade.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-    }
-
     private async void BtnStampa_Click(object sender, RoutedEventArgs e)
     {
         var selektovaniNalozi = DgNalozi.SelectedItems.Cast<Nalog>().ToList();

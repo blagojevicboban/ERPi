@@ -4,6 +4,48 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.5.0] - 2026-08-07
+
+### 🧮 Kalkulacije — zavisni troškovi nabavke
+- Veleprodajne kalkulacije sad računaju zavisne troškove nabavke (transport, uskladištenje,
+  utovar/istovar, transportno osiguranje, ostalo) i srazmerno ih raspodeljuju po stavkama
+  artikala — potpuni paritet sa ERPiFinansije.
+- Maloprodajne kalkulacije dobijaju sopstveni editor ("➕ Nova"/"✏️ Izmeni",
+  `MaloprodajnaKalkulacijaEditWindow`) i polje "Konto dobavljača" (podrazumevano 4350, po
+  potrebi drugi konto) umesto fiksnog konta 4350 na svakoj knjiženoj kalkulaciji.
+- DOS uvoz iz ERPiFinansije (`ErpiFinansijeImporter`) sad prenosi sve pozicije kalkulacije
+  (troškove, razliku u ceni, PDV, konto dobavljača) umesto samo osnovnih polja.
+- Novi unit testovi za raspodelu zavisnih troškova i knjiženje u Glavnu knjigu (veleprodaja i
+  maloprodaja).
+
+### 🧾 Partner picker
+- Nova deljena komponenta `PartnerPicker` (pretraga po šifri/nazivu/PIB-u, isti obrazac kao
+  postojeći `KontoPicker` za kontni plan) — prvo uvedena u Račun-otpremnicu.
+
+### 💰 Blagajna, Kompenzacije, Putni nalozi, Mesta troška — PDF štampa i Excel izvoz
+- Blagajna: štampa pojedinačnog blagajničkog naloga (uplatnica/isplatnica) i blagajničkog
+  dnevnika u PDF, plus izvoz u Excel.
+- Kompenzacije, Putni nalozi i Mesta troška/projekti dobijaju izvoz u Excel (do sad nisu imali).
+- `ExcelExportService` sad ume da primi višelinijsko zaglavlje (kao u PDF štampi) umesto
+  fiksnog naslova/datuma.
+
+### 🏛️ Bilansi (APR) — status poruke
+- Bilans Stanja i Bilans Uspeha na ekranu "Zvanični Finansijski Izveštaji za APR" sad prikazuju
+  iste statusne poruke kao ERPiFinansije — upozorenje o (ne)ravnoteži Aktiva/Pasiva i poruku o
+  neto dobitku/gubitku perioda (do sad su postojali samo tooltip-ovi na dugmadima, bez ijedne
+  poruke).
+
+### 🎨 Partneri — icon-only dugmad
+- Dugmad za kursnu listu, verifikaciju računa, IOS PDF i obračun kamate su sad icon-only sa
+  tooltip-om, u skladu sa ostatkom aplikacije.
+
+### 🛠️ Sitne ispravke
+- Robni bruto bilans: zadnje stanje/saldo/cena po artiklu se sad ispravno računaju kad je
+  poslednja kartica nulta (isti tip greške kao ranija DBF uvoz agregata za Sredstva) — više se ne
+  gubi vrednost zadnjeg stanja.
+- Uklonjeno mrtvo dugme "Uvoz iz ERPiZarade" iz Nalozi ekrana i prečac "📥 Uvoz Podataka Wizard"
+  sa Dashboard-a (uvoz je dostupan kroz Podešavanja).
+
 ## [2.4.1] - 2026-08-07
 
 ### 🛠️ Sitne ispravke posle 2.4.0

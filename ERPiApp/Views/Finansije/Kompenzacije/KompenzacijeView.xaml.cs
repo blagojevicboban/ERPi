@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using ERPiApp.Services;
 using ERPiData;
+using ERPiData.Models.Core;
+using FirmaModel = ERPiData.Models.Core.Firma;
 using ERPiData.Models.Finansije;
 using ERPiData.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERPiApp.Views.Finansije.Kompenzacije;
 
@@ -172,6 +178,33 @@ public partial class KompenzacijeView : UserControl
                     MessageBox.Show(msg, "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+    }
+
+    private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
+        => ExcelExportService.ExportDataGridToExcel(DgKompenzacije, "Evidencija kompenzacija i poravnanja", "Kompenzacije_Poravnanja");
+
+    private async void BtnStampa_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgKompenzacije?.SelectedItem is not Kompenzacija k)
+        {
+            MessageBox.Show("Izaberite kompenzaciju za štampu.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+            var pdfBytes = PdfReportService.GenerisiKompenzacijuPdf(firma, k);
+
+            string siguranBroj = string.Join("_", (k.BrojDokumenta ?? "Kompenzacija").Split(Path.GetInvalidFileNameChars()));
+            string tempPath = Path.Combine(Path.GetTempPath(), $"Kompenzacija_{siguranBroj}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            await File.WriteAllBytesAsync(tempPath, pdfBytes);
+            Process.Start(new ProcessStartInfo { FileName = tempPath, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri generisanju Izjave o kompenzaciji: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

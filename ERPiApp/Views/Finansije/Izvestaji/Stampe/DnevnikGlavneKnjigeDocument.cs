@@ -61,6 +61,14 @@ public class DnevnikGlavneKnjigeDocument : IDocument
                             c.Item().AlignRight().Text($"PIB: {_firma.Pib}").FontSize(9).FontColor(Colors.Grey.Darken2);
                     }
                     c.Item().PaddingTop(4).AlignRight().Text($"Datum štampe: {DateTime.Now:dd.MM.yyyy.}").FontSize(8).FontColor(Colors.Grey.Darken1);
+                    c.Item().PaddingTop(2).AlignRight().Text(x =>
+                    {
+                        x.DefaultTextStyle(s => s.FontSize(8).SemiBold().FontColor(Colors.Grey.Darken2));
+                        x.Span("Strana ");
+                        x.CurrentPageNumber();
+                        x.Span(" od ");
+                        x.TotalPages();
+                    });
                 });
             });
 
@@ -127,6 +135,7 @@ public class DnevnikGlavneKnjigeDocument : IDocument
     {
         container.AlignCenter().Text(x =>
         {
+            x.DefaultTextStyle(s => s.FontSize(9).SemiBold());
             x.Span("Strana ");
             x.CurrentPageNumber();
             x.Span(" od ");
