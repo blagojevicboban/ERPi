@@ -82,7 +82,18 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <DataGrid x:Name="DgKartica" Grid.Row="0" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" ToolTip="Dupli klik na stavku otvara nalog" MouseDoubleClick="DgKartica_MouseDoubleClick">
+                    <DataGrid x:Name="DgKartica" Grid.Row="0" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" ToolTip="Dupli klik ili desni klik na stavku otvara nalog za knjiženje" MouseDoubleClick="DgKartica_MouseDoubleClick">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="👁️ Pregledaj nalog" Click="CtxPregledajNalog_Click"/>
+                                <MenuItem Header="✏️ Izmeni / Rasknjiži nalog" Click="CtxIzmeniNalog_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="PreviewMouseRightButtonDown" Handler="DgKarticaRow_PreviewMouseRightButtonDown"/>
+                            </Style>
+                        </DataGrid.RowStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="110"/>
                             <DataGridTextColumn Header="Br. naloga" Binding="{Binding BrojNaloga}" Width="120"/>

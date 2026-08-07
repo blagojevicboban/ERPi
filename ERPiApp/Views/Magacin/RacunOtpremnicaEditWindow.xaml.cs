@@ -136,18 +136,22 @@ public partial class RacunOtpremnicaEditWindow : Window
         Partner? partner = CmbPartner.SelectedItem as Partner;
         ERPiData.Models.Magacin.Magacin? magacin = CmbMagacin.SelectedItem as ERPiData.Models.Magacin.Magacin;
 
-        if (magacin == null)
+        int.TryParse(TxtRokPlacanja.Text, out int rokDana);
+
+        // Stavka je validna ako je roba iz šifarnika (ArtikalId) ILI slobodna usluga (OpisUsluge) —
+        // zakon o fiskalizaciji ne pravi razliku između robe i usluge, faktura mora moći da nosi i jedno i drugo.
+        var validneStavke = _stavke.Where(s =>
+            ((s.ArtikalId is int aid && aid > 0) || !string.IsNullOrWhiteSpace(s.OpisUsluge)) && s.Kolicina > 0).ToList();
+        if (validneStavke.Count == 0)
         {
-            MessageBox.Show("Izaberite magacin iz koga se izdaje roba.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Unesite bar jednu validnu stavku (robu iz šifarnika ili opis usluge) sa količinom većom od 0.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        int.TryParse(TxtRokPlacanja.Text, out int rokDana);
-
-        var validneStavke = _stavke.Where(s => s.ArtikalId > 0 && s.Kolicina > 0).ToList();
-        if (validneStavke.Count == 0)
+        bool imaRobnihStavki = validneStavke.Any(s => s.ArtikalId is int rid && rid > 0);
+        if (imaRobnihStavki && magacin == null)
         {
-            MessageBox.Show("Unesite bar jednu validnu stavku robe sa količinom većom od 0.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Izaberite magacin iz koga se izdaje roba (obavezno kad faktura ima robne stavke).", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -164,7 +168,7 @@ public partial class RacunOtpremnicaEditWindow : Window
             racun.PartnerId = partner?.PartnerId;
             racun.RokPlacanjaDana = rokDana;
             racun.NacinPlacanja = CmbNacinPlacanja.Text.Trim();
-            racun.MagacinId = magacin.MagacinId;
+            racun.MagacinId = magacin?.MagacinId;
 
             racun.Stavke = validneStavke.Select((s, idx) =>
             {

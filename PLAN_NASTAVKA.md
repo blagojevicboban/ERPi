@@ -77,6 +77,17 @@
   (`XamlParseException: Cannot find resource named '...'`). Nađeno i ispravljeno za
   `SearchTextBoxStyle`/`PrimaryButton` u Fazi 3.5–3.12 (i prateći `Helpers/SearchInputHelper.cs`
   koji `SearchTextBoxStyle` zahteva). Detalji u `import-from-source-apps` skill fajlu.
+- **`NalogEditWindow` ima readonly/pregled režim za proknjižene naloge** (07.08.2026):
+  `NalogEditWindow(db, nalog, isReadOnly, fokusRedniBroj)` — kad je `isReadOnly` true, naslov
+  postaje "📖 Pregled proknjiženog naloga #X (Samo za čitanje)", polja/grid se zaključavaju,
+  jedino aktivno dugme je "🔓 Rasknjiži i izmeni" (admin-only, YesNo potvrda, isti obrazac kao
+  `NaloziView.BtnRasknjizi_Click`) — klikom se nalog rasknjiži i PROZOR SE NE ZATVARA, nego
+  prelazi u editabilan režim (`PrebaciURezimIzmene()`), isto ponašanje kao ERPiFinansije.
+  Aktivirano iz oba mesta koja otvaraju `NalogEditWindow`: `KarticaKontaView` (dupli-klik/desni-
+  klik na stavku — `isReadOnly = nalog.IsKnjizen && samoPregled`) i `NaloziView.BtnIzmeniNalog_Click`
+  (`isReadOnly = nalog.Status == StatusNaloga.Proknjizen`). **Ne poništavati ovu simetriju** —
+  ako se doda treće mesto koje otvara `NalogEditWindow` na proknjižen nalog, mora proći kroz isti
+  `isReadOnly` gate, ne direktno editabilno.
 
 ---
 
@@ -855,8 +866,9 @@ testira sam, vidi §4).
 - **Partneri** — `IstorijaZatvaranjaWindow` (istorijat zatvaranja stavki) i `KursnaListaWindow`
   (pregled kursne liste — ERPi ima samo `DeviznoValviranjeWindow` za valorizaciju, ne i pregled
   liste kurseva) nemaju pandan.
-- **Putni nalozi** — `IzvozZaZaradeWindow` (izvoz putnih naloga u Zarade) i
-  `PutniNalogEditWindow` (zaseban dijalog izmene) nemaju pandan.
+- ~~**Putni nalozi** — `IzvozZaZaradeWindow` (izvoz putnih naloga u Zarade) i
+  `PutniNalogEditWindow` (zaseban dijalog izmene) nemaju pandan.~~ Oboje sad postoje u ERPi
+  (`PutniNalogEditWindow` je preneto u međuvremenu; `IzvozZaZaradeWindow` urađeno u §3v).
 - **F1 Pomoc / help sistem za Finansije** — `Pomoc/PomocView`, `Pomoc/EditHelpWindow`,
   `Pomoc/ChangelogWindow`, `Pomoc/DosImportWindow` nemaju pandan na Finansije strani (Zarade
   ima svoj `Views/Zarade/Pomoc`, portovan u Fazi 5, ali Finansije nema ništa — isti nedostatak
@@ -1446,4 +1458,259 @@ inicijalizaciju (obradu install/update-apply hook-ova), ali nikad aktivnu prover
 **Build**: `dotnet build ERPi.slnx` čist, 0 upozorenja/0 grešaka; provereno da se `CHANGELOG.md`
 stvarno kopira u `bin/Debug/net8.0-windows/`. **Nije vizuelno provereno kroz UI** (korisnik testira
 sam). **Nije commit-ovano.**
+
+---
+
+## 3t. Kartica konta → Nalog (readonly/pregled) + 4 kritična nedostatka preneta iz ERPiFinansije (07.08.2026)
+
+Dve odvojene celine iz iste sesije, obe **nisu commit-ovane**.
+
+**Deo 1 — Dupli klik u Kartici konta sad stvarno otvara nalog** (originalni zahtev korisnika):
+`KarticaKontaView`'s `DgKartica_MouseDoubleClick` je do sad bio placeholder (`MessageBox` sa
+detaljima stavke, iako je tooltip grida odavno obećavao "otvara nalog"). Sad:
+- Otvara pravi `NalogEditWindow` sa `Include(Stavke).ThenInclude(Konto/Partner)` po `red.NalogId`.
+- Dodat kontekst-meni (desni klik) na `DgKartica`: "👁️ Pregledaj nalog" / "✏️ Izmeni / Rasknjiži
+  nalog" — isti obrazac kao ERPiFinansije `KarticeView`.
+- `NalogEditWindow` dobio readonly/pregled režim za proknjižene naloge — vidi belešku u §2
+  ("`NalogEditWindow` ima readonly/pregled režim..."), ne ponavljati ovde. Aktivirano i u
+  `NaloziView` radi konzistentnosti (korisnikov izričit izbor kroz pitanje u sesiji).
+- Dodato pozicioniranje na kliknutu stavku pri otvaranju (`PozicionirajNaStavku` po `RedniBroj`,
+  jer ERPi-jeva radna kopija stavki u `NalogEditWindow` ne nosi `StavkaNalogaId`).
+
+**Deo 2 — 4 "kritična nedostatka" iz šireg istraživanja ERPiFinansije vs ERPi** (korisnik je iz
+duže liste kandidata — vidi ispod — izabrao ovu grupu za ovaj krug):
+
+1. **Kompenzacije: Nova/Izmeni** — `KompenzacijaEditWindow` (novo,
+   `Views/Finansije/Kompenzacije/`) portovan iz ERPiFinansije, ali **bez sintetičko-partnerske
+   logike** (`SlotKljuc`/legacy-konto fallback iz izvora) — ERPi-jev `Kompenzacija`/
+   `KompenzacijaStavka` model već ima pravi `PartnerId` FK svuda, pa `SlotKljuc` je uvek
+   `"P{PartnerId}"`. Otvorene stavke se čitaju isključivo preko
+   `ZatvaranjeStavkiService.GetOtvoreneStavkeZaPartneraAsync` (nikad `GetOtvoreneStavkeZaKontoAsync`
+   fallback iz izvora). `KompenzacijeView` dobio "➕ Nova"/"✏️ Izmeni" dugmad (ikona-samo stil) i
+   dupli-klik na red u "Pametno skeniranje" tabu (`DgKandidati`) predpopunjava novu kompenzaciju
+   sa tim partnerom. **Uhvaćena i ispravljena greška pri portovanju**: `KompenzacijaService.
+   SacuvajKompenzacijuAsync` proverava `Strana == "Potražuje"` (sa ž) za obračun `UkupanIznosKompenzacije`
+   — prvobitni port je slučajno upisao "Potrazuje" (bez ž), što bi tiho učinilo `zbirObaveza`
+   uvek 0.
+2. **Putni nalozi: Nova/Izmeni** — `PutniNalogEditWindow` (novo, `Views/Finansije/PutniNalozi/`),
+   skoro 1:1 port (ERPi-jev model/servis se poklapaju polje-za-polje sa izvorom, nema string→FK
+   adaptacije). `PutniNaloziView.BtnNoviNalog_Click`/`BtnIzmeni_Click` više ne pišu "biće dostupno
+   u narednom prikazu" nego stvarno otvaraju editor. Namerno **nije** duplirano računanje
+   `TrajanjeSati`/`BrojDnevnica`/`TroskoviXxx`/`UkupnoZaIsplatu` u prozoru — to već radi
+   `PutniNalogService.SacuvajPutniNalogAsync` iznova iz `StavkeTroskova` pri svakom snimanju.
+3. **Korisnici i uloge (RBAC)** — potpuno nov ekran, `Views/Korisnici/` (`KorisniciView` +
+   `KorisnikEditWindow`), do sad nije postojao nijedan način da se korisnici upravljaju kroz UI
+   (samo `LoginWindow`). Novi nav unos "👤 Korisnici i uloge" u `MainWindow` sidebar-u, sekcija
+   "PODEŠAVANJA I SISTEM" (zajedničko za sve module — `Korisnik` je po dizajnu Single Sign-On,
+   ne Finansije-specifičan). Adaptacija: izvor drži `Uloga` kao slobodan string, ERPi već ima
+   **enum** `UlogaKorisnika` (namerna ranija popravka) — combo/DataTrigger-i u XAML-u koriste
+   `{x:Static core:UlogaKorisnika.X}` umesto string-poređenja, da ne zavise od WPF-ovog
+   enum→string XAML koercije. Lozinka ide kroz već postojeći `ErpiDbContext.HashPassword`/
+   `VerifyPassword`. Nema F1 help (isti razlog kao svuda u ERPi — hub još ne postoji).
+4. **Kursna lista — bug-fix + ekran** — `KursnaListaWindow` (novo,
+   `Views/Finansije/Partneri/`), skoro 1:1 port (`KursnaListaService` već identičnog API-ja).
+   **Ovo je bio pravi bag, ne samo nedostatak**: `PartneriView.BtnKursnaLista_Click` je otvarao
+   `DeviznoValviranjeWindow` (potpuno druga funkcija) umesto kursne liste — dugme/tooltip su i
+   dalje govorili "Kursna lista". Ispravljeno da otvara novi `KursnaListaWindow(_db)`.
+
+**Servisni sloj za sve četiri stavke je bio već gotov u `ERPiData`** pre ove sesije (proveren
+direktnim čitanjem — `KompenzacijaService`, `PutniNalogService`, `KursnaListaService`,
+`ErpiDbContext.HashPassword`) — posao je bio gotovo isključivo UI port + žica, ne nova poslovna
+logika.
+
+**Preostale, NEIZABRANE stavke iz istog istraživanja** (šire poređenje `ERPiFinansijeApp/Views/`
+vs `ERPiApp/Views/`, fajl-po-fajl) — kandidati za sledeći krug, da se istraživanje ne ponavlja:
+- Fiskalizacija/SEF: maloprodajna fiskalizacija (ESIR, `FiskalniRacunWindow` + servis potpuno
+  nedostaju), preuzimanje ulaznih e-faktura sa SEF-a (`SefUlazneFaktureWindow`, backend već gotov),
+  prava integracija izlaznih e-faktura (trenutni `SefFaktureView` radi sa mock/hardkodovanim
+  podacima, ne pravim SEF pozivima).
+- Administracija: Rezervne kopije (Backup) tab u Podešavanjima (`BackupService` već postoji,
+  samo pod pogrešnim "Zarade" namespace-om), DMS prilozi (`DmsService` postoji, nigde korišćen),
+  `FirmeView` (uređivanje bilo koje firme iz liste, ne samo trenutno otvorene), Pomoć za naloge
+  (F1) + Istorija izmena/audit (`PromeneWindow` — fali i backend model `Promena`).
+  ~~Izveštaji/Zarade: analitički drill-down bruto bilansa, izvoz putnih naloga za Zarade
+  (`IzvozZaZaradeWindow` — bez njega je uvozni lanac ka Zarade modulu nepotpun, jer
+  `UvozPutnihNalogaWindow` i dalje očekuje baš taj JSON fajl kao ulaz).~~ Oboje urađeno, vidi §3v.
+
+**Build**: `dotnet build ERPi.slnx` čist (0 CS grešaka/upozorenja) — build komanda je tokom sesije
+stalno padala na poslednjem koraku kopiranja `.exe`-a (`MSB3027`/`MSB3061`) zato što je `ERPiApp`
+bio pokrenut/pod debugerom (`netcoredbg`) u paraleli dok je korisnik testirao — to nije greška u
+kodu, samo zaključan fajl; potvrđeno da nema `error CS`/`warning CS` linija nijednom od nekoliko
+uzastopnih build-ova. **Nijedan od ovih ekrana nije vizuelno proveren kroz UI** (korisnik testira
+sam). **Ništa nije commit-ovano.**
+
+---
+
+## 3u. Račun-otpremnica: prava PDF štampa + Pretvori predračun u fakturu (07.08.2026, nastavak)
+
+Korisnik je tražio "Portuj Račun otpremnica iz robno ERPiFinansije" — ekran je ispalo da **već
+postoji** u ERPi (`Views/Magacin/RacuniOtpremniceView` + `RacunOtpremnicaEditWindow`, preneto u
+ranijoj Fazi 3.3b/3.12, `KontoKupca`/`SifraArtikla` stringovi već adaptirani na prave
+`PartnerId`/`ArtikalId`/`MagacinId` FK-ove), ali poređenjem sa `TrgovinaView.xaml.cs` u izvoru
+(2802-linijski monolit, `RacunOtpremnica`-relevantne akcije razbacane po celom fajlu) nađena su
+dva konkretna nedostatka koja su i ispravljena:
+
+- **`BtnStampajPdf_Click` je bio čist placeholder** — samo `MessageBox.Show("Priprema PDF
+  štampanog dokumenta...")`, ništa se stvarno nije generisalo (isti obrazac lažnog UX-a kao
+  ranije nađeni bag u `KarticaKontaView`-ovom dupli-kliku, vidi §3t). `PdfReportService`-ov doc-
+  komentar ("Uključuje: ... Račune-Otpremnice ...") je već tvrdio da postoji, a metoda
+  `GenerisiRacunOtpremnicuPdf` uopšte nije postojala u `ERPiApp/Services/PdfReportService.cs`.
+  Portovana iz `ERPiFinansijeApp/Services/PdfReportService.cs` (QuestPDF, isti obrazac kao
+  `GenerisiKarticuPdf`/`GenerisiNalogePdf`), polja adaptirana na FK model:
+  `st.SifraArtikla`/`st.NazivArtikla` (string) → `st.Artikal.SifraArtikla`/`st.Artikal.Naziv`
+  (navigacija), `st.IznosBezPdv`/`st.PdvIznos`/`st.UkupanIznos` → `st.Osnovica`/`st.IznosPdv`/
+  `st.Ukupno`, `partner?.Naziv`/`racun.KontoKupca` fallback → samo `racun.Partner?.Naziv` (ERPi
+  nema legacy string-konto kupca u ovom toku, `KontoKupcaId` FK na modelu postoji ali ga
+  `RacunOtpremnicaEditWindow` ne popunjava — nije dirano, van dosega ove izmene).
+  `RacuniOtpremniceView.BtnStampajPdf_Click` sad učitava pun račun preko
+  `RacunOtpremnicaService.GetRacunByIdAsync` (već ima `Include(Stavke).ThenInclude(Artikal)`),
+  generiše PDF u temp folder i otvara ga (`Process.Start`) — isti obrazac kao
+  `KarticaKontaView.BtnStampajKartice_Click`.
+- **"Pretvori predračun u fakturu" nije bio dostupan iz UI** — servisna metoda
+  `RacunOtpremnicaService.PretvoriUFakturuAsync` je već postojala (nekorišćena), samo dugme u
+  `RacuniOtpremniceView` nije postojalo. Dodato "🔄 Pretvori u fakturu" u toolbar, sa proverom
+  da je izabrani dokument stvarno predračun i YesNo potvrdom.
+
+**Namerno van dosega** (isti razlog kao već zabeleženo u §3t "Preostale, NEIZABRANE stavke"):
+SEF slanje/status/UBL izvoz i ESIR fiskalizacija za račun-otpremnicu (`BtnPosaljiNaSef`/
+`BtnOsveziSefStatus`/`BtnSacuvajUbl`/`FiskalniRacunWindow` u izvoru) — `RacunOtpremnica` model već
+ima pripremljena polja (`SefId`/`SefStatus`/`SefDatumSlanja`/`SefPoruka`/`FiskalniBroj`/
+`FiskalniQrKod`/`FiskalniDatum`), ali sama SEF integracija je već identifikovana kao širi,
+neizabran posao (mock `SefFaktureView`, nedostajući `EsirFiskalizacijaService`) — ne rešavati
+parče-po-parče kroz pojedinačne ekrane, čeka zajednički rad na celoj SEF/PFR celini.
+
+**Build**: `dotnet build ERPi.slnx` — potpuno čist (0 grešaka, 0 upozorenja), ovog puta i sam
+`.exe` korak prošao (korisnik je zatvorio pokrenutu instancu). **Nije vizuelno provereno kroz UI**
+(korisnik testira sam — probaj PDF štampu i pretvaranje predračuna u fakturu). **Nije
+commit-ovano.**
+
+---
+
+## 3v. §D.13 Izvoz putnih naloga za Zarade + §D.12 Analitički drill-down bruto bilansa (07.08.2026, nastavak)
+
+Dve stavke iz "Preostale, NEIZABRANE stavke" (§3u/§3t, "Izveštaji/Zarade") urađene u istoj sesiji:
+
+- **Izvoz putnih naloga za Zarade** — `IzvozZaZaradeWindow` portovan iz
+  `ERPiFinansijeApp/Views/PutniNalozi/IzvozZaZaradeWindow` u
+  `ERPiApp/Views/Finansije/PutniNalozi/`, novo dugme "📤" (ikona-samo + ToolTip,
+  `IconButtonStyle`) u `PutniNaloziView` toolbaru. Novi servis
+  [`ERPiData/Services/PutniNaloziZaZaradeWriter.cs`](ERPiData/Services/PutniNaloziZaZaradeWriter.cs) —
+  1:1 port logike (dnevnica u zemlji, samo proknjiženi nalozi, računa prekoračenje preko
+  postojećeg `PutniNalogService.VaziciNeoporeziviIznosAsync`/`PrekoracenjeDnevnice`), ali radi
+  direktno nad `ErpiDbContext` (bez posebnog `AccountingDbContext`, jer ERPi nema odvojenu bazu
+  za Finansije). **JSON kontrakt je bit-za-bit isti** kao već postojeći uvoznik na drugoj strani
+  (`ERPiApp/Services/Zarade/PutniNaloziImportService.cs`, ranije portovan ali dotad bez ičega
+  što bi taj fajl proizvelo) — oznaka formata `"ERPi-putni-nalozi-za-zarade"`, verzija 1, isti
+  nazivi polja (`Format`/`Verzija`/`Izvor`/`Firma.Naziv`/`Pib`/`MaticniBroj`/`Godina`/`Mesec`/
+  `Stavke[].Jmbg`/`ZaposleniIme`/`BrojNaloga`/`DatumPovratka`/`UkupnoDnevnice`/`NeoporeziviDeo`/
+  `PrekoracenjeDnevnice`) — **uvozni lanac Finansije→Zarade je sada kompletan**, oba kraja žive
+  u istom rešenju.
+  - Pojednostavljeno u odnosu na izvor: "nalazi" (upozorenja/greške pri pripremi) su ovde obična
+    lista već formatiranih `string` poruka (`"[Greška] ..."`), ne poseban `NalazUvoza` tip sa
+    enum težinom — izvorni prozor je i tako te objekte odmah spljoštavao u stringove pre prikaza
+    u `ItemsControl`, pa novi tip ne bi dodao ništa sem koda. Prikazna tabela (`DgStavke`) sad
+    dobija stavke direktno iz `PutniNaloziZaZaradeWriter.GenerisiAsync`-a (jedan izvor istine),
+    umesto da ih izvorni prozor računa drugi put duplirajući `writer`-ovu logiku.
+- **Analitički drill-down bruto bilansa** — ispostavilo se da je servisni sloj
+  (`OtvoreneStavkeService.GetBrutoBilansAnalitikeAsync`, grupisanje po partneru umesto po kontu)
+  **već bio portovan** u ranijoj sesiji, samo nekorišćen (nijedan ekran ga nije zvao) — otud
+  "Malo" ocena u planu, posao je bio samo UI. Dodato:
+  - `BrutoBilansAnalitikePreviewWindow` portovan iz
+    `ERPiFinansijeApp/Views/Izvestaji/BrutoBilansAnalitikePreviewWindow` u
+    `ERPiApp/Views/Finansije/Izvestaji/` (export-u-Excel dugme prebačeno na `IconButtonStyle`
+    umesto originalnog icon+text "X" dugmeta).
+  - Novo dugme "🔎" u `BrutoBilansView` toolbaru otvara taj prozor.
+  - `GetBrutoBilansAnalitikeAsync` dopunjen opcionim `odDatuma`/`doDatuma` parametrima (izvor ih
+    nije imao — ignorisao je period) da poštuje isti filter period koji je već primenjen na
+    glavni bruto bilans u istom ekranu; bez zadatih parametara ponaša se identično originalu.
+
+**Build**: `dotnet build ERPi.slnx` čist (0 grešaka, 0 upozorenja) — jedan build u sredini sesije
+je pukao na `SefUlazneFaktureWindow.xaml.cs` (`BtnOsvezi_Click`/`BtnZatvori_Click` "ne postoje"
+iako ih fajl sadrži), ponovni build odmah posle bio čist bez ijedne izmene — isti obrazac
+tranzijentnog XAML-generisanja koji je već zabeležen u §3u ("build komanda je tokom sesije
+stalno padala..."), ne stvarna greška u kodu. **Nijedan od dva ekrana nije vizuelno proveren
+kroz UI** (korisnik testira sam). **Ništa nije commit-ovano.**
+
+---
+
+## 3w. Fiskalizacija/SEF grupa: usluge na fakturi + prava SEF/PFR integracija (07.08.2026, nastavak)
+
+Radi se o tri stavke iz "Preostale, NEIZABRANE stavke" (§3u, "Fiskalizacija/SEF") koje je korisnik
+sada eksplicitno tražio da se urade: maloprodajna fiskalizacija (ESIR), preuzimanje ulaznih
+e-faktura, i prava integracija izlaznih e-faktura (dotad mock). **Ovim se stavlja tačka na
+"namerno van dosega" napomenu iz §3u** — SEF/PFR nije više odloženo.
+
+**Prethodno istraženo (web, pre pisanja plana) — Zakon o fiskalizaciji Republike Srbije:**
+- Ruta se određuje **po tipu kupca, ne po robi/usluzi**: fizičko lice (krajnji potrošač) →
+  fiskalni račun (PFR), pravno lice/preduzetnik/javni sektor → e-Faktura (SEF). "Promet na malo"
+  obuhvata robu i usluge podjednako. Izvori: [paragraf.rs](https://www.paragraf.rs/baza-znanja/knjigovodstvo/obveznik-pdv-usluga-prometa-na-malo-korisnicima-sef-obaveza-izdavanja-e-fakture.html),
+  [epos.rs FAQ](https://www.epos.rs/najcesca-pitanja-fiskalizacija/).
+- Ni ERPiFinansije ni ERPi nisu imali koncept "usluga" u `Artikal` šifarniku — otud odluka da se
+  to doda kao deo ovog kruga (ispod).
+
+**A. Usluge na Računu-otpremnici (trajna odluka modela, ne poništavati bez razloga):**
+- `RacunOtpremnicaStavka.ArtikalId` je već bio `int?` (opciono) — dodata dva nova polja
+  `OpisUsluge`/`JedinicaMereUsluge` (oba `string?`) koja se koriste ISKLJUČIVO kad `ArtikalId`
+  nije popunjen. Migracija `DodajUsluguNaRacunOtpremnicuStavku` (čisto aditivna), verifikovana na
+  scratch bazi (`dotnet ef database update --connection`, sve migracije do kraja prošle čisto).
+- `RacunOtpremnicaEditWindow`: nova editabilna kolona "Opis usluge" pored `ColArtikal`; validacija
+  prihvata stavku ako ima `ArtikalId` ILI `OpisUsluge`. **Magacin je sad obavezan SAMO ako račun
+  ima bar jednu robnu stavku** — čisto-uslužni račun se čuva/knjiži bez magacina.
+- `RacunOtpremnicaService.KnjiziRacunAsync`/`RasknjiziRacunAsync`: petlje ka
+  `MaterijalnaKarticaService` filtriraju samo stavke sa `ArtikalId.HasValue` — GL knjiženje
+  (kupac/prihod/PDV) ostaje nepromenjeno jer već radi isključivo nad agregatima
+  (`UkupnoZaUplatu`/`UkupnoOsnovica`/`UkupnoPdv`), agnostično na robu/uslugu.
+- `PdfReportService.GenerisiRacunOtpremnicuPdf`: fallback `st.Artikal?.Naziv ?? st.OpisUsluge`
+  (i analogno za šifru/JM) u tabeli stavki.
+
+**B. PFR fiskalizacija Računa-otpremnice — `PfrService.FiskalizujRacunOtpremnicuAsync`:**
+- Namerno NIJE portovan poseban `EsirFiskalizacijaService` iz ERPiFinansije (izbegnut dupliran
+  PFR HTTP klijent) — nova metoda u postojećem `PfrService` ponovo koristi isti `PfrApiClient`.
+- Za razliku od postojeće `FiskalizujRacunAsync(pfrRacunId)` (gradi JEDNU lump-sum stavku za
+  samostalni `PfrRacun`), ova metoda gradi **pravu stavku po redu fakture**
+  (`Artikal?.Naziv ?? OpisUsluge`, `Kolicina`, `ProdajnaCena`, `Ukupno`) — tačnije, jer
+  `RacunOtpremnica` već ima pravu listu stavki. Obe metode namerno koegzistiraju.
+- Upisuje rezultat u **već postojeća, do sad mrtva polja** `RacunOtpremnica.FiskalniBroj`/
+  `FiskalniQrKod`/`FiskalniDatum` (pripremljena u ranijoj fazi, nigde korišćena do sada).
+- Način plaćanja nije još polje na `RacunOtpremnica` — `PfrZahtevPlacanje` ide podrazumevano kao
+  `"Cash"` (isti default kao postojeći `FiskalizujRacunAsync`). Pravo polje za način plaćanja je
+  odvojena, manja naknadna izmena.
+
+**C. `SefFaktureView` preusmeren sa mock `SefDokument` na prave `RacunOtpremnica` zapise:**
+- Ovo je bio pravi bag, ne samo nedostatak: `SefFaktureView` je radio nad potpuno izmišljenim
+  `SefDokument` modelom (bez veze ka stvarnoj fakturi) — "➕ Nova faktura" je pravila lažne iznose
+  10000/2000/12000, "Pošalji na SEF" je samo lokalno menjao status bez ijednog mrežnog poziva.
+  Prava servisna metoda (`SefService.PosaljiNaSefAsync`) je već postojala i radila nad
+  `RacunOtpremnica`, ali je nije zvao nijedan ekran u `ERPiApp` (potvrđeno grep-om pre izmene).
+- `SefFaktureView.UcitajFakture()` sad čita `_db.RacuniOtpremnice.Where(TipDokumenta==Racun &&
+  IsKnjizen)` — samo proknjiženi pravi računi (predračuni i neproknjiženi se ne šalju).
+  Dugme "➕ Nova faktura" **uklonjeno u potpunosti** (nova faktura se pravi u `RacuniOtpremniceView`,
+  ne ovde).
+- Dugmad sad rade prave pozive: "🚀 Pošalji na SEF" (`SefService.PosaljiNaSefAsync`), "🧾 Fiskalizuj"
+  (novo, deo B), "🔄 Osveži status" (`SefService.OsveziStatusNaSefuAsync`), "💾 Sačuvaj UBL"
+  (novo, `SefService.SacuvajUblXmlFajlAsync` + `SaveFileDialog`).
+- **Dugmad se automatski uslovljavaju po tipu partnera** (korisnikova eksplicitna odluka, u skladu
+  sa Zakonom iz uvoda ove sekcije): `JeSefKandidat(Partner? p) => p != null &&
+  !string.IsNullOrWhiteSpace(p.Pib)` — SEF/UBL dugmad aktivna samo za partnere sa PIB-om (pravna
+  lica), Fiskalizuj dugme aktivno samo bez PIB-a (fizičko lice ili bez partnera/maloprodaja).
+- **`SefDokument` model/DbSet namerno NIJE obrisan** — ostaje u šemi bez UI potrošača (isti obrazac
+  kao već napuštena `UvoznaKalkulacijaWindow` iz §3u istraživanja), da se izbegne rizičnija
+  migracija koja briše tabelu. Cleanup kandidat za budućnost.
+
+**D. Preuzimanje ulaznih e-faktura — `SefUlazneFaktureWindow` (novo, `Views/SefPfr/`):**
+- Skoro 1:1 port iz `ERPiFinansije/ERPiFinansijeApp/Views/Trgovina/SefUlazneFaktureWindow` —
+  čisto-prikazni ekran (datum "od" + dugme Preuzmi + readonly grid), bez perzistencije u bazu.
+  Poziva već gotov `SefService.PreuzmiUlazneFaktureAsync`. Konstruktor prima `ErpiDbContext db`
+  (isti obrazac kao svuda u ERPi) umesto self-managed konteksta iz izvora.
+- Novo dugme "📥" u `SefFaktureView` toolbaru otvara ovaj prozor.
+
+**Build**: `dotnet build ERPi.slnx` čist (0 grešaka, 0 upozorenja) nakon svake celine. EF migracija
+verifikovana na scratch bazi (sve migracije do `DodajUsluguNaRacunOtpremnicuStavku` primenjene
+čisto). `grep -rn "SefDokumenti" ERPiApp` vraća 0 pogodaka (potvrda potpunog preusmeravanja).
+Usput uočena i sama-od-sebe nestala tranzijentna greška (`BrutoBilansAnalitikeRed` duplirana
+definicija u `OtvoreneStavkeService.cs`/`BrutoBilansService.cs`) tokom paralelnog rada druge
+sesije na §3v stavkama u isto vreme — build je bio čist i pre i posle, nije diranо. **Nijedan
+ekran nije vizuelno proveren kroz UI** (korisnik testira sam — posebno proveriti da čisto-uslužni
+račun bez magacina radi kroz ceo tok, i da se SEF/Fiskalizuj dugmad ispravno uključuju/isključuju
+po tipu partnera). **Ništa nije commit-ovano.**
 

@@ -133,7 +133,8 @@ public partial class NaloziView : UserControl
     {
         if (DgNalozi.SelectedItem is Nalog selektovan)
         {
-            var win = new NalogEditWindow(_db, selektovan) { Owner = Window.GetWindow(this) };
+            bool isReadOnly = selektovan.Status == StatusNaloga.Proknjizen;
+            var win = new NalogEditWindow(_db, selektovan, isReadOnly) { Owner = Window.GetWindow(this) };
             if (win.ShowDialog() == true)
             {
                 Ucitaj();

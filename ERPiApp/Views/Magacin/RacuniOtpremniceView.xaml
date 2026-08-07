@@ -19,6 +19,7 @@
                     <Button x:Name="BtnIzmeni" Content="✏️ Izmeni" Style="{StaticResource ActionButtonStyle}" Background="#3B82F6" Click="BtnIzmeni_Click" Margin="0,0,10,0"/>
                     <Button x:Name="BtnKnjizi" Content="⚡ Knjiži" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Click="BtnKnjizi_Click" Margin="0,0,10,0"/>
                     <Button x:Name="BtnRasknjizi" Content="↩️ Rasknjiži" Style="{StaticResource ActionButtonStyle}" Background="#F59E0B" Click="BtnRasknjizi_Click" Margin="0,0,10,0"/>
+                    <Button x:Name="BtnPretvoriPredracun" Content="🔄 Pretvori u fakturu" Style="{StaticResource ActionButtonStyle}" Background="#7C3AED" ToolTip="Pretvara izabrani predračun u pravi račun-otpremnicu" Click="BtnPretvoriPredracun_Click" Margin="0,0,10,0"/>
                     <Button x:Name="BtnStampajPdf" Content="🖨️ PDF" Style="{StaticResource ActionButtonStyle}" Background="#4F46E5" Click="BtnStampajPdf_Click" Margin="0,0,10,0"/>
                     <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource ActionButtonStyle}" Background="#059669" Width="36" Padding="0" ToolTip="Izvoz računa u Excel" Click="BtnExportExcel_Click" Margin="0,0,10,0"/>
                 </StackPanel>

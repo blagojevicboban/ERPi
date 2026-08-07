@@ -326,7 +326,7 @@ public partial class PartneriView : UserControl
 
     private void BtnKursnaLista_Click(object sender, RoutedEventArgs e)
     {
-        var win = new ERPiApp.Views.Finansije.Devizno.DeviznoValviranjeWindow(_db) { Owner = Window.GetWindow(this) };
+        var win = new KursnaListaWindow(_db) { Owner = Window.GetWindow(this) };
         win.ShowDialog();
     }
 

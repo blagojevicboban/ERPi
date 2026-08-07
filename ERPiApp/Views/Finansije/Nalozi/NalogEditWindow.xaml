@@ -82,6 +82,7 @@
         <!-- AKCIJE -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="BtnOtkazi" Content="Otkaži" Style="{StaticResource SecondaryButton}" Width="110" Margin="0,0,10,0" Click="BtnOtkazi_Click"/>
+            <Button x:Name="BtnRaskniziIIzmeni" Content="🔓 Rasknjiži i izmeni" Style="{StaticResource ActionButtonStyle}" Background="#DC2626" Margin="0,0,10,0" Click="BtnRaskniziIIzmeni_Click" Visibility="Collapsed"/>
             <Button x:Name="BtnSacuvajNacrt" Content="💾 Sačuvaj kao nacrt" Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" Click="BtnSacuvajNacrt_Click"/>
             <Button x:Name="BtnProknjizi" Content="✅ Sačuvaj i proknjiži" Style="{StaticResource ActionButtonStyle}" Click="BtnProknjizi_Click"/>
         </StackPanel>

@@ -138,8 +138,11 @@ public class RacunOtpremnicaService
             throw new InvalidOperationException("Predračun se ne može knjižiti — prvo ga pretvorite u račun.");
         if (racun.IsKnjizen) throw new InvalidOperationException("Račun je već proknjižen.");
 
+        // Uslužne stavke (ArtikalId == null) ne razdužuju magacin — samo robne stavke idu na
+        // materijalnu karticu. Magacin je obavezan SAMO ako račun ima bar jednu robnu stavku.
         decimal nabavnaVrednostProdate = 0m;
-        if (racun.Stavke.Count > 0)
+        var robneStavke = racun.Stavke.Where(s => s.ArtikalId.HasValue).ToList();
+        if (robneStavke.Count > 0)
         {
             if (racun.Magacin == null)
             {
@@ -147,7 +150,7 @@ public class RacunOtpremnicaService
             }
 
             var kartice = new MaterijalnaKarticaService(_db);
-            foreach (var s in racun.Stavke)
+            foreach (var s in robneStavke)
             {
                 string sifraArtikla = s.Artikal?.SifraArtikla ?? s.ArtikalId.ToString()!;
                 nabavnaVrednostProdate += await kartice.DodajIzlazRedAsync(
@@ -275,10 +278,10 @@ public class RacunOtpremnicaService
         if (racun == null) throw new InvalidOperationException("Račun nije pronađen.");
         if (!racun.IsKnjizen) throw new InvalidOperationException("Račun nije proknjižen.");
 
-        if (racun.Magacin != null && racun.Stavke.Count > 0)
+        if (racun.Magacin != null)
         {
             var kartice = new MaterijalnaKarticaService(_db);
-            foreach (var s in racun.Stavke.AsEnumerable().Reverse())
+            foreach (var s in racun.Stavke.Where(s => s.ArtikalId.HasValue).AsEnumerable().Reverse())
             {
                 string sifraArtikla = s.Artikal?.SifraArtikla ?? s.ArtikalId.ToString()!;
                 await kartice.UkloniPoslednjiRedAsync(racun.Magacin.SifraMagacina, sifraArtikla, $"Račun {racun.BrojRacuna}");

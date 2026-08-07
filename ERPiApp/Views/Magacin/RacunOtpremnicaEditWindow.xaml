@@ -64,7 +64,7 @@
                     <ComboBoxItem Content="Kartica"/>
                 </ComboBox>
 
-                <TextBlock Text="Magacin *" Grid.Row="8" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                <TextBlock Text="Magacin (obavezan ako ima robe)" Grid.Row="8" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 <ComboBox x:Name="CmbMagacin" Grid.Row="8" Grid.Column="1" Height="34" VerticalContentAlignment="Center" DisplayMemberPath="Prikaz"/>
             </Grid>
         </Border>
@@ -79,11 +79,14 @@
                 <DataGrid x:Name="DgStavke" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="R.br." Binding="{Binding RedniBroj}" Width="45" IsReadOnly="True"/>
-                        <DataGridComboBoxColumn x:Name="ColArtikal" Header="Artikal *"
+                        <DataGridComboBoxColumn x:Name="ColArtikal" Header="Artikal (roba)"
                                                   SelectedValueBinding="{Binding ArtikalId}"
                                                   SelectedValuePath="ArtikalId"
                                                   DisplayMemberPath="Prikaz"
-                                                  Width="2*"/>
+                                                  Width="1.6*"/>
+                        <DataGridTextColumn Header="Opis usluge (ako nema artikla)" Binding="{Binding OpisUsluge, UpdateSourceTrigger=PropertyChanged}" Width="1.4*"
+                                            ToolTipService.ToolTip="Popuniti samo ako stavka NIJE roba iz šifarnika — npr. konsalting, prevoz, zakupnina. Ne razdužuje magacin."/>
+                        <DataGridTextColumn Header="JM (usluga)" Binding="{Binding JedinicaMereUsluge, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
                         <DataGridTextColumn Header="Količina *" Binding="{Binding Kolicina, StringFormat=\{0:N2\}}" Width="90"/>
                         <DataGridTextColumn Header="Prod. cena *" Binding="{Binding ProdajnaCena, StringFormat=\{0:N2\}}" Width="100"/>
                         <DataGridTextColumn Header="Rabat %" Binding="{Binding RabatProcenat, StringFormat=\{0:N2\}}" Width="70"/>

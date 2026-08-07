@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using ERPiData;
 using ERPiData.Models.Finansije;
 using ERPiData.Services;
@@ -89,6 +90,43 @@ public partial class KompenzacijeView : UserControl
     }
 
     private void BtnOsveziSkeniranje_Click(object sender, RoutedEventArgs e) => LoadSkeniranje();
+
+    private void BtnNovaKompenzacija_Click(object sender, RoutedEventArgs e)
+    {
+        var nova = new Kompenzacija { Datum = DateTime.Today };
+        OtvoriEditor(nova);
+    }
+
+    private void BtnIzmeniKompenzacija_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgKompenzacije?.SelectedItem is not Kompenzacija k) return;
+
+        if (k.IsKnjizeno)
+        {
+            MessageBox.Show("Proknjižena kompenzacija se ne može menjati.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        OtvoriEditor(k);
+    }
+
+    private void DgKandidati_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (DgKandidati.SelectedItem is not ObostranoDugovanjeCandidate kandidat) return;
+
+        var nova = new Kompenzacija { Datum = DateTime.Today, PartnerId = kandidat.PartnerId };
+        OtvoriEditor(nova);
+    }
+
+    private void OtvoriEditor(Kompenzacija kompenzacija)
+    {
+        var dijalog = new KompenzacijaEditWindow(_db, kompenzacija) { Owner = Window.GetWindow(this) };
+        if (dijalog.ShowDialog() == true)
+        {
+            LoadKompenzacije();
+            LoadSkeniranje();
+        }
+    }
 
     private async void BtnObrisi_Click(object sender, RoutedEventArgs e)
     {

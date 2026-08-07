@@ -215,6 +215,12 @@ public partial class MainWindow : Window
         MainContentHost.Content = new ERPiApp.Views.Finansije.MestaTroska.MestaTroskaView(_db);
     }
 
+    private void NavKorisnici_Click(object sender, RoutedEventArgs e)
+    {
+        TxtHeaderTitle.Text = "👤 Korisnici i uloge";
+        MainContentHost.Content = new ERPiApp.Views.Korisnici.KorisniciView(_db);
+    }
+
     private void NavKarticaKonta_Click(object sender, RoutedEventArgs e)
     {
         TxtHeaderTitle.Text = "💳 Kartice konta";

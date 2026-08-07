@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using ERPiData.Models.Finansije;
+using ERPiData.Models.Magacin;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERPiData.Services;
@@ -97,6 +99,67 @@ public class PfrService
         racun.Status = "Greška";
         racun.Napomena = message;
         await _db.SaveChangesAsync();
+
+        return (false, message);
+    }
+
+    /// <summary>
+    /// Fiskalizuje Račun-otpremnicu (maloprodaja fizičkom licu) — za razliku od
+    /// <see cref="FiskalizujRacunAsync"/> (koja gradi jednu lump-sum stavku za samostalni
+    /// <see cref="PfrRacun"/>), ovde se PFR zahtev gradi sa PRAVOM stavkom po redu fakture
+    /// (Artikal ili usluga), jer <see cref="RacunOtpremnica"/> već ima pravu listu stavki.
+    /// Rezultat se upisuje u RacunOtpremnica.FiskalniBroj/FiskalniQrKod/FiskalniDatum.
+    /// Isti PfrApiClient kao i za samostalne PfrRacun zapise — nema duplog HTTP klijenta.
+    /// </summary>
+    public async Task<(bool Success, string Message)> FiskalizujRacunOtpremnicuAsync(int racunOtpremnicaId)
+    {
+        var racun = await _db.RacuniOtpremnice
+            .Include(r => r.Stavke).ThenInclude(s => s.Artikal)
+            .Include(r => r.Partner)
+            .FirstOrDefaultAsync(r => r.RacunOtpremnicaId == racunOtpremnicaId);
+
+        if (racun == null)
+            return (false, "Račun nije pronađen u bazi.");
+
+        if (racun.Stavke.Count == 0)
+            return (false, "Račun nema nijednu stavku.");
+
+        var firma = await _db.Firme.AsNoTracking().FirstOrDefaultAsync();
+        if (firma == null)
+            return (false, "Podaci o vašoj firmi nisu pronađeni u bazi.");
+
+        var postavke = PostavkeIzFirme(firma);
+
+        var zahtev = new PfrZahtev
+        {
+            InvoiceType = "Normal",
+            TransactionType = "Sale",
+            Cashier = postavke.Kasir,
+        };
+        foreach (var s in racun.Stavke)
+        {
+            zahtev.Items.Add(new PfrZahtevStavka
+            {
+                Name = s.Artikal?.Naziv ?? s.OpisUsluge ?? "Stavka",
+                Quantity = s.Kolicina,
+                UnitPrice = s.ProdajnaCena,
+                TotalAmount = s.Ukupno
+            });
+        }
+        zahtev.Payment.Add(new PfrZahtevPlacanje { Amount = racun.UkupnoZaUplatu, PaymentType = "Cash" });
+
+        var client = new PfrApiClient();
+        var (success, simulacija, message, odgovor) = await client.FiskalizujRacunAsync(zahtev, postavke);
+
+        if (success && odgovor != null)
+        {
+            racun.FiskalniBroj = odgovor.InvoiceNumber;
+            racun.FiskalniQrKod = string.IsNullOrWhiteSpace(odgovor.VerificationUrl) ? null : odgovor.VerificationUrl;
+            racun.FiskalniDatum = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+            return (true, simulacija ? $"[SIMULACIJA] {message}" : message);
+        }
 
         return (false, message);
     }

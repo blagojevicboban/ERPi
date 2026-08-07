@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ERPiApp.Services;
+using ERPiApp.Views.Finansije.Nalozi;
 using ERPiData;
 using ERPiData.Models.Core;
 using ERPiData.Models.Finansije;
@@ -207,10 +208,71 @@ public partial class KarticaKontaView : UserControl
     private async void Period_Changed(object sender, SelectionChangedEventArgs e) => await UcitajKarticu();
 
     private async void DgKartica_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        => await OtvoriNalogZaStavku(samoPregled: true);
+
+    private async void CtxPregledajNalog_Click(object sender, RoutedEventArgs e)
+        => await OtvoriNalogZaStavku(samoPregled: true);
+
+    private async void CtxIzmeniNalog_Click(object sender, RoutedEventArgs e)
+        => await OtvoriNalogZaStavku(samoPregled: false);
+
+    private void DgKarticaRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (DgKartica.SelectedItem is KarticaRed red)
+        var red = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+        if (red?.Item is KarticaRed kr)
         {
-            MessageBox.Show($"Nalog #{red.BrojNaloga} od {red.Datum:dd.MM.yyyy} - {red.Opis}", "Detalji stavke", MessageBoxButton.OK, MessageBoxImage.Information);
+            DgKartica.SelectedItem = kr;
+        }
+    }
+
+    private async Task OtvoriNalogZaStavku(bool samoPregled)
+    {
+        if (DgKartica.SelectedItem is not KarticaRed red) return;
+
+        try
+        {
+            var nalog = _db.Nalozi
+                .Include(n => n.Stavke)
+                .ThenInclude(s => s.Konto)
+                .Include(n => n.Stavke)
+                .ThenInclude(s => s.Partner)
+                .FirstOrDefault(n => n.NalogId == red.NalogId);
+
+            if (nalog == null)
+            {
+                MessageBox.Show("Nalog nije pronađen.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (!samoPregled && nalog.IsKnjizen)
+            {
+                var odgovor = MessageBox.Show(
+                    $"Nalog #{nalog.BrojNaloga} je proknjižen i ne može se menjati u ovom statusu.\n\nDa li želite da ga rasknjižite radi izmene?",
+                    "Proknjižen nalog", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (odgovor != MessageBoxResult.Yes) return;
+
+                if (!AppSession.IsAdministrator)
+                {
+                    MessageBox.Show("Rasknjižavanje naloga dozvoljeno je samo administratoru.", "Nedozvoljena akcija", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                nalog.Status = StatusNaloga.Nacrt;
+                nalog.DatumKnjizenja = null;
+                _db.SaveChanges();
+            }
+
+            bool isReadOnly = nalog.IsKnjizen && samoPregled;
+            var dijalog = new NalogEditWindow(_db, nalog, isReadOnly, red.RedniBroj) { Owner = Window.GetWindow(this) };
+            if (dijalog.ShowDialog() == true)
+            {
+                await UcitajKarticu();
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri otvaranju naloga: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

@@ -212,6 +212,7 @@
                             <Separator Background="#334155" Margin="16,8"/>
                             <TextBlock Text="PODEŠAVANJA I SISTEM" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" Margin="24,2,0,3"/>
                             <RadioButton x:Name="BtnUvoz" Content="⚙️ Uvoz podataka Wizard" Style="{StaticResource NavButtonStyle}" Click="NavUvoz_Click" ToolTip="Uvoz podataka iz baze ERPiFinansije ili DOS DBF fajlova"/>
+                            <RadioButton x:Name="BtnKorisnici" Content="👤 Korisnici i uloge" Style="{StaticResource NavButtonStyle}" Click="NavKorisnici_Click" ToolTip="Administracija korisnika i uloga (RBAC) — zajedničko za sve module"/>
                             <RadioButton x:Name="BtnPodesavanja" Content="🔧 Podešavanja" Style="{StaticResource NavButtonStyle}" Click="NavPodesavanja_Click" ToolTip="Podešavanja aplikacije — info traka, tema, notifikacije"/>
                             <RadioButton x:Name="BtnPomoc" Content="❓ Pomoć &amp; Uputstva" Style="{StaticResource NavButtonStyle}" Click="NavPomoc_Click" ToolTip="Objedinjeni sistem pomoći i korisnička uputstva za sve module (F1)"/>
                         </StackPanel>

@@ -78,4 +78,20 @@ public partial class BrutoBilansView : UserControl
 
     private void BtnExportExcel_Click(object sender, RoutedEventArgs e)
         => ERPiApp.Services.ExcelExportService.ExportDataGridToExcel(DgBrutoBilans, "Bruto Bilans", "Bruto_Bilans");
+
+    private async void BtnAnalitike_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var analitikeService = new OtvoreneStavkeService(_db);
+            var redovi = await analitikeService.GetBrutoBilansAnalitikeAsync(DpOd.SelectedDate, DpDo.SelectedDate);
+
+            var dijalog = new BrutoBilansAnalitikePreviewWindow(redovi) { Owner = Window.GetWindow(this) };
+            dijalog.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri prikazu bruto bilansa analitike: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 }

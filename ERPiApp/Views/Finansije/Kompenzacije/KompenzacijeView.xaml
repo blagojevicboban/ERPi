@@ -26,6 +26,8 @@
                                 <TextBox x:Name="TxtPretraga" Height="34" Width="220" VerticalContentAlignment="Center" Padding="8,0" TextChanged="TxtPretraga_TextChanged"/>
                             </WrapPanel>
                             <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button x:Name="BtnNovaKompenzacija" Content="➕" Style="{StaticResource IconButtonStyle}" ToolTip="Nova kompenzacija" Click="BtnNovaKompenzacija_Click"/>
+                                <Button x:Name="BtnIzmeniKompenzacija" Content="✏️" Style="{StaticResource IconButtonStyle}" ToolTip="Izmeni izabranu kompenzaciju" Click="BtnIzmeniKompenzacija_Click"/>
                                 <Button x:Name="BtnObrisi" Content="🗑️ Obriši" Style="{StaticResource ActionButtonStyle}" Background="#EF4444" Margin="0,2,8,2" ToolTip="Obriši izabrani predlog kompenzacije" Click="BtnObrisi_Click"/>
                                 <Button x:Name="BtnKnjizi" Content="✅ Proknjiži &amp; Zatvori IOS" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Margin="0,2,8,2" ToolTip="Proknjiži kompenzaciju i automatski zatvori otvorene stavke (IOS)" Click="BtnKnjizi_Click"/>
                             </WrapPanel>
@@ -87,7 +89,8 @@
 
                     <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                         <DataGrid x:Name="DgKandidati" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0"
+                                  ToolTip="Dupli klik otvara novu kompenzaciju sa ovim partnerom" MouseDoubleClick="DgKandidati_MouseDoubleClick">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Partner / Firma" Binding="{Binding NazivPartnera}" Width="*"/>
                                 <DataGridTextColumn Header="PIB" Binding="{Binding Pib}" Width="100"/>

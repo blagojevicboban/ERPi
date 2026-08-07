@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using ERPiApp.Services;
 using ERPiData;
 using ERPiData.Models.Magacin;
 using ERPiData.Services;
 using Microsoft.EntityFrameworkCore;
+using FirmaModel = ERPiData.Models.Core.Firma;
 
 namespace ERPiApp.Views.Magacin;
 
@@ -161,11 +165,56 @@ public partial class RacuniOtpremniceView : UserControl
 
         try
         {
-            MessageBox.Show($"Priprema PDF štampanog dokumenta za račun-otpremnicu br. {selektovan.BrojRacuna}...", "PDF Štampa", MessageBoxButton.OK, MessageBoxImage.Information);
+            var service = new RacunOtpremnicaService(_db);
+            var racunFull = await service.GetRacunByIdAsync(selektovan.RacunOtpremnicaId);
+            if (racunFull == null)
+            {
+                MessageBox.Show("Račun nije pronađen.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var firma = await _db.Firme.FirstOrDefaultAsync() ?? new FirmaModel { Naziv = "Moja Firma" };
+            byte[] pdfBytes = PdfReportService.GenerisiRacunOtpremnicuPdf(firma, racunFull);
+
+            string pdfPath = Path.Combine(Path.GetTempPath(), $"RacunOtpremnica_{racunFull.BrojRacuna}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+            await File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            Process.Start(new ProcessStartInfo { FileName = pdfPath, UseShellExecute = true });
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Greška pri generisanju PDF štampanog dokumenta: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void BtnPretvoriPredracun_Click(object sender, RoutedEventArgs e)
+    {
+        if (DgRacuni.SelectedItem is not RacunOtpremnica selektovan)
+        {
+            MessageBox.Show("Izaberite predračun koji želite da pretvorite u fakturu.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (selektovan.TipDokumenta != TipRacunOtpremnice.Predracun)
+        {
+            MessageBox.Show("Izabrani dokument nije predračun.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (MessageBox.Show($"Pretvori predračun br. {selektovan.BrojRacuna} u pravi račun-otpremnicu?\nDatum računa će biti postavljen na danas.", "Potvrda", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var service = new RacunOtpremnicaService(_db);
+            await service.PretvoriUFakturuAsync(selektovan.RacunOtpremnicaId);
+            UcitajPodatke();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Greška pri pretvaranju predračuna: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

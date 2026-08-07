@@ -26,6 +26,7 @@
                     <Button x:Name="BtnIzmeni" Content="✏️ Izmeni" Style="{StaticResource ActionButtonStyle}" Background="#4B5563" Margin="0,2,8,2" ToolTip="Izmeni izabrani putni nalog" Click="BtnIzmeni_Click"/>
                     <Button x:Name="BtnObrisi" Content="🗑️ Obriši" Style="{StaticResource ActionButtonStyle}" Background="#EF4444" Margin="0,2,8,2" ToolTip="Obriši izabrani putni nalog" Click="BtnObrisi_Click"/>
                     <Button x:Name="BtnKnjizi" Content="✅ Proknjiži (5330/5340)" Style="{StaticResource ActionButtonStyle}" Background="#10B981" Margin="0,2,8,2" ToolTip="Proknjiži troškove službenog puta u glavnu knjigu" Click="BtnKnjizi_Click"/>
+                    <Button x:Name="BtnIzvozZaZarade" Style="{StaticResource IconButtonStyle}" Content="📤" Margin="0,2,0,2" ToolTip="Izvoz prekoračenja dnevnice za Zarade" Click="BtnIzvozZaZarade_Click"/>
                 </WrapPanel>
             </DockPanel>
         </Border>

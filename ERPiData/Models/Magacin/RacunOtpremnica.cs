@@ -99,6 +99,19 @@ public class RacunOtpremnicaStavka
     [ForeignKey(nameof(ArtikalId))]
     public Artikal? Artikal { get; set; }
 
+    /// <summary>
+    /// Slobodan opis stavke kad <see cref="ArtikalId"/> nije popunjen — usluga bez skladišnog
+    /// razduženja (npr. konsalting, prevoz, zakupnina). Zakon o fiskalizaciji ne pravi razliku
+    /// između robe i usluge (obe idu u "promet na malo"), pa faktura mora moći da nosi i jedno i
+    /// drugo — vidi PLAN_NASTAVKA.md.
+    /// </summary>
+    [MaxLength(200)]
+    public string? OpisUsluge { get; set; }
+
+    /// <summary>Jedinica mere za uslužnu stavku (npr. "h", "kom", "mesec") — koristi se samo kad nema Artikla.</summary>
+    [MaxLength(20)]
+    public string? JedinicaMereUsluge { get; set; }
+
     [Column(TypeName = "decimal(18, 3)")]
     public decimal Kolicina { get; set; }
 

@@ -1,0 +1,156 @@
+<Window x:Class="ERPiApp.Views.Finansije.PutniNalozi.PutniNalogEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="🚗 Službeno putovanje &amp; Putni nalog — Unos i Obračun"
+        Height="660" Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Opšti podaci -->
+            <RowDefinition Height="Auto"/> <!-- Obračun dnevnica -->
+            <RowDefinition Height="*"/>    <!-- Troškovi -->
+            <RowDefinition Height="Auto"/> <!-- Akcije -->
+        </Grid.RowDefinitions>
+
+        <!-- OPŠTI PODACI -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="180"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Vrsta putovanja:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                <ComboBox Grid.Row="1" Grid.Column="0" x:Name="CmbVrsta" Height="32" Margin="0,2,10,0">
+                    <ComboBoxItem Content="Zemlja (5330)" IsSelected="True"/>
+                    <ComboBoxItem Content="Inostranstvo (5340)"/>
+                </ComboBox>
+
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Zaposleni (Ime i prezime):" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtZaposleni" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,2,10,0"/>
+
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="JMBG radnika:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"
+                           ToolTip="Potrebno samo ako se prekoračenje dnevnice prenosi u obračun zarade — po njemu se tamo upari radnik."/>
+                <TextBox Grid.Row="1" Grid.Column="2" x:Name="TxtJmbg" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,2,10,0" MaxLength="13"/>
+
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="Relacija putovanja:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBox Grid.Row="1" Grid.Column="3" x:Name="TxtRelacija" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,2,10,0"/>
+
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="Prevozno sredstvo:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
+                <ComboBox Grid.Row="1" Grid.Column="4" x:Name="CmbPrevoz" Height="32">
+                    <ComboBoxItem Content="Službeno vozilo" IsSelected="True"/>
+                    <ComboBoxItem Content="Privatno vozilo"/>
+                    <ComboBoxItem Content="Autobus / Voz"/>
+                    <ComboBoxItem Content="Avion"/>
+                </ComboBox>
+            </Grid>
+        </Border>
+
+        <!-- OBRAČUN DNEVNICA -->
+        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="140"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="Polazak (datum i vreme):" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <DatePicker x:Name="DpPolazak" Height="32" SelectedDateChanged="DpPolazak_SelectedDateChanged"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                    <TextBlock Text="Povratak (datum i vreme):" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <DatePicker x:Name="DpPovratak" Height="32" SelectedDateChanged="DpPovratak_SelectedDateChanged"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                    <TextBlock Text="Ukupno sati:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtSati" Height="32" IsReadOnly="True" TextAlignment="Center" Background="#F1F5F9"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Margin="0,0,10,0">
+                    <TextBlock Text="Broj dnevnica:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtBrojDnevnica" Height="32" IsReadOnly="True" TextAlignment="Center" FontWeight="Bold" Background="#F1F5F9"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="Dnevnica (RSD):" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtIznosDnevnice" Height="32" Text="3000" TextAlignment="Right" TextChanged="TxtIznosDnevnice_TextChanged"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- TROŠKOVI -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <DockPanel>
+                <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,12" VerticalAlignment="Center">
+                    <TextBlock Text="📋 Troškovi putovanja" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                    <TextBlock Text="Vrsta troška:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                    <ComboBox x:Name="CmbVrstaTroska" Width="140" Height="30" Margin="0,0,10,0">
+                        <ComboBoxItem Content="Gorivo" IsSelected="True"/>
+                        <ComboBoxItem Content="Smeštaj"/>
+                        <ComboBoxItem Content="Prevoz"/>
+                        <ComboBoxItem Content="Putarina"/>
+                        <ComboBoxItem Content="Taksiji"/>
+                        <ComboBoxItem Content="Ostalo"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Broj računa:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                    <TextBox x:Name="TxtBrojRacunaTrosak" Width="110" Height="30" Margin="0,0,10,0"/>
+
+                    <TextBlock Text="Iznos (RSD):" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                    <TextBox x:Name="TxtIznosTrosak" Width="90" Height="30" TextAlignment="Right" Margin="0,0,10,0"/>
+
+                    <Button Content="➕ Dodaj račun troška" Style="{StaticResource PrimaryButton}" Height="30" Padding="12,0" Click="BtnDodajTrosak_Click"/>
+                </WrapPanel>
+
+                <DataGrid x:Name="DgStavkeTroskova" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                          GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="R.br." Binding="{Binding RedniBroj}" Width="50"/>
+                        <DataGridTextColumn Header="Vrsta troška" Binding="{Binding VrstaTroska}" Width="120" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="Broj računa" Binding="{Binding BrojRacuna}" Width="120"/>
+                        <DataGridTextColumn Header="Opis" Binding="{Binding Opis}" Width="*"/>
+                        <DataGridTextColumn Header="Iznos (RSD)" Binding="{Binding Iznos, StringFormat=\{0:N2\}}" Width="120" ElementStyle="{StaticResource NumericColumnElementStyle}" FontWeight="Bold"/>
+                        <DataGridTemplateColumn Header="Ukloni" Width="65">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="❌" Click="BtnUkloniTrosak_Click" Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+
+        <!-- AKCIJE -->
+        <Border Grid.Row="3" Margin="0,16,0,0" Padding="16,10" CornerRadius="8" Background="#F0FDFA">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <Button Content="Odustani" Style="{StaticResource SecondaryButton}" Height="36" Padding="14,0" Margin="0,0,8,0" Click="BtnOdustani_Click"/>
+                    <Button Content="💾 Sačuvaj putni nalog" Style="{StaticResource PrimaryButton}" Height="36" Padding="18,0" Click="BtnSacuvaj_Click"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Isplaćena akontacija:" VerticalAlignment="Center" Margin="0,0,6,0" FontWeight="SemiBold"/>
+                    <TextBox x:Name="TxtAkontacija" Width="110" Height="32" TextAlignment="Right" Margin="0,0,24,0" TextChanged="TxtAkontacija_TextChanged"/>
+                    <TextBlock Text="Ukupno za isplatu:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock x:Name="TxtUkupnoZaIsplatu" Text="0,00 RSD" FontSize="16" FontWeight="Bold" Foreground="#0D9488" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

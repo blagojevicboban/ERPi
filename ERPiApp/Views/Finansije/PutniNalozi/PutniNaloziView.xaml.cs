@@ -81,7 +81,12 @@ public partial class PutniNaloziView : UserControl
 
     private void BtnNoviNalog_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("Unos novog putnog naloga biće dostupan u narednom prikazu.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+        var novi = new PutniNalog();
+        var dijalog = new PutniNalogEditWindow(_db, novi) { Owner = Window.GetWindow(this) };
+        if (dijalog.ShowDialog() == true)
+        {
+            LoadNalozi();
+        }
     }
 
     private void BtnIzmeni_Click(object sender, RoutedEventArgs e)
@@ -92,6 +97,12 @@ public partial class PutniNaloziView : UserControl
             {
                 MessageBox.Show("Proknjiženi putni nalozi se ne mogu menjati.", "Upozorenje", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
+            }
+
+            var dijalog = new PutniNalogEditWindow(_db, pn) { Owner = Window.GetWindow(this) };
+            if (dijalog.ShowDialog() == true)
+            {
+                LoadNalozi();
             }
         }
     }
@@ -112,6 +123,12 @@ public partial class PutniNaloziView : UserControl
                 LoadNalozi();
             }
         }
+    }
+
+    private void BtnIzvozZaZarade_Click(object sender, RoutedEventArgs e)
+    {
+        var dijalog = new IzvozZaZaradeWindow(_db) { Owner = Window.GetWindow(this) };
+        dijalog.ShowDialog();
     }
 
     private async void BtnKnjizi_Click(object sender, RoutedEventArgs e)

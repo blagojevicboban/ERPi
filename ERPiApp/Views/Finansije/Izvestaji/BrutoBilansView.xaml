@@ -41,6 +41,7 @@
                     <Button Content="🔄 Učitaj" Style="{StaticResource ActionButtonStyle}" Height="34" Padding="14,0" Margin="0,0,8,0" Click="BtnUcitaj_Click"/>
                     <Button x:Name="BtnStampajPdf" Content="🖨️ PDF" Style="{StaticResource ActionButtonStyle}" Background="#4F46E5" Height="34" Padding="14,0" Margin="0,0,8,0" Click="BtnStampajPdf_Click"/>
                     <Button x:Name="BtnExportExcel" Content="X" FontWeight="Bold" FontSize="20" Style="{StaticResource ActionButtonStyle}" Background="#059669" Height="34" Width="36" Padding="0" ToolTip="Izvoz bruto bilansa u Excel" Click="BtnExportExcel_Click"/>
+                    <Button x:Name="BtnAnalitike" Style="{StaticResource IconButtonStyle}" Content="🔎" Margin="8,0,0,0" ToolTip="Analitički drill-down — bruto bilans po partneru za izabrani period" Click="BtnAnalitike_Click"/>
                 </WrapPanel>
             </DockPanel>
         </Border>

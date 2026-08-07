@@ -1,0 +1,110 @@
+<Window x:Class="ERPiApp.Views.Finansije.Kompenzacije.KompenzacijaEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="🤝 Kompenzacija / Poravnanje — Unos i izmena"
+        Height="640" Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Izbor partnera -->
+            <RowDefinition Height="*"/>    <!-- Otvorene stavke -->
+            <RowDefinition Height="Auto"/> <!-- Ukupno i akcije -->
+        </Grid.RowDefinitions>
+
+        <!-- IZBOR PARTNERA -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,16" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="160"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="Vrsta poravnanja:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <ComboBox x:Name="CmbVrsta" Height="32" SelectionChanged="CmbVrsta_SelectionChanged">
+                        <ComboBoxItem Content="Dvojna kompenzacija" IsSelected="True"/>
+                        <ComboBoxItem Content="Ugovor o asignaciji"/>
+                        <ComboBoxItem Content="Ugovor o cesiji"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <WrapPanel Grid.Column="1" Margin="0,0,10,0">
+                    <StackPanel Width="220" Margin="0,0,8,0">
+                        <TextBlock x:Name="LblPartner1" Text="Partner / Ugovorna strana:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="CmbPartneri" DisplayMemberPath="Naziv" SelectedValuePath="PartnerId" Height="32" SelectionChanged="CmbPartneri_SelectionChanged"/>
+                    </StackPanel>
+                    <StackPanel x:Name="PnlPartner2" Width="220" Margin="0,0,8,0" Visibility="Collapsed">
+                        <TextBlock x:Name="LblPartner2" Text="Drugo lice:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="CmbPartner2" DisplayMemberPath="Naziv" SelectedValuePath="PartnerId" Height="32" SelectionChanged="CmbPartner2_SelectionChanged"/>
+                    </StackPanel>
+                    <StackPanel x:Name="PnlPartner3" Width="220" Visibility="Collapsed">
+                        <TextBlock x:Name="LblPartner3" Text="Treće lice:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="CmbPartner3" DisplayMemberPath="Naziv" SelectedValuePath="PartnerId" Height="32" SelectionChanged="CmbPartner3_SelectionChanged"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Datum kompenzacije:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                    <DatePicker x:Name="DpDatum" Height="32"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- OTVORENE STAVKE -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="16" Margin="0,0,8,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <DockPanel>
+                    <TextBlock Text="📤 Potraživanja od kupca (Konto 204)" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,8"/>
+                    <DataGrid x:Name="DgKupciStavke" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" RowHeight="30" FontSize="11">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Prebij" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                            <DataGridTextColumn Header="Partner" Binding="{Binding NazivPartnera}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Dokument" Binding="{Binding BrojDokumenta}" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Preostalo" Binding="{Binding Preostalo, StringFormat=\{0:N2\}}" Width="95" IsReadOnly="True" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="16" Margin="8,0,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <DockPanel>
+                    <TextBlock Text="📥 Obaveze prema dobavljaču (Konto 435)" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextBrush}" DockPanel.Dock="Top" Margin="0,0,0,8"/>
+                    <DataGrid x:Name="DgDobavljaciStavke" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="Transparent" BorderThickness="0" RowHeight="30" FontSize="11">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Prebij" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                            <DataGridTextColumn Header="Partner" Binding="{Binding NazivPartnera}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Dokument" Binding="{Binding BrojDokumenta}" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Datum" Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy\}}" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Preostalo" Binding="{Binding Preostalo, StringFormat=\{0:N2\}}" Width="95" IsReadOnly="True" ElementStyle="{StaticResource NumericColumnElementStyle}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- UKUPNO I AKCIJE -->
+        <Border Grid.Row="2" Margin="0,16,0,0" Padding="16,10" CornerRadius="8" Background="#EEF2FF">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <Button Content="Odustani" Style="{StaticResource SecondaryButton}" Height="36" Padding="14,0" Margin="0,0,8,0" Click="BtnOdustani_Click"/>
+                    <Button Content="💾 Sačuvaj predlog" Style="{StaticResource PrimaryButton}" Height="36" Padding="18,0" Click="BtnSacuvaj_Click"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Napomena:" VerticalAlignment="Center" Margin="0,0,6,0" FontWeight="SemiBold"/>
+                    <TextBox x:Name="TxtNapomena" Width="260" Height="32" Margin="0,0,24,0"/>
+                    <TextBlock Text="Iznos kompenzacije:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock x:Name="TxtUkupanIznos" Text="0,00 RSD" FontSize="16" FontWeight="Bold" Foreground="#4F46E5" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

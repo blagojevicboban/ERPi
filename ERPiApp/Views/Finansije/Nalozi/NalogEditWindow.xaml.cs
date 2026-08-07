@@ -12,13 +12,15 @@ public partial class NalogEditWindow : Window
     private readonly Nalog _nalog;
     private readonly bool _jeNov;
     private readonly List<StavkaNaloga> _stavke;
+    private bool _isReadOnly;
 
-    public NalogEditWindow(ErpiDbContext db, Nalog nalog)
+    public NalogEditWindow(ErpiDbContext db, Nalog nalog, bool isReadOnly = false, int? fokusRedniBroj = null)
     {
         InitializeComponent();
         _db = db;
         _nalog = nalog;
         _jeNov = nalog.NalogId == 0;
+        _isReadOnly = isReadOnly;
 
         // Radna kopija stavki — original se ne dira dok korisnik ne sačuva (Otkaži mora
         // ostaviti tačno ono što je bilo pre otvaranja dijaloga).
@@ -44,7 +46,100 @@ public partial class NalogEditWindow : Window
         ColMestoTroska.ItemsSource = _db.MestaTroska.OrderBy(m => m.Naziv).ToList();
 
         DgStavke.ItemsSource = _stavke;
+
+        Title = _jeNov
+            ? "Novi nalog za knjiženje"
+            : _isReadOnly
+                ? $"📖 Pregled proknjiženog naloga #{nalog.BrojNaloga} (Samo za čitanje)"
+                : $"Izmena naloga #{nalog.BrojNaloga}";
+
+        if (_isReadOnly) PrimeniReadOnlyRezim();
+
         OsveziBalans();
+        PozicionirajNaStavku(fokusRedniBroj);
+    }
+
+    /// <summary>
+    /// Zaključava zaglavlje/grid i prikazuje samo "Rasknjiži i izmeni" — koristi se kad se
+    /// nalog otvara na uvid iz Kartice konta/spiska naloga, a već je proknjižen.
+    /// </summary>
+    private void PrimeniReadOnlyRezim()
+    {
+        DpDatum.IsEnabled = false;
+        TxtVrsta.IsReadOnly = true;
+        TxtOpisNaloga.IsReadOnly = true;
+        DgStavke.IsReadOnly = true;
+        BtnDodajStavku.Visibility = Visibility.Collapsed;
+        BtnObrisiStavku.Visibility = Visibility.Collapsed;
+        BtnSacuvajNacrt.Visibility = Visibility.Collapsed;
+        BtnProknjizi.Visibility = Visibility.Collapsed;
+        BtnRaskniziIIzmeni.Visibility = Visibility.Visible;
+        BtnOtkazi.Content = "Zatvori (Esc)";
+    }
+
+    /// <summary>
+    /// Vraća dijalog u editabilan režim posle rasknjižavanja iz "Rasknjiži i izmeni" —
+    /// isti prozor nastavlja kao obična izmena, bez ponovnog otvaranja.
+    /// </summary>
+    private void PrebaciURezimIzmene()
+    {
+        _isReadOnly = false;
+        Title = $"Izmena naloga #{_nalog.BrojNaloga}";
+        DpDatum.IsEnabled = true;
+        TxtVrsta.IsReadOnly = false;
+        TxtOpisNaloga.IsReadOnly = false;
+        DgStavke.IsReadOnly = false;
+        BtnDodajStavku.Visibility = Visibility.Visible;
+        BtnObrisiStavku.Visibility = Visibility.Visible;
+        BtnSacuvajNacrt.Visibility = Visibility.Visible;
+        BtnProknjizi.Visibility = Visibility.Visible;
+        BtnRaskniziIIzmeni.Visibility = Visibility.Collapsed;
+        BtnOtkazi.Content = "Otkaži (Esc)";
+    }
+
+    private void BtnRaskniziIIzmeni_Click(object sender, RoutedEventArgs e)
+    {
+        var odgovor = MessageBox.Show(
+            $"Da li želite da rasknjižite nalog #{_nalog.BrojNaloga} radi izmene?",
+            "Potvrda rasknjižavanja", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (odgovor != MessageBoxResult.Yes) return;
+
+        if (!AppSession.IsAdministrator)
+        {
+            MessageBox.Show("Rasknjižavanje naloga dozvoljeno je samo administratoru.", "Nedozvoljena akcija", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        _nalog.Status = StatusNaloga.Nacrt;
+        _nalog.DatumKnjizenja = null;
+        _db.SaveChanges();
+
+        PrebaciURezimIzmene();
+        MessageBox.Show($"Nalog #{_nalog.BrojNaloga} je uspešno rasknjižen i omogućen za izmenu.", "Uspeh", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    /// <summary>
+    /// Selektuje i skroluje na stavku iz koje je nalog otvoren (klik u kartici konta). Radna
+    /// kopija stavki ne nosi StavkaNalogaId (vidi konstruktor), pa se pozicioniranje radi po
+    /// RedniBroj — jedinom identifikatoru koji working-copy stavke zadržavaju iz originala.
+    /// Grid redovi postoje tek posle prvog layout prolaza, pa se pozicioniranje radi na
+    /// Loaded (isti razlog kao "ne zovi loader direktno iz konstruktora" pravilo za ovaj projekat).
+    /// </summary>
+    private void PozicionirajNaStavku(int? redniBroj)
+    {
+        if (redniBroj is not int rb) return;
+
+        var trazena = _stavke.FirstOrDefault(s => s.RedniBroj == rb);
+        if (trazena == null) return;
+
+        Loaded += (_, _) =>
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                DgStavke.SelectedItem = trazena;
+                DgStavke.ScrollIntoView(trazena);
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        };
     }
 
     private void BtnDodajStavku_Click(object sender, RoutedEventArgs e)

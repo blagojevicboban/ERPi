@@ -154,13 +154,25 @@ public class OtvoreneStavkeService
         return rezultat;
     }
 
-    public async Task<List<BrutoBilansAnalitikeRed>> GetBrutoBilansAnalitikeAsync()
+    /// <summary>
+    /// Bruto bilans analitike — promet i saldo po partneru (umesto po kontu), iz proknjiženih
+    /// naloga sa dodeljenim partnerom. "Drill-down" u analitiku iza svakog sintetičkog totala u
+    /// <c>BrutoBilansView</c>. <paramref name="odDatuma"/>/<paramref name="doDatuma"/> je
+    /// dopuna u odnosu na ERPiFinansije-in original (koji je period ignorisao) — poštuje isti
+    /// period koji je primenjen na finansijski bruto bilans.
+    /// </summary>
+    public async Task<List<BrutoBilansAnalitikeRed>> GetBrutoBilansAnalitikeAsync(
+        DateTime? odDatuma = null, DateTime? doDatuma = null)
     {
-        var stavke = await _db.StavkeNaloga
+        var query = _db.StavkeNaloga
             .Include(s => s.Nalog)
             .Include(s => s.Partner)
-            .Where(s => s.PartnerId != null && s.Nalog != null && s.Nalog.Status == StatusNaloga.Proknjizen)
-            .ToListAsync();
+            .Where(s => s.PartnerId != null && s.Nalog != null && s.Nalog.Status == StatusNaloga.Proknjizen);
+
+        if (odDatuma.HasValue) query = query.Where(s => s.Nalog!.DatumNaloga >= odDatuma.Value);
+        if (doDatuma.HasValue) query = query.Where(s => s.Nalog!.DatumNaloga <= doDatuma.Value);
+
+        var stavke = await query.ToListAsync();
 
         return stavke
             .GroupBy(s => s.PartnerId!.Value)
