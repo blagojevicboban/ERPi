@@ -4,6 +4,14 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.4.1] - 2026-08-07
+
+### 🛠️ Sitne ispravke posle 2.4.0
+- DOS uvoz Sredstava — progres traka sad stvarno prati napredak po koraku/fazi umesto da
+  stoji zaglavljena na 15%/60%/100%.
+- Uklonjeno duplo dugme "Uvoz iz ERPiZarade" iz Finansije uvoznog wizard-a — taj uvoz ide
+  isključivo kroz Zarade → Podešavanja, gde već postoji identičan tok.
+
 ## [2.4.0] - 2026-08-07
 
 ### 📖 Nalog — pregled proknjiženog naloga
