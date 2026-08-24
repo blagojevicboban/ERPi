@@ -4,10 +4,85 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.58.1] - 2026-08-25
+
+### 🐛 Ispravke i Validacije
+
+- **CROSO polja na `Radnici` nisu stizala do zatečenih baza — 500 na `Zarade/ugovori` i
+  `Zarade/ppp-pd/pregled`.** Devet novih kolona iz prethodne verzije (§41, elektronski M obrazac)
+  je dodato u EF migraciju, ali ne i u `EnsureColumn` niz za zatečene baze — koje idu isključivo
+  raw-SQL putem `EnsureDbSchemaUpdated`, gde migracija na postojeću `Radnici` tabelu nikad ne
+  stigne do izvršenja. Rezultat: `SqliteException: 'no such column: r.Drzavljanstvo'` čim upit
+  selektuje radnika, sa 500 greškom na svakom ekranu koji učitava listu radnika/ugovora/PPP-PD
+  van radnog odnosa. Ispravljeno dopunom istog `EnsureColumn` obrasca za svih 9 polja.
+
 ## [2.58.0] - 2026-08-24
 
 ### 🚀 Nove funkcionalnosti
 
+- **CROSO — pregled elektronskog M obrasca (WPF + Web Admin), Faza 1.**
+  Istraženo da portal Centralnog registra (`portal.croso.gov.rs`) nema XML/API uvoz za privatne
+  poslodavce — za razliku od PPP-PD/SEF, jedinstvena prijava se podnosi isključivo ručno na
+  portalu, uz prijavu kvalifikovanim elektronskim sertifikatom. Automatsko podnošenje zato nije
+  građeno; realan obim je priprema podataka. Radnik dobija 9 novih polja (pol, državljanstvo,
+  zanimanje-šifra KZZ, osnov osiguranja, radno vreme, vrsta zaposlenja + trajanje, zaposlen kod
+  više poslodavaca, osnov prestanka) i nov `MObrazacService`/`MObrazacDocument` koji sastavlja i
+  štampa PDF pregled — isti raspored poljâ kao portal, da se samo prekuca. Dugme „📄 M obrazac" u
+  WPF `RadniciPage` i ikonica u Web Admin `ZaradeTab` (`GET api/Zarade/radnici/{id}/m-obrazac/pdf`);
+  prijava/odjava se bira automatski prema `DatumPrestanka`.
+- **Periodično fakturisanje / pretplate — nova celina, Web-first.**
+  Najviši prioritet iz gap-analize (`docs/LISTA_FUNKCIONALNOSTI_KOJE_NEDOSTAJU.md`) — ponavljajući
+  ugovori (održavanje, renta, licence, knjigovodstvene usluge) sa 1-klik masovnim generisanjem
+  Računa-otpremnica. Nov entitet `Pretplata`/`PretplataStavka` (ime namerno ne „Ugovor" — to je već
+  zauzeto entitetom van radnog odnosa u Zaradama); `RacunOtpremnica` dobija `PretplataId` back-vezu
+  za istoriju. Idempotentnost prolaza (`PretplataService.GenerisiDospeleFaktureAsync`) se oslanja
+  isključivo na pomeranje `SledeceFakturisanje` u istoj transakciji u kojoj nastaje faktura — nema
+  posebne tabele „period je već fakturisan", pa dupli tik (restart servisa) ne duplira račun.
+  `PretplataBackgroundService` generiše dospele fakture jednom dnevno; dugme „Generiši dospele
+  sada" na Web Adminu (novi pod-tab „Periodično fakturisanje" u 📜 Komercijala & Dokumenti) pokreće
+  isti prolaz ručno. Tri automatizacione opcije po pretplati (knjiženje / SEF slanje / email kupcu)
+  su namerno **isključene po podrazumevanoj vrednosti** — SEF slanje je nepovratno, pa prva izdanja
+  ostaju nacrt za ručni pregled dok se šablon ne proveri. 13 novih testova (obračun sledećeg datuma
+  po periodičnosti, idempotentnost, limit broja ponavljanja/isteka, automatsko knjiženje), šema
+  potvrđena na kopiji prave ARHIBEL baze. WPF ekran namerno van obima — nove funkcije idu prvo na
+  Web.
+- **Usklađivanje grupe „Van radnog odnosa" na Web Adminu 1:1 sa WPF-om.**
+  Grupa u meniju Zarada na Web Admin portalu u potpunosti je reorganizovana i usklađena sa WPF
+  desktop aplikacijom. Sadrži svih 6 samostalnih stavki:
+  1. `👤 Primaoci po ugovoru` (`/admin/zarade/primaoci` — pregled primalaca, JMBG provera, zbir ugovora i isplata),
+  2. `💸 Isplate naknada` (`/admin/zarade/isplate-naknada` — isplate unutar meseca za rod `VanRadnogOdnosa`),
+  3. `📝 Ugovori i naknade` (`/admin/zarade/ugovori` — ugovori sa kalkulatorom i obračunom naknade),
+  4. `📄 Vrste ugovora` (`/admin/zarade/vrste-ugovora` — šifarnik vrsta, stopa poreza i normiranih troškova),
+  5. `🖋️ Šabloni ugovora` (`/admin/zarade/sabloni-ugovora` — uređivač šablona i PDF generator),
+  6. `📋 PPP-PD — naknade` (`/admin/zarade/ppp-pd-naknade` — poreska prijava za naknade van radnog odnosa).
+- **Ugovori van radnog odnosa — razdvajanje u 4 nezavisne stranice (paritet sa WPF).**
+  Ekran „Ugovori i naknade" je imao sopstveni unutrašnji toolbar od 4 dugmeta koji je duplirao
+  navigaciju bočnog menija. Razdvojeno u `PrimaociPoUgovoruPodTab`/`UgovoriPodTab`/
+  `VrsteUgovoraPodTab`/`SabloniUgovoraPodTab` — svaka stranica u meniju sad prikazuje samo svoj
+  sadržaj, isto kao WPF-ove odvojene Page klase. Čist frontend refaktor, bez izmene ponašanja ili
+  API poziva. Usput: `AppTrayService` (WPF) je čekao fiksnih 2.5s pa jednom proveravao da li API
+  odgovara — na sporijem cold-startu je to znalo da ispali lažno „port ne odgovara" obaveštenje;
+  zamenjeno pollingom na 500ms do 20s.
+- **PPP-PD prijava za naknade van radnog odnosa (WPF bugfix + Web Admin port).**
+  Ispravljen WPF meni koji je ranije otvarao prijavu sa podrazumevanim rodom Zarada, i kompletno
+  portovana podrška na Web Admin portal (`GET api/Zarade/ppp-pd/pregled?rod=VanRadnogOdnosa` +
+  `POST api/Zarade/ppp-pd/xml` sa rodom `VanRadnogOdnosa`). Uključuje prikaz ugovora o delu,
+  autorskih i privremenih naknada, automatsko filtriranje isplata naknada po mesecu, proveru
+  primalaca sa JMBG-om, i generisanje validnog XML-a sa SVP šifrom vrste prihoda prema Pravilniku.
+- **Radna tabla za Osnovna Sredstva na Web Admin portalu (WPF → Web port).**
+  Kompletan port radne table modula Osnovna Sredstva (`SredstvaDashboardPage.xaml` / `SredstvaDashboardViewModel.cs`)
+  na Web Admin (`SredstvaDashboardPodTab.tsx` + `GET api/OsnovnaSredstva/dashboard`). Obuhvata 4 glavne KPI kartice
+  (ukupno sredstava sa brojem aktivnih i rashodovanih, ukupna nabavna vrednost, ispravka vrednosti sa procentom
+  otpisanosti, ukupna sadašnja vrednost), horizontalni interaktivni grafikon sa Top najvrednijim aktivnim sredstvima,
+  vizuelnu traku statusa sredstava (aktivna vs rashodovana), distribuciju sadašnje vrednosti po računovodstvenim
+  kontima (Top 10), raspodelu po amortizacionim grupama, i 1-klik brze akcije ka registru, prijavama, rashodima,
+  popisu i analitičkim karticama.
+- **Radna tabla za Zarade na Web Admin portalu (WPF → Web port).**
+  Kompletan port radne table modula Zarade (`DashboardPage.xaml` / `DashboardViewModel.cs`) na Web Admin
+  (`ZaradeDashboardPodTab.tsx` + `GET api/Zarade/dashboard`). Obuhvata KPI kartice (aktivni radnici, ukupna neto masa,
+  ukupan Bruto 2 trošak poslodavca, aktivni krediti/obustave, prosečna zarada), interaktivni grafikon raspodele po mesecima
+  za izabranu godinu, tabelarni mesečni rekapitular sa godišnjim zbirom, listu poslednjih obračunatih radnika sa satima
+  i neto/bruto iznosima, i 1-klik brze akcije ka evidenciji radnih sati, obračunu plata i matičnoj knjizi.
 - **e-Otpremnice i EPP (evidencija prethodnog poreza) — dve nove SEF integracije.**
   Obe su već aktivne pravne obaveze u Srbiji (e-Otpremnice od 1.1.2026, EPP od septembra 2024), ne
   buduće — zato prava SEF API integracija, ne interni model bez slanja. Prave API šeme (endpoint-i,
