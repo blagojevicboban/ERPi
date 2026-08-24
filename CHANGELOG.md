@@ -4,6 +4,106 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.58.0] - 2026-08-24
+
+### 🚀 Nove funkcionalnosti
+
+- **e-Otpremnice i EPP (evidencija prethodnog poreza) — dve nove SEF integracije.**
+  Obe su već aktivne pravne obaveze u Srbiji (e-Otpremnice od 1.1.2026, EPP od septembra 2024), ne
+  buduće — zato prava SEF API integracija, ne interni model bez slanja. Prave API šeme (endpoint-i,
+  JSON/UBL polja) pronađene preko SEF-ovog javnog Swagger-a i zvaničnog UBL primera pre kodiranja,
+  ne pretpostavljene. **e-Otpremnice**: podaci o transportu (način otpreme, prevoznik — nov
+  „Prevoznik" fleg na partneru, vozač, registarski broj, adrese) na Računima-otpremnicama, slanje
+  UBL DespatchAdvice XML-a i praćenje asinhronog statusa preko zasebnog `EOtpremnicaModal.tsx`.
+  **EPP**: peti pod-tab u SEF ekranu — unos, slanje i otkazivanje Pojedinačne evidencije PDV-a po
+  poreskom periodu. 27 novih testova, šema potvrđena na kopiji prave baze. Namerno van obima ove
+  faze: Zbirna evidencija, korekcije/storno, UBL Prijemnica.
+- **Optimistic concurrency (`RowVersion`) na Nalog/Kalkulacija/WebPorudzbina.** Sprečava da desktop
+  i web tiho pregaze međusobne izmene istog dokumenta — drugi od dva konteksta koja učitaju i
+  izmene isti zapis sad dobija grešku umesto da prvi tiho izgubi izmenu. Ručno održavan
+  `RowVerzija` token (isti obrazac kao postojeći `EsirBrojac.Verzija`, pravi `rowversion` ne
+  postoji na SQLite/PostgreSQL) — `ErpiDbContext` ga generički prijavljuje i sam uvećava,
+  pozivaoci ga ne diraju ručno.
+- **Globalni format grešaka na webu — svih 14 `*Api.ts` fajlova.** Do sada je samo osnovni
+  `api.ts` imao rešen obrazac (globalni Toast na grešku); preostalih 13 (Magacin/Finansije/
+  Zarade/Sredstva/SEF/Blagajna/DMS/Firma/Kasa/Kompenzacija/Korisnici/Proizvodnja/PutniNalog,
+  ~338 mesta) su radili sirov `fetch()` sa ručnom, nekonzistentnom proverom po pozivu — neke
+  greške su gubile server-side detalj iza generičke poruke, nijedna nije pokretala Toast. Na
+  API-ju nov `KonkurentnostIzuzetakHandler` prevodi `DbUpdateConcurrencyException` u čitljiv
+  409 umesto generičkog 500; u WPF-u `DispatcherUnhandledException` dobija ciljanu granu za
+  istu grešku.
+- **Lazy loading svih admin tabova i health checks (`/healthz`, `/ready`) na `ERPiApi`.**
+- **F1 interaktivni Help Drawer sa kontekstualnim uputstvima za sve module.**
+- **Web Admin meni redizajniran po ugledu na WPF sidebar** — sklopivi 64px mini-meni (dugme za
+  sklapanje, prečica Ctrl+B, pamćenje stanja u `localStorage`), ugnježdeni podmeniji, breadcrumbs
+  header sa statusnim bedžom i profil dropdown menijem, „Unified Dark Shell" tema primenjena i na
+  gornji header i profilni dropdown.
+- **Finansijski dashboard sa brzim akcijama** na webshop radnoj tabli, uklonjen višak KPI panela sa
+  tabela, kompaktno stablo kategorija.
+- **Unapređenje Admin UI/UX-a, pretraga i reorganizacija menija.**
+  - Stavka **CMS & Brending** (`/admin/cms`) premeštena iz grupe `⚙️ Sistem` u grupu `🌐 WebShop (B2C / B2B)`.
+  - Dodata brza pretraga modula u realnom vremenu na vrhu bočne trake sidebara sa trenutnim filtriranjem i otvaranjem grupa.
+  - Implementirano automatsko resetovanje skrola na vrh ekrana (`scrollTop = 0`) pri prelasku na bilo koji tab ili pod-tab Admin panela.
+  - Modernizovan `ErpiDataGrid`: automatsko desno poravnanje (`text-right font-mono tabular-nums`) za numeričke/valutne kolone i fiksirana zaglavlja tabela (`sticky header`) pri skrolovanju dugačkih tabela.
+- **Srpski format datuma svuda u Web Adminu, umesto browser-zavisnog `<input type="date">`.**
+  Novi zajednički `DatumInput` (dd.mm.gggg., srpski kalendar sa Pon–Ned, „Danas"/„Obriši") zamenio
+  native date input na **svih 67 mesta u 40 ekrana** — dotad je format i jezik kalendara zavisio
+  od OS/browser lokala korisnika (Chrome ga ne poštuje pouzdano ni uz `lang` na `<html>`), pa je
+  isti ekran kod jednog korisnika prikazivao 24.08.2026, a kod drugog 08/24/2026.
+- **Proknjiži/Rasknjiži rade nad selekcijom, iz bilo kog filtera — web i WPF.**
+  Dosad su oba dugmeta bila namerno ograničena na odgovarajuću karticu filtera (Proknjiži samo iz
+  „Neproknjiženi", Rasknjiži samo iz „Proknjiženi") i samo nad jednim selektovanim nalogom. Sad
+  rade nad celom selekcijom (čekirano ili običan klik na red) bez obzira na aktivan filter — knjiže/
+  otknjižavaju samo podskup koji je za to podoban, tiho preskačući ostalo. Nov `NalogService.
+  ProknjiziViseAsync`/`RasknjiziViseAsync` (`ERPiData`) i API `nalozi/masovno-proknjizi`/
+  `masovno-rasknjizi`, isto ponašanje u WPF `NaloziView.BtnProknjizi_Click`/`BtnRasknjizi_Click`.
+- **Rute za sve podmenije Web Admina.** `/admin/finansije/nalozi`,
+  `/admin/magacin/kalkulacije` i slično za svih 6 modula (Finansije, Magacin, Materijalno, Zarade,
+  Proizvodnja, Sredstva) su sad pravi URL-ovi — refresh, dugmad Nazad/Napred i deljeni linkovi
+  vode na tačan ekran, ne na podrazumevani podtab modula. Isti obrazac kao postojeći `tabIzPutanje`
+  za gornji nivo menija (`podTabIzPutanje`/`putanjaPodTaba` u `AdminKontekst.tsx`, 16 novih testova).
+- **Stilizovan potvrdni dijalog (`useErpiPotvrda`) umesto browser `window.confirm`.** Prvo mesto:
+  brisanje DMS priloga i brisanje/proknjiženje/rasknjiženje naloga u `NaloziPodTab`.
+- **Unapređenje WebShop izloga** — modernizovane kartice artikala sa ambijentalnim sjajem, Hero
+  baner, Bento grid i glatki auto-scroll na katalog pri promeni kategorije.
+- **Lepljenje slika (Ctrl+V) u admin formi artikla** i auto-osvežavanje liste artikala posle izmene.
+
+### 🐛 Ispravke grešaka
+
+- **Delete dugme u Nalozima nije reagovalo na običan klik na red**, samo na čekiranu kučicu — u WPF-u
+  `DataGrid.SelectedItems` uvek sadrži i single-click, pa je web selekcija sad usklađena (i
+  „Proknjiži"/„Rasknjiži" koriste isti obrazac).
+- **DMS prilozi i izmena naloga nisu osvežavali tabelu** posle zatvaranja modala (📎 ikonica i broj
+  priloga ostajali stari) — ispravljeno na svih 6 ekrana koji koriste `DmsPrilogModal`.
+- **Vrsta naloga** je bio combo sa 4 fiksne opcije koje se nisu poklapale sa stvarnim vrednostima
+  koje ~15 servisa upisuje (`IZV`, `BL`, `KALKULACIJA`...) — zamenjen slobodnim tekstualnim poljem
+  sa `datalist` predlozima, isto ponašanje kao WPF textbox.
+- **Tastaturna navigacija (strelice/Enter/Esc) u pretrazi konta** (`KontoAutocomplete`) u formi naloga.
+- **WPF `DmsWindow` „Skeniraj" dugme sečeno teksta** — toolbar red je zahtevao ~1150px a prozor je
+  bio 960px; proširen na 1250px.
+- **Klik na kalendar ikonicu `DatumInput`-a nije otvarao meni** — `.focus()` sinhrono okida
+  `onFocus` (otvara meni) pre nego što funkcionalni toggle stigne da se izvrši, pa je uvek
+  poništavao upravo to otvaranje; ikonica je efektivno bila mrtva, radio je samo klik u tekst.
+- **Radna tabla Magacina imala suvišan Robno/Materijalno toggle** unutar `MagacinDashboardPodTab` —
+  Materijalno knjigovodstvo je od 23.08.2026 već zaseban tab sa sopstvenom radnom tablom
+  (`MaterijalnoTab.tsx`), toggle je ostao kao rudiment i duplirao taj meni.
+
+### 🔧 Tehničke izmene
+
+- `IImaRowVerziju` interfejs (`ERPiData/Models/Core`), migracija `DodajRowVerzijuKonkurentnost` +
+  `EnsureColumn` za zatečene SQLite baze (`Nalozi`/`Kalkulacije`/`WebPorudzbine`); 3 nova testa
+  (`RowVerzijaKonkurentnostTests`).
+- `@tanstack/react-query` razmotren i odbijen — admin tabovi već imaju rešen `useUcitavanje`
+  obrazac (loading/greška-toast/otkazivanje/refetch u jednom pozivu, korišćen na ~60 admin tab
+  fajlova), puna zamena bi bila churn bez stvarne koristi.
+- Novi `proveriOdgovor`/`obradiJsonOdgovor`/`emitujAkoNijeOk` helperi u `api.ts` (isti obrazac kao
+  postojeći `dohvatiJson`/`emitujApiGresku`).
+
+### Provera
+
+`dotnet build ERPi.slnx` i `-c Release` — oba 0/0. `dotnet test ERPiData.Tests` — **1272/1272**.
+`npm run build` (ERPiWebShop) — čist. `npx vitest run` (iz `ERPiWebShop`) — **189/189**.
+
 ## [2.57.0] - 2026-08-23
 
 ### 🚀 Nove funkcionalnosti
