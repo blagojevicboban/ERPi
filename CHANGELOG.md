@@ -25,6 +25,15 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 - **Klik na "Otvori" u Obračunskim periodima (WPF) nije markirao stavku menija.** `NavigateToObracun`
   je menjao sadržaj direktno, zaobilazeći `RadioButton` grupu sidebar-a — sad koristi postojeći
   `AktivirajNavStavku` helper (isti mehanizam kao prebacivanje modula), pa se meni ispravno markira.
+- **"Obračun za period — Po radnicima" grupisao je po internom `RadnikId`, ne po fizičkoj osobi.**
+  Legacy uvoz/ponovno zapošljavanje ume da napravi više `Radnik` zapisa sa istim brojem radnika za
+  istog čoveka — grupisanje po `RadnikId` je takvu osobu delilo na više redova umesto jednog
+  zbirnog. Ispravljeno grupisanjem po `BrojRadnika`; filter na jednog radnika sad takođe pokupi sve
+  njene zapise, ne samo izabrani.
+- **PDF "Obračun za period" nije prikazivao iste kolone kao ekran.** Dograđen na svih 10 kolona
+  sati po vrsti i svih 21 element zarade/naknada, prebačen na A3 landscape (A4 fizički ne staje uz
+  toliko kolona); dinamičke kolone po vrsti primanja (bez gornje granice u podacima) se ograničavaju
+  na koliko sigurno stane, najveće po iznosu prvo — pun spisak i dalje nosi Excel izvoz.
 
 ## [2.58.1] - 2026-08-25
 
