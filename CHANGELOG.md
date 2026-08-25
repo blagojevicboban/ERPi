@@ -4,6 +4,28 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.58.2] - 2026-08-25
+
+### 🚀 Nove funkcionalnosti
+
+- **Obračun za period — zbirni pregled zarada preko raspona meseci (WPF + Web Admin).**
+  Umesto "Obračun za mesec" nudi opseg meseci sa dva ugla sumiranja: **po radnicima** (zbirni total
+  po zaposlenom kroz ceo period) ili **po mesecima** (mesečna dinamika); filter na jednog radnika
+  uz "po mesecima" daje hronološki karton tog zaposlenog. Zarada i naknade van radnog odnosa se ne
+  mešaju — razdvojeno preko `ObracunPlate.UgovorId`. Nov deljeni `ObracunPeriodService` (ERPiData)
+  poziva i WPF `ObracunPeriodPage` i `GET api/zarade/obracun-period`, da oba kanala računaju isto.
+  Prikazuje svih 10 kolona sati po vrsti i svih 21 element zarade/naknada (isti skup kao WPF
+  `ObracunPage`), plus dinamičke kolone po vrsti primanja gde postoje. Red UKUPNO na kraju grida —
+  na webu besplatno preko `ErpiDataGrid` summary footer-a, u WPF-u eksplicitno preko
+  `ObracunPeriodService.IzracunajUkupno`; Excel/PDF izvoz namerno rade nad čistim podacima da se
+  suma ne udvostruči. 9 novih testova.
+
+### 🐛 Ispravke i Validacije
+
+- **Klik na "Otvori" u Obračunskim periodima (WPF) nije markirao stavku menija.** `NavigateToObracun`
+  je menjao sadržaj direktno, zaobilazeći `RadioButton` grupu sidebar-a — sad koristi postojeći
+  `AktivirajNavStavku` helper (isti mehanizam kao prebacivanje modula), pa se meni ispravno markira.
+
 ## [2.58.1] - 2026-08-25
 
 ### 🐛 Ispravke i Validacije
