@@ -927,7 +927,7 @@ U 2.45.0 je generator ESC/POS isečka bio napisan i pokriven sa 23 testa, ali ga
 
 ### 🛒 Maloprodajna kasa (POS) i e-Fiskalizacija — ESIR prema stvarnom protokolu Poreske uprave
 
-Puna dokumentacija: **[`docs/KASA.md`](docs/KASA.md)**.
+Puna dokumentacija: **`docs/KASA.md`** (lokalni fajl van git praćenja).
 
 #### Zatečena fiskalizacija je bila pisana prema API-ju koji ne postoji
 

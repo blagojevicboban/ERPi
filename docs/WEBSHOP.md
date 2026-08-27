@@ -1298,7 +1298,7 @@ autorizacioni kod, da faktura ne bi ušla u otvorene stavke i opomene.
 ## 📜 Pravni tekstovi (Uslovi korišćenja, Politika privatnosti, Pravo na odustanak) i Cookie Consent
 
 Zakonski obavezne stranice za srpsku e-trgovinu, CMS-uredive po firmi (isti obrazac kao brending u
-`WebShopPodesavanja`) — vidi [§3dh u dnevniku](DNEVNIK_2026-08.md) za istoriju odluke.
+`WebShopPodesavanja`) — vidi §3dh u dnevniku (docs/DNEVNIK_2026-08.md) za istoriju odluke.
 
 - **3 nova polja na `WebShopPodesavanja`**: `UsloviKoriscenjaTekst`, `PolitikaPrivatnostiTekst`,
   `PravoNaOdustanakTekst` — čist tekst (bez HTML-a, bez potrebe za sanitizerom), uređuju se u
@@ -1318,7 +1318,7 @@ Zakonski obavezne stranice za srpsku e-trgovinu, CMS-uredive po firmi (isti obra
 
 ## 🧾 Fiskalizacija B2C Web Porudžbina
 
-Vidi [§3di u dnevniku](DNEVNIK_2026-08.md) za istraživanje i odluku o obimu.
+Vidi §3di u dnevniku (docs/DNEVNIK_2026-08.md) za istraživanje i odluku o obimu.
 
 - **Samo B2C** (`WebPorudzbina.JeB2B == false`) — B2B veleprodaja na odloženo plaćanje ostaje
   pokrivena isključivo SEF e-fakturom, kao i pre ove izmene (zakonski druga kategorija od prometa
@@ -1344,7 +1344,7 @@ mora imati mrežni pristup tom uređaju — postojeće arhitekturno ograničenje
 
 Tok zahteva (prijava → odobrenje/odbijanje → oznaka refundirano) — **bez** automatskog
 knjigovodstvenog storna ili PFR refundacije, svesna odluka da se izbegne rizik greške u poreskoj
-evidenciji u prvom koraku. Vidi [§3dj u dnevniku](DNEVNIK_2026-08.md).
+evidenciji u prvom koraku. Vidi §3dj u dnevniku (docs/DNEVNIK_2026-08.md).
 
 - **2 nove tabele**: `WebReklamacija` (header: porudžbina, kupac, status, razlog, napomena admina,
   datumi) + `WebReklamacijaStavka` (koje stavke/količine — kupac često vraća samo deo porudžbine).
@@ -1365,7 +1365,7 @@ evidenciji u prvom koraku. Vidi [§3dj u dnevniku](DNEVNIK_2026-08.md).
 ## 🏬 Click & Collect (Preuzimanje u Prodavnici)
 
 Lično preuzimanje porudžbine u magacinu/prodavnici, kao alternativa kurirskoj dostavi. Vidi
-[§3dk u dnevniku](DNEVNIK_2026-08.md) — zamenjuje ranije potpuno izmišljen prikaz „Dostupnost po
+§3dk u dnevniku (docs/DNEVNIK_2026-08.md) — zamenjuje ranije potpuno izmišljen prikaz „Dostupnost po
 magacinima" na stranici artikla (tri hardkodovana magacina sa izmišljenim količinama).
 
 - **`Magacin.DostupanZaPreuzimanje`** (bool) + `AdresaPreuzimanja`/`GradPreuzimanja`/

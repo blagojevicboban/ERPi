@@ -10,7 +10,7 @@
 [![Codebase](https://img.shields.io/badge/Codebase-640k%2B%20LOC-blueviolet.svg?style=for-the-badge&logo=codefactor&logoColor=white)](README.md#-projekat-u-brojkama--inženjerska-metrika)
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20Postgres%20%7C%20MSSQL-4479A1.svg?style=for-the-badge&logo=sqlite&logoColor=white)](docs/ARCHITECTURE.md)
 [![Tests](https://img.shields.io/badge/Tests-1616%20Passing%20(1399%20.NET%20%2B%20217%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
-[![Auto-Update](https://img.shields.io/badge/Updater-Velopack-F97316.svg?style=for-the-badge&logo=githubactions&logoColor=white)](docs/DEPLOYMENT.md)
+[![Auto-Update](https://img.shields.io/badge/Updater-Velopack-F97316.svg?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/blagojevicboban/ERPi/releases)
 
 <p align="center">
   <strong>Objedinjeno finansijsko i materijalno knjigovodstvo, robno poslovanje, proizvodnja, obračun zarada, osnovna sredstva, SEF e-Fakture, e-Fiskalizacija i omni-channel B2C / B2B WebShop.</strong>
@@ -199,11 +199,6 @@ Za detaljnije vodiče pogledajte dokumentaciju u direktorijumu `docs/`:
 
 - 🏗️ **[Arhitektura sistema i baze podataka](docs/ARCHITECTURE.md)** — Slojno razdvajanje, konekcije i EF Core šeme.
 - 🌐 **[WebShop Vodič & NBS IPS QR](docs/WEBSHOP.md)** — Integracija B2C prodavnice, B2B portala i plaćanja.
-- 🧾 **[Maloprodajna kasa i e-Fiskalizacija](docs/KASA.md)** — ESIR ↔ PFR protokol, POS, čitač barkoda i ESC/POS štampa.
-- 💻 **[Vodič za razvoj i standarde koda](docs/DEVELOPMENT.md)** — Pravila razvoja, obrasci i testiranje.
-- 📦 **[Pakovanje i Objavljivanje (Velopack)](docs/DEPLOYMENT.md)** — CI/CD, kreiranje instalera i auto-update.
-- 🔄 **[Uvoz iz starih DBF baza](docs/DBF_MIGRATION.md)** — Migracija sa DOS/FoxPro sistema.
-- 📓 **[Dnevnik razvoja (Dnevnik rada)](docs/DNEVNIK_2026-08.md)** — Detaljan tehnički zapisnik svih implementacija.
 - 📋 **[Plan nastavka](PLAN_NASTAVKA.md)** — Pregled stanja i roadmap preostalih funkcionalnosti.
 - 📝 **[Istorija izmena (Changelog)](CHANGELOG.md)** — Detaljan pregled svih verzija po datumima.
 

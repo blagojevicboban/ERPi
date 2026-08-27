@@ -317,7 +317,8 @@ graph TD
 - **Uvek dva koraka, nikad direktno u ERPi bazu:** DBF → privremena SQLite baza u šemi starog
   programa (`AccountingDbContext` / `SredstvaDbContext` / `PlataDbContext`, gradi se na `%TEMP%` i
   briše posle uvoza) → `Erpi*ProdukcijaImporter` → `ErpiDbContext`. Dedup prema trajnoj bazi postoji
-  isključivo u drugom koraku. Detalji i mapiranje fajlova: [`DBF_MIGRATION.md`](DBF_MIGRATION.md).
+  isključivo u drugom koraku. Detalji i mapiranje fajlova: `docs/DBF_MIGRATION.md` (lokalni fajl
+  van git praćenja).
 - `Legacy/*/Models/` drži **šeme starih programa**, ne ERPi entitete — te klase se namerno ne
   usklađuju sa `ERPiData` modelima.
 
@@ -350,8 +351,8 @@ graph TD
 
 ## 🛒 1.9 Maloprodajna kasa i e-Fiskalizacija (ESIR ↔ PFR)
 
-**Dodato 17.08.2026 (v2.45.0).** Puna dokumentacija: **[`docs/KASA.md`](KASA.md)**. Ovde samo ono što
-je bitno za razumevanje arhitekture.
+**Dodato 17.08.2026 (v2.45.0).** Puna dokumentacija: **`docs/KASA.md`** (lokalni fajl van git
+praćenja). Ovde samo ono što je bitno za razumevanje arhitekture.
 
 ```mermaid
 graph LR
