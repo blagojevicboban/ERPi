@@ -3,10 +3,11 @@
 # ⚡ ERPi Enterprise Business Suite
 ### Celoviti, Hibridni Poslovni Informacioni Sistem & e-Commerce Platforma
 
-[![Version](https://img.shields.io/badge/version-2.58.3-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.58.4-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF UI](https://img.shields.io/badge/UI-WPF%20Desktop-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](ERPiApp)
 [![WebShop & Admin](https://img.shields.io/badge/Web-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](ERPiWebShop)
+[![Codebase](https://img.shields.io/badge/Codebase-625k%2B%20LOC-blueviolet.svg?style=for-the-badge&logo=codefactor&logoColor=white)](README.md#-projekat-u-brojkama--inženjerska-metrika)
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20Postgres%20%7C%20MSSQL-4479A1.svg?style=for-the-badge&logo=sqlite&logoColor=white)](docs/ARCHITECTURE.md)
 [![Tests](https://img.shields.io/badge/Tests-1461%20Passing%20(1272%20.NET%20%2B%20189%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
 [![Auto-Update](https://img.shields.io/badge/Updater-Velopack-F97316.svg?style=for-the-badge&logo=githubactions&logoColor=white)](docs/DEPLOYMENT.md)
@@ -15,9 +16,58 @@
   <strong>Objedinjeno finansijsko i materijalno knjigovodstvo, robno poslovanje, proizvodnja, obračun zarada, osnovna sredstva, SEF e-Fakture, e-Fiskalizacija i omni-channel B2C / B2B WebShop.</strong>
 </p>
 
-[Ključni Moduli](#-ključni-moduli-sistema) • [Arhitektura](#-arhitektura-i-tehnologije) • [WebShop & B2B](#-integrisani-webshop--b2b-portal) • [Baze Podataka](#-multi-dbms-i-mrežni-rad) • [Brzi Početak](#-brzi-početak-i-razvoj) • [Dokumentacija](#-tehnička-dokumentacija)
+<p align="center">
+  <img src="docs/screenshots/erpi_desktop_suite.gif" alt="ERPi Enterprise Business Suite Showcase" width="96%" style="border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);" />
+</p>
+
+[Metrika Projekta](#-projekat-u-brojkama--inženjerska-metrika) • [Ključni Moduli](#-ključni-moduli-sistema) • [Arhitektura](#-arhitektura-i-tehnologije) • [WebShop & B2B](#-integrisani-webshop--b2b-portal) • [Vizuelni Prikaz](#-korisnički-interfejs-i-vizuelni-prikaz) • [Baze Podataka](#-multi-dbms-i-mrežni-rad) • [Dokumentacija](#-tehnička-dokumentacija)
 
 </div>
+
+---
+
+## 📊 Projekat u Brojkama & Inženjerska Metrika
+
+<div align="center">
+
+| 📏 Obim Koda | 🗄️ Baza Podataka | 🖥️ Desktop Klijent | 🌐 Web & API | 🧪 Kvalitet & Testovi |
+| :---: | :---: | :---: | :---: | :---: |
+| **625.000+**<br/><sub>Ukupno linija koda</sub> | **93 Modela**<br/><sub>135 EF migracija</sub> | **188 Ekrana**<br/><sub>WPF prozori i dijalozi</sub> | **280+ Komponenti**<br/><sub>21 REST kontroler</sub> | **1.461 Test**<br/><sub>100% prolaznost</sub> |
+
+</div>
+
+<br/>
+
+### 🔍 Tehnološka i Arhitektonska Struktura Koda
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│  UKUPAN KODNI SKLOP:  ~625.000+ LOC  •  1.400+ Fajlova  •  320+ Verifikovanih Verzija    │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Tehnološki Sloj | Datoteke | Linije Koda (LOC) | Ključne Odlike i Komponente |
+| :--- | :---: | :---: | :--- |
+| **Backend & Poslovna Logika (C#)** | `901` | **498.214** | .NET 8, EF Core 8, 46 servisa, SEF UBL 2.1, PPP-PD generator, 30+ QuestPDF šablona |
+| **WebShop & Web Backoffice (TSX/TS)** | `269` | **68.203** | React 19, Vite, TypeScript, Tailwind CSS, B2B Veleprodaja, B2C korpa i admin |
+| **Desktop Korisnički Interfejs (XAML)** | `190` | **23.772** | WPF MVVM, brzi unos na tastaturi, napredni gridovi, svetla i tamna tema |
+| **Testni Suite (.NET + React)** | `110` | **21.950** | 1.461 automatizovani test (1.272 xUnit .NET + 189 Vitest/React) |
+| **Integrisana Pomoć & Dokumentacija** | `47` | **26.437** | F1 HTML kontekstualna pomoć, 10+ internih vodiča, arhitektonska specifikacija |
+| **Konfiguracija, SQL & Skripte** | `20+` | **7.500+** | Multi-DBMS šeme (SQLite, PostgreSQL, MS SQL), Velopack deployment, CI skripte |
+
+<br/>
+
+### 🏛️ Arhitektonski Elementi & Sistemske Komponente
+
+| Arhitektonski element | Količina | Opis i nivo zrelosti |
+| :--- | :---: | :--- |
+| **Baza podataka / EF Modeli** | **93 modela** | Kompletan relacioni domen (Finansije, Zarade, Sredstva, Robno, Proizvodnja, Servis) |
+| **EF Core Migracije** | **135 migracija** | Dvosmerna podrška: SQLite, PostgreSQL, Microsoft SQL Server |
+| **REST API Kontroleri** | **21 kontroler** | Skalabilan ASP.NET Core REST backend za WebShop, integracije i mobilne klijente |
+| **Poslovni servisi (Services)** | **46 servisa** | Poslovna logika: obračuni zarada, amortizacija, lager, SEF, NBS, porezi |
+| **WPF Pogledi & Dijalozi** | **188 prozora** | Brzi desktop ERP klijent sa prečicama, naprednim gridovima i pretragama |
+| **WebShop & Web Strane** | **280+ komponenti** | React 19 + TypeScript, Tailwind, REST klijent, B2B korpa i katalog |
+| **QuestPDF Izveštaji** | **30+ dokumenata** | Vektorski PDF-ovi: Fakture, Nalozi za knjiženje, KEP, Isplatni listići, Popisne liste |
 
 ---
 
@@ -119,48 +169,27 @@ ERPi Solution (ERPi.slnx)
  └── 🧪 ERPiData.Tests   → xUnit automatizovani testovi (1272 backend testova prolazi)
 ```
 
----
+## 📸 Korisnički Interfejs i Vizuelni Prikaz
 
-## 🚀 Brzi Početak i Razvoj
+<div align="center">
 
-### Preduslovi
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js v20+](https://nodejs.org/) i `npm`
-- Visual Studio 2022 / VS Code / Antigravity IDE
+### 🛍️ ERPi WebShop & B2B Veleprodajni Portal
+<p align="center">
+  <em>Moderan, ultra-brz React 19 + Tailwind B2C WebShop i B2B portal sa integrisanim platnim metodama (NBS IPS QR, Kartice) i live sinhronizacijom zaliha.</em>
+</p>
 
-### 1. Kloniranje i Pokretanje Testova
-```powershell
-# Klonirajte repozitorijum
-git clone https://github.com/username/ERPi.git
-cd ERPi/ERPi
+<img src="docs/screenshots/webshop_storefront.png" alt="ERPi WebShop Storefront" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 
-# Izgradite celokupno rešenje
-dotnet build ERPi.slnx
+<br/><br/>
 
-# Pokrenite .NET backend testove (1272 testa)
-dotnet test ERPiData.Tests/ERPiData.Tests.csproj
+### ⚙️ ERPi Web Admin Backoffice
+<p align="center">
+  <em>Centralizovana Web administracija za upravljanje katalozima, porudžbinama, partnerskim cenovnicima, marketing banerima i CMS podešavanjima.</em>
+</p>
 
-# Pokrenite frontend testove (189 testova)
-cd ERPiWebShop
-npm test -- --run
-```
+<img src="docs/screenshots/webshop_admin.png" alt="ERPi Web Admin Backoffice" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 
-### 2. Pokretanje Desktop Aplikacije
-```powershell
-dotnet run --project ERPiApp/ERPiApp.csproj
-```
-
-### 3. Pokretanje WebShop API-ja i Web Admin Portala
-```powershell
-# U prvom terminalu pokrenite API servis:
-dotnet run --project ERPiApi/ERPiApi.csproj
-
-# U drugom terminalu pokrenite React WebShop & Admin:
-cd ERPiWebShop
-npm install
-npm run dev
-```
-> WebShop je dostupan na `http://localhost:5173`, Web Admin Backoffice na `http://localhost:5173/admin`, a Swagger API dokumentacija na `http://localhost:5000`.
+</div>
 
 ---
 

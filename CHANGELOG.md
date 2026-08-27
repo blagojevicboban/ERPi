@@ -4,6 +4,29 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.58.4] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti
+
+- **Šarže/lotovi, rokovi trajanja (FEFO) i serijski brojevi (FIFO) — nova celina u Magacinu.**
+  Opt-in praćenje po artiklu/materijalu (`NacinPracenja`: Standardno/Šarža/SerijskiBroj), sa mekom
+  vezom ka liniji bilo kog od 6 dokumenata (Kalkulacija, Ulaz, Otpremnica, Trebovanje,
+  RobnoKretanje, MP kalkulacija) preko `TipDokumentaZalihe`+`DokumentStavkaId`. FEFO predlog za
+  šarže (najbliži rok prvo), FIFO za serijske brojeve, poseban "premesti" put za transfer
+  serijskog broja između magacina bez menjanja statusa. Dugme "🏷" po redu grida ožičeno na svih 6
+  dokumenata, na oba UI-ja (WPF i Web), plus 2 nova pregled ekrana (Šarže i rokovi trajanja,
+  Serijski brojevi) sa isticanjem u boji za rokove koji uskoro ističu.
+- **Merge-po-ID pri snimanju dokument-stavki.** Umesto da svako "Snimi" briše i ponovo upisuje sve
+  stavke (što je osirotinjavalo upravo uneti izbor šarže na već sačuvanoj liniji), postojeći red
+  sad čuva svoj Id pri izmeni — nov `StavkeMergeHelper` primenjen na svih 6 dokument-servisa, i na
+  WPF i na Web strani (uključujući ulazne API DTO-e koji ranije nisu ni nosili stavka-Id).
+
+### 🐛 Ispravke i Validacije
+
+- **Hardkodovano dugme "Nova kalkulacija" u zajedničkom Robno zaglavlju** je uvek otvaralo formu za
+  kalkulaciju, bez obzira koji je pod-tab aktivan (Ponude, Otpremnice, Nivelacije, Lager...) —
+  uklonjeno; svaki pod-tab koji akciju "dodaj novo" uopšte ima već je ispravno prikazuje sam.
+
 ## [2.58.3] - 2026-08-25
 
 ### 🐛 Ispravke i Validacije
