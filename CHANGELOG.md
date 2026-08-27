@@ -4,6 +4,126 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.64.0] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti & Kadrovska Dokumentacija & Alarmi
+
+- **Generator Ugovora i HR rešenja sa promenljivim tagovima & Kadrovski Alarmi (§61)**:
+  - **Modeli i perzistencija (`ERPiData/Models/Zarade/`)**:
+    - `Radnik.cs`: proširen sa poljima životnog ciklusa i kadrovskih rokova (`BrojUgovoraORadu`, `DatumUgovoraORadu`, `UgovorNaOdredjenoDo`, `ProbniRadDo`, `LekarskiPregledDatum`, `LekarskiPregledVaziDo`, `BzrObukaDatum`, `BzrObukaVaziDo`).
+    - `HrModeli.cs`: entiteti `HrSablon` (tabela `SabloniHrDokumenata`) i `HrDokument` (tabela `HrDokumenti`), enumi `TipHrDokumenta`, `StatusHrDokumenta`, `HrAlarmTip`, `HrAlarmNivo` i DTO modeli `GenerisiHrDokumentZahtevDto`, `GenerisiHrDokumentOdgovorDto`, `HrAlarmDto`, `HrAlarmiPregledDto`, `HrTagOpisDto`.
+    - EF Core migracija `20260827190036_DodajHrDokumenteIAlarme.cs` i SQLite raw SQL automatska sinhronizacija.
+  - **Servisni sloj (`ERPiData/Services/Zarade/`)**:
+    - `HrGeneratorDokumenataService.cs`: Regex mehanizam zamene promenljivih tagova (`{{Ime}}`, `{{JMBG}}`, `{{Pozicija}}`, `{{Plata}}`, `{{PlataSlovima}}`, `{{FirmaNaziv}}`...), live preview generator i 7 ugrađenih fabričkih zakonskih šablona (`UG-NEODR`, `UG-ODR`, `ANEKS-PLATA`, `RES-OTKAZ-ISTEK`, `RES-ODMORA`, `UPUT-LEKARSKI`, `POTVRDA-ZAPOSLENJE`).
+    - `HrAlarmiService.cs`: detekcija i rangiranje hitnosti: istek ugovora na određeno (<60d), zakonski limit 24 meseca rada na određeno (čl. 37 ZOR RS), istek probnog rada (čl. 36 ZOR RS), periodični lekarski pregledi i BZR zaštita na radu.
+    - `HrDokumentPdfDocument.cs`: QuestPDF generator A4 zvaničnih PDF dokumenata sa zaglavljem firme i potpisnim blokovima.
+  - **REST API (`ERPiApi/Controllers/ZaradeController.cs`)**:
+    - Rute: `GET api/Zarade/hr-alarmi`, `GET api/Zarade/hr-tagovi`, `GET/POST/DELETE api/Zarade/hr-sabloni`, `POST api/Zarade/hr-sabloni/reset`, `POST api/Zarade/hr-dokumenti/generisi`, `GET/POST/DELETE api/Zarade/hr-dokumenti`, `GET api/Zarade/hr-dokumenti/{id}/pdf`.
+  - **Web Admin UI (`ERPiWebShop`)**:
+    - 4-in-1 pod-tab `HrDokumentiPodTab.tsx` (Arhiva izdatih dokumenata, Čarobnjak/Generator sa live preview-om, Šabloni sa brzim tagovima, HR Alarmi & Kadrovski Rokovnik).
+    - HR Alarmi widget banner na radnoj tabli zarada (`ZaradeDashboardPodTab.tsx`).
+    - Proširen modal zaposlenog sa kadrovskim rokovima u `ZaradeTab.tsx`.
+  - **Desktop WPF UI (`ERPiApp`)**:
+    - `HrDokumentiPage.xaml` i `HrDokumentiPage.xaml.cs`.
+  - **Testovi i F1 pomoć**:
+    - 8/8 xUnit testova u `ERPiData.Tests/HrGeneratorIAlarmiTests.cs`.
+    - Ažurirano korisničko uputstvo `ERPiApp/Resources/Help/uputstvo-zarade.html`.
+
+## [2.63.0] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti & HR Analitika
+
+- **Napredni „What-If” kalkulator zarada i simulacija budžeta plata (§60)**:
+  - **Modeli i struktura (`ERPiData/Models/Zarade/WhatIfZaradaModeli.cs`)**:
+    - DTO modeli `KalkulatorZaradeZahtevDto`, `KalkulatorZaradeRezultatDto`, `SimulacijaBudzetaParametriDto`, `SimulacijaBudzetaStavkaDto` i `SimulacijaBudzetaRezultatDto`.
+    - Enum `SmerKalkulacijePlate` (`NetoUBruuto`, `BrutoUNeto`, `Bruto2UNeto`).
+  - **Poslovni servis (`ERPiData/Services/Zarade/WhatIfKalkulatorService.cs`)**:
+    - `ObracunajPojedinacno`: brza i precizna dvosmerna inverzija zarada (`Neto ➔ Bruto 1 ➔ Bruto 2` uz formulu `(Neto - 0.10 * Neoporezivi) / 0.701`, `Bruto 1 ➔ Neto`, `Bruto 2 (Trošak) ➔ Bruto 1 i Neto`).
+    - `SimulirajBudzetAsync`: masovna projekcija efekta promene plata u preduzeću (procentualno npr. `+7%`, fiksno npr. `+10.000 RSD`, topli obrok, regres i minimalac) sa uporednim podacima (Pre vs Posle vs Delta) po radniku i masi firme.
+    - `IzveziSimulacijuExcel`: generisanje formatiranog `.xlsx` izveštaja preko `ClosedXML`.
+  - **QuestPDF dokument (`ERPiData/Services/Zarade/SimulacijaBudzetaDocument.cs`)**:
+    - Zvanični A4 Landscape izveštaj simulacije sa KPI karticama, uporednom tabelom radnika i potpisnim blokom za direktora i HR menadžera.
+  - **REST API (`ERPiApi/Controllers/ZaradeController.cs`)**:
+    - `POST api/Zarade/what-if/obracunaj-pojedinacno`
+    - `POST api/Zarade/what-if/simulacija-budzeta`
+    - `POST api/Zarade/what-if/simulacija-budzeta/pdf`
+    - `POST api/Zarade/what-if/simulacija-budzeta/excel`
+  - **Web Admin UI (`ERPiWebShop`)**:
+    - `WhatIfKalkulatorPodTab.tsx` sa Tab 1 (⚡ Brzi dvosmerni kalkulator sa vizuelnim barom raspodele učešća neta i doprinosa) i Tab 2 (📈 HR Simulacija budžeta sa parametrima scenarija, KPI karticama delta troška i PDF/Excel dugmadima).
+    - Uvezano u `zaradeMeni.tsx`, `ZaradeTab.tsx` i servis `zaradeApi.ts`.
+  - **Desktop WPF UI (`ERPiApp`)**:
+    - `WhatIfKalkulatorPage.xaml` i `WhatIfKalkulatorPage.xaml.cs` uvezani u `MainWindow.xaml` pod *🧮 OBRAČUN & ISPLATA*.
+  - **Testovi i verifikacija**:
+    - `ERPiData.Tests/WhatIfKalkulatorServiceTests.cs` (5 xUnit testova prolaze 100%) i `ERPiWebShop/src/test/WhatIfKalkulator.test.ts` (2 vitest testa).
+
+## [2.62.0] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti & Statističko-Zavodski Izveštaji
+
+- **Statistički izveštaji za RZS (Obrasci RAD-1 i RAD-G) (§59)**:
+  - **Modeli i struktura (`ERPiData`)**:
+    - Kreirani modeli `ObrazacRad1Dto`, `ObrazacRadGDto`, `ObrazacRadGStavka` i enum `StepenStrucneSpreme` (I NKV do VIII Doktorat) za automatsko statističko mapiranje.
+  - **Poslovni servisi (`ERPiData/Services/Zarade/`)**:
+    - `RzsStatistikaService.cs`:
+      - `GenerisiRad1Async`: automatska mesečna agregacija broja zaposlenih (žene/muškarci, puno/nepuno radno vreme, neodređeno/određeno), efektivnih radnih sati, bolovanja (poslodavac vs RFZO), masa zarada (Bruto I, porez, doprinosi, neto, Bruto II) i prosečnih zarada.
+      - `GenerisiRadGAsync`: godišnja strukturna matrica zaposlenih po kvalifikacijama / stručnoj spremi (VIII-I) sa polnom strukturom, fondovima sati i godišnjim masama zarada.
+      - `IzveziRad1Excel` & `IzveziRadGExcel`: automatsko kreiranje `.xlsx` tabela preko `ClosedXML` spremnih za predaju ili prepis na portal e-Statistika RZS.
+    - Zvanični QuestPDF obrasci: `ObrazacRad1Document.cs` (A4 Portrait) i `ObrazacRadGDocument.cs` (A4 Landscape) sa potpisnim blokom za statistiku i odgovorno lice.
+  - **REST API (`ERPiApi/Controllers/ZaradeController.cs`)**:
+    - Endpointi: `GET api/Zarade/statistika-rzs/rad-1`, `GET api/Zarade/statistika-rzs/rad-1/pdf`, `GET api/Zarade/statistika-rzs/rad-1/excel`, `GET api/Zarade/statistika-rzs/rad-g`, `GET api/Zarade/statistika-rzs/rad-g/pdf` i `GET api/Zarade/statistika-rzs/rad-g/excel`.
+  - **Web Admin UI (`ERPiWebShop`)**:
+    - Pod-tab `StatistikaRzsPodTab.tsx` sa tabovima za RAD-1 i RAD-G, interaktivnim tabelama, KPI karticama i dugmadima za PDF i Excel preuzimanje.
+    - Integrisano u `zaradeMeni.tsx`, `ZaradeTab.tsx` i `zaradeApi.ts`.
+  - **Desktop WPF UI (`ERPiApp`)**:
+    - `StatistikaRzsPage.xaml` / `.xaml.cs` integrisan u meni `MainWindow.xaml` pod sekciju *🧮 OBRAČUN & ISPLATA*.
+  - **Testovi i verifikacija**:
+    - `ERPiData.Tests/RzsStatistikaServiceTests.cs` (3 detaljna scenarija) i `ERPiWebShop/src/test/StatistikaRzs.test.ts` (2 testa).
+
+## [2.61.0] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti & Poresko-Finansijska Proširenja
+
+- **Neoporeziva i ostala lična primanja sa automatskim praćenjem limita (čl. 18 ZPDG) (§58)**:
+  - **Modeli i šema (`ERPiData`)**:
+    - Kreirani modeli `NeoporeziviLimit`, `StanjeLimitaRadnikaDto` i enum `TipNeoporezivogPrimanja` sa 12 tipova primanja (prevoz, dnevnice zemlja/inostranstvo, sopstveno vozilo, solidarna pomoć za bolest/smrt, jubilarne nagrade, poklon deci do 15 god, dobrovoljno osiguranje, otpremnine za penziju, stipendije).
+    - `NeoporeziviLimitiSeed` sa usklađenim zakonskim iznosima za 2026. godinu prema indeksu potrošačkih cena.
+    - EF Core migracija `DodajNeoporeziveLimiteIPrimanja` i raw-SQL `EnsureNeoporeziviLimitiTables` u `ErpiDbContext.cs`.
+  - **Poslovni servisi (`ERPiData/Services/Zarade/`)**:
+    - `NeoporezivaPrimanjaService.cs` sa automatskim proračunom kumulativnog iskorišćenja limita u godini/mesecu po radniku, razdvajanjem na neoporezivi deo i oporezivi višak i evidentiranjem u `UnetaPrimanja`.
+    - `NeoporezivaPrimanjaDocument.cs` (QuestPDF A4 Landscape) obrazac rekapitulacije isplaćenih primanja sa kolonama neoporezivo/oporezivo/ukupno i potpisnim blokom poslodavca i direktora.
+  - **REST API (`ERPiApi/Controllers/ZaradeController.cs`)**:
+    - Endpointi: `GET api/Zarade/neoporeziva-primanja/limiti`, `GET api/Zarade/neoporeziva-primanja/stanje-radnika`, `POST api/Zarade/neoporeziva-primanja/proveri-limit`, `POST api/Zarade/neoporeziva-primanja/evidentiraj`, `DELETE api/Zarade/neoporeziva-primanja/{id}`, `GET api/Zarade/neoporeziva-primanja/izvestaj` i `GET api/Zarade/neoporeziva-primanja/pdf`.
+  - **Web Admin UI (`ERPiWebShop`)**:
+    - Pod-tab `NeoporezivaPrimanjaPodTab.tsx` sa KPI karticama, horizontalnim prikazom važećih zakonskih limita, tabelom evidentiranih primanja i modalom sa real-time progress bar-om i proverom prekoračenja limita radnika.
+    - Integrisano u `zaradeMeni.tsx` i `ZaradeTab.tsx`.
+  - **Desktop WPF UI (`ERPiApp`)**:
+    - `NeoporezivaPrimanjaPage.xaml` / `.xaml.cs` i prozor `NovoNeoporezivoPrimanjeWindow.xaml`.
+    - Povezano u meni `MainWindow.xaml` pod sekciju *👥 EVIDENCIJA*.
+  - **Testovi i verifikacija**:
+    - `ERPiData.Tests/NeoporezivaPrimanjaServiceTests.cs` (6 testova) i `ERPiWebShop/src/test/NeoporezivaPrimanja.test.ts` (3 testa).
+
+## [2.60.0] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti & Zarade / HR proširenja
+
+- **Mesečna evidencija radnog vremena (Šihterica / Timesheet) & 1-klik prenos u obračun zarada (§57)**:
+  - **Modeli podataka (`ERPiData`)**: Kreirani modeli `SihtericaMesec` i `SihtericaDan` za dnevno i mesečno praćenje prisutnosti radnika po vrstama sati (`RedovanRad`, `GodisnjiOdmor`, `BolovanjeDo30`, `BolovanjePreko30`, `DrzavniPraznik`, `RadNaPraznik`, `PlacenoOdsustvo`, `NeplacenoOdsustvo`, `SlobodanDan`, `SluzbeniPut`, `PrekidRada`).
+  - **EF Core migracija & SQLite sinhronizacija**: Migracija `DodajSihtericuIEvidencijuRada` i `EnsureSihtericaTables` u `ErpiDbContext.cs` za automatsku nadogradnju zatečenih baza.
+  - **Poslovni servisi (`ERPiData`)**:
+    - `SihtericaService.cs` sa automatskim prepoznavanjem radnih dana i vikenda, državnih/verskih praznika iz baze (`PraznikService`) i odobrenih odsustava (`OdsustvoService`).
+    - Metoda `PrenesiURadneSateAsync` za 1-klik agregaciju i sinhronizaciju sati u tabelu `RadniSati` za automatski obračun zarada.
+    - Metoda `PostaviStatusZakljucavanjaAsync` za zaključavanje završene evidencije.
+  - **Zvanični QuestPDF izveštaj (`ERPiData`)**: A4 Landscape zakonski obrazac `SihtericaDocument.cs` sa kompletnom matricom radnika x dani u mesecu (1..31), sumama sati po vrstama, legendom oznaka i potpisnim blokom poslodavca i odgovornog lica.
+  - **REST API (`ERPiApi`)**: Endpointi u `ZaradeController.cs`: `GET api/Zarade/sihterica`, `POST api/Zarade/sihterica/generisi-predlog`, `PUT api/Zarade/sihterica/sacuvaj`, `POST api/Zarade/sihterica/prenesi-u-radne-sate`, `POST api/Zarade/sihterica/zakljucaj` i `GET api/Zarade/sihterica/pdf`.
+  - **Web Admin UI (`ERPiWebShop`)**:
+    - `SihtericaPodTab.tsx` sa interaktivnom tabelom/matricom, bojama ćelija po tipu rada, modalom za brzu izmenu dana i KPI karticama sa sumama kolektiva.
+    - Integrisano u navigaciju `zaradeMeni.tsx` i `ZaradeTab.tsx`.
+    - Unit testovi u `Sihterica.test.ts` i `adminRute.test.ts`.
+  - **Desktop WPF UI (`ERPiApp`)**:
+    - `SihtericaPage.xaml` i `SihtericaPage.xaml.cs` u `Views/Zarade/Sihterica/`.
+    - Povezano u glavni meni `MainWindow.xaml` pod sekciju *👥 EVIDENCIJA*.
+  - **F1 Pomoć & Dokumentacija**: Ažurirano uputstvo za zarade `uputstvo-zarade.html` (u `ERPiApp` i `ERPiWebShop`).
+
 ## [2.59.0] - 2026-08-27
 
 ### 🚀 Nove funkcionalnosti & Enterprise Proširenja
