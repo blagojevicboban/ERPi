@@ -4,6 +4,63 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.59.0] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti & Enterprise Proširenja
+
+- **WMS Lokacijski magacin & S-krivulja komisioniranja (Picking rute) (§51)**:
+  - Modeli skladišnih lokacija (`SkladisnaLokacija`, `ArtikalLokacija`) sa prostornim koordinatama (Zona, Prolaz, Regal, Polica), tipovima lokacija (Prijem, Fiksna, Protočna, Pick, Izdavanje) i kapacitetima.
+  - Algoritam S-krivulje za optimalnu putanju kretanja kroz skladište sa smanjenjem vremena komisioniranja do 40%.
+  - A4 Portrait QuestPDF obrazac naloga za komisioniranje (`WmsPickingListaDocument.cs`) sa kontrolnim barkodovima i lokacijama.
+  - Web Admin WMS dashboard pod-tab i Desktop WPF `WmsLokacijeView.xaml`.
+
+- **Zbirni kurirski manifesti (PostExpress, DExpress, Bex, AKS) (§52)**:
+  - Modeli `KurirskiManifest` i `KurirskiManifestStavka` sa tovarnim podacima, statusima predaje i potpisima.
+  - A4 Landscape QuestPDF obrazac manifesta (`KurirskiManifestDocument.cs`) sa tabelom pošiljaka, otkupnina i potpisnim blokom.
+  - Web Admin `KurirskiManifestiTab.tsx` sa čarobnjakom za grupno kreiranje i zaključivanje manifesta.
+
+- **EFT POS PinPad integracija & Poklon kartice / Vaučeri (§53)**:
+  - Direktna veza maloprodajne kase sa bankarskim PinPad terminalima (Ingenico ECR, Nexgo, Castles, ZVT protokol preko TCP/IP ili serijske COM veze) uz softverski simulator za testiranje.
+  - Modeli i servisi za izdavanje, proveru salda i višekratnu dopunu poklon kartica/vaučera sa parcijalnim splitovanjem plaćanja.
+  - Unapređen `KasaPlacanjeModal.tsx` i sub-tabovi `PoklonKarticePodTab.tsx` i `EftPosPodesavanjaPodTab.tsx`.
+
+- **Marketplace konektori & Omnichannel prodaja (Ananas, Shoppster, Wolt, WooCommerce, Shopify) (§54)**:
+  - Konektori za Ananas E-Commerce, Shoppster Marketplace, Wolt Drive Express dostavu, WooCommerce i Shopify sa automatskim mapiranjem porudžbina.
+  - Dvosmerna push sinhronizacija zaliha i real-time prijem porudžbina preko Webhook endpointa (`POST api/Marketplace/webhook/{tip}`).
+  - Web Admin `MarketplaceTab.tsx` sa karticama integracija i dnevnikom sinhronizacije.
+
+- **MRP I — Planiranje materijalnih potreba & Praćenje škarta u proizvodnji (§55)**:
+  - Gross-to-Net kalkulacioni algoritam: poređenje normativa radnih naloga (BOM) sa stanjem zaliha i narudžbenicama dobavljačima radi proračuna neto deficita i procene troškova nabavke.
+  - Evidencija tehnološkog škarta (`ProizvodniSkart`) po uzrocima (lom, kvar mašine, loša sirovina, greška radnika) sa finansijskim vrednovanjem.
+  - QuestPDF A4 Landscape izveštaj plana potreba i Web Admin `MrpPlaniranjePodTab.tsx`.
+
+- **AI Asistent (NLP upiti) & Izvršni KPI Menadžment Dashboard (§56)**:
+  - AI Asistent sa NLP intent klasifikacijom za obradu pitanja na srpskom jeziku o prihodima, top artiklima, deficitu zaliha, stanju proizvodnje i platama sa tabelarnim odgovorima i navigacionim prečicama.
+  - Plutajući chat prozor `AiAsistentModal.tsx` dostupan u celom backoffice-u.
+  - Izvršni KPI menadžment dashboard `KpiIzvestajiTab.tsx` sa finansijskim pokazateljima, AI uvidima i A4 Portrait QuestPDF izveštajem.
+
+## [2.58.6] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti
+
+- **CRM Pipeline & Prodajni levak za upravljanje ponudama i predračunima kupcima.**
+  - **Model i šema (`ERPiData`)**: Proširen model `PonudaPredracun` poljima: `Faza` (6 kanonskih faza: *Kontakt*,
+    *Kvalifikacija*, *KreiranaPonuda*, *Pregovori*, *Dobijeno*, *Izgubljeno*), `Verovatnoca` (0–100%), `OcekivaniDatumZatvaranja`,
+    `RazlogGubitka`, `OdgovorniKomercijalista`, i automatski kalkulisano polje `PonderisanaVrednost` (`UkupnoBruto * Verovatnoca / 100`).
+    EF Core migracija `20260827161830_DodajCrmPipelinePonude` uz `EnsureColumn` podršku za automatsku nadogradnju zatečenih SQLite baza.
+  - **Poslovni servisi (`ERPiData`)**: `CrmPipelineService.cs` sa automatskim proračunom KPI metrika (ukupna vrednost ponuda u levku,
+    ponderisana očekivana realizacija, realizovana vrednost i broj dobijenih ponuda, izgubljene ponude i stopa konverzije),
+    grupisanjem u faze, automatskim podešavanjem verovatnoće i sinhronizacijom statusa (`Prihvaćeno`/`Odbijeno`).
+    `KomercijalaService.cs` ažuriran da automatski postavlja fazu *Dobijeno* i verovatnoću 100% pri 1-klik konverziji predračuna u račun.
+  - **REST API (`ERPiApi`)**: Endpointi `GET api/Magacin/ponude/pipeline` (sa filterima po komercijalisti, kupcu i datumu) i
+    `PUT api/Magacin/ponude/{id}/faza` za brzo pomeranje ponuda kroz faze sa unosom razloga gubitka.
+  - **Web Admin Kanban Tabla (`ERPiWebShop`/`CrmPipelinePodTab.tsx`)**: 4 gradient KPI kartice (Levak, Ponderisana realizacija, Dobijeno, Stopa konverzije),
+    6 Kanban kolona sa bedževima i zbirovima faza, premeštanje ponuda napred/nazad, modal za unos razloga gubitka, brza 1-klik konverzija
+    predračuna u račun u fazi Dobijeno, prečice ka PDF štampi i editoru ponude.
+  - **Forme i pregledi**: Prošireni `PonudaFormaModal.tsx` (sa sliderom za verovatnoću i CRM sekcijom), `PonudePodTab.tsx` (sa CRM kolonama i Kanban dugmetom),
+    WPF `PonudeView.xaml` (sa filterom po CRM fazi i kolonama Verovatnoća % / Ponderisana vrednost) i WPF `PonudaEditWindow.xaml`.
+  - Pokriveno sa 1351/1351 .NET testova (`CrmPipelineTests.cs`) i 195/195 Vitest testova.
+
 ## [2.58.5] - 2026-08-27
 
 ### 🚀 Nove funkcionalnosti

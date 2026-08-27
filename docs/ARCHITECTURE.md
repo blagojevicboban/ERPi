@@ -115,16 +115,16 @@ graph TD
         L -->|Kreira nalog sa IsActive=false| Q["💾 SQLite WebKorisnici"]
         N -->|Generiše PDF u letu| R["📄 B2bPdfService (QuestPDF)"]
         R -->|Vraća PDF stream| M
-        PC2["⚡ PorudzbineController.KreirajPorudzbina"] -->|Odlozeno placanje preko KreditniLimit?| KL["💾 PartneriB2bPodesavanja"]
-        PC2 -->|Da: status=CekaOdobrenje (soft-lock, ne Nova)| Q2["💾 WebPorudzbine"]
+        PC2["⚡ PorudzbineController.KreirajPorudzbina"] -->|"Odlozeno placanje preko KreditniLimit?"| KL["💾 PartneriB2bPodesavanja"]
+        PC2 -->|"Da: status=CekaOdobrenje (soft-lock, ne Nova)"| Q2["💾 WebPorudzbine"]
     end
 
     subgraph Desktop["🖥️ ERPiApp WPF Desktop"]
-        S["👥 WebKorisniciView (Pregled Zahteva, Izmena profila)"] -->|Klik 'Odobri i Poveži'| Q
+        S["👥 WebKorisniciView (Pregled Zahteva, Izmena profila)"] -->|"Klik 'Odobri i Poveži'"| Q
         S -->|Kreira ili Povezuje Partnera| T["🏢 Šifarnik Partnera"]
         S -->|Šalje obaveštenje kupcu| U["📧 WebShopEmailService"]
         PCV["💰 PartnerCenovnikView"] -->|Podešava KreditniLimit/ValutaPlacanjaDana| KL
-        WPV["📦 WebPorudzbineView"] -->|'Odobri porudžbinu' (skida soft-lock)| Q2
+        WPV["📦 WebPorudzbineView"] -->|"'Odobri porudžbinu' (skida soft-lock)"| Q2
     end
 ```
 
@@ -227,18 +227,18 @@ više jednog centralnog `AdminPanel.tsx` stanja (bilo je ~3930 linija, ~21% `src
 ```mermaid
 graph TD
     subgraph Frontend["🌐 ERPiWebShop Frontend (React)"]
-        V["Bilo koja stranica (osim /admin)"] -->|Jednom po tabu, sessionStorage bedž| VC["📊 evidentirajPosetu()"]
-        VC -->|localStorage: trajan VisitorId (UUID)| LS2["💾 LocalStorage"]
+        V["Bilo koja stranica (osim /admin)"] -->|"Jednom po tabu, sessionStorage bedž"| VC["📊 evidentirajPosetu()"]
+        VC -->|"localStorage: trajan VisitorId (UUID)"| LS2["💾 LocalStorage"]
     end
 
     subgraph API["⚡ ERPiApi Backend"]
-        VC -->|POST /api/poseta/evidentiraj (bez [Authorize])| PC["⚡ PosetaController"]
-        PC -->|Upis: VisitorId, IP, Putanja, Referrer, UserAgent| T7b["💾 WebPosete"]
-        AC2["⚡ AdminController.PreuzmiStatistikuPoseta"] -->|Agregacija po danu, distinct VisitorId| T7b
+        VC -->|"POST /api/poseta/evidentiraj (bez [Authorize])"| PC["⚡ PosetaController"]
+        PC -->|"Upis: VisitorId, IP, Putanja, Referrer, UserAgent"| T7b["💾 WebPosete"]
+        AC2["⚡ AdminController.PreuzmiStatistikuPoseta"] -->|"Agregacija po danu, distinct VisitorId"| T7b
     end
 
     subgraph Dashboard["🛠️ /admin → Dashboard (D1)"]
-        AC2 -->|GET /api/admin/statistika-poseta?dani=30| PS["📈 PosetaStatistikaCard (inline SVG grafikon)"]
+        AC2 -->|"GET /api/admin/statistika-poseta?dani=30"| PS["📈 PosetaStatistikaCard (inline SVG grafikon)"]
     end
 ```
 
