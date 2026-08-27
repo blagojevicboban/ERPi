@@ -4,10 +4,41 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.58.5] - 2026-08-27
+
+### 🚀 Nove funkcionalnosti
+
+- **Employee Self-Service (ESS) portal i Workflow zahteva za odmore i odsustva.**
+  Kompletan portal za radnike sa namenskom ulogom `Radnik` (RBAC profil sa pristupom isključivo ESS portalu)
+  i povezivanjem sa matičnim dosijeom zaposlenog preko `Korisnik.BrojRadnika`.
+  - **Workflow zahteva**: Podnošenje zahteva za odmore i plaćena odsustva (`Status = NaCekanju`), validacija
+    preklapanja i stanja bilansa, odobravanje sa automatskim generisanjem formalnog rešenja o odsustvu (`GO-{godina}-{broj}`),
+    i odbijanje sa unosom obrazloženja.
+  - **Praćenje bilansa**: Precizno vođenje prenetih, novih, iskorišćenih dana i dana na čekanju, uz primenu srazmernog dela.
+  - **Zaposleni SPA Portal (`ERPiWebShop`/`EssPortalApp.tsx` na `/ess` i `/moj-portal`)**: Samouslužni tabovi za
+    pregled stanja slobodnih dana, istoriju zahteva, 1-klik preuzimanje PDF rešenja (`OdsustvoResenjeDocument`),
+    otkazivanje zahteva na čekanju, hronološki pregled platnih listića sa PDF preuzimanjem (`PlatniListicDocument`),
+    i lični radno-pravni dosije.
+  - **Web & WPF Kadrovska administracija**: Web `GodisnjiOdmoriPodTab.tsx` sa tabom za zahteve na čekanju i brzim
+    odobravanjem/odbijanjem, WPF `OdmoriPage.xaml` sa statusom i dijalogom za odbijanje (`OdustvoOdbijDialog.xaml`),
+    i povezivanje šifre radnika na modalima korisničkih naloga (`KorisnikFormaModal.tsx` i `KorisnikEditWindow.xaml`).
+  - **REST API (`ERPiApi`/`EssController.cs`)**: Bezbedni JWT endpointi `api/Ess/profil`, `api/Ess/odmori`,
+    `api/Ess/listici`, `api/Ess/odmori/{id}/resenje-pdf`, `api/Ess/listici/{id}/pdf`.
+  - 18 novih xUnit testova u `OdsustvoServiceTests.cs`, 1348/1348 prolaznih testova.
+
 ## [2.58.4] - 2026-08-27
 
 ### 🚀 Nove funkcionalnosti
 
+- **E-banking izvoz grupnih naloga za isplatu zarada i dobavljača (Halcom TXT, Trezor ePP JSON, ISO 20022 XML).**
+  Kompletno centralizovani servisi za elektronsko bankarstvo u deljenoj biblioteci `ERPiData.Services.EBanking`.
+  Podržan izvoz paketa naloga za isplate plata (neto zarade radnika, porezi i doprinosi sa proverom i
+  ugrađivanjem BOP broja, obustave/krediti) kao i virmana za plaćanje otvorenih računa dobavljača (konta 435/433).
+  Podržana tri industrijska i zakonska formata: **Hal E-Bank PPZ (TXT)** (windows-1250 enkodiranje sa fiksnim pozicijama),
+  **Uprava za trezor ePP (JSON)** za korisnike javnih sredstava, i **ISO 20022 `pain.001.001.03` (XML)** standard.
+  Povezano na Desktop WPF aplikaciji (`NaloziPage.xaml`), REST API-ju (`api/Zarade/nalozi-za-prenos/*` i
+  `api/Finansije/nalozi-za-prenos/dobavljaci/*`), i Web Admin portalu (`NaloziZaPrenosPodTab.tsx` u Zaradama i
+  `DobavljaciEBankingModal.tsx` u Finansijama). 10 novih testova, 1344/1344 prolaznih backend testova.
 - **Šarže/lotovi, rokovi trajanja (FEFO) i serijski brojevi (FIFO) — nova celina u Magacinu.**
   Opt-in praćenje po artiklu/materijalu (`NacinPracenja`: Standardno/Šarža/SerijskiBroj), sa mekom
   vezom ka liniji bilo kog od 6 dokumenata (Kalkulacija, Ulaz, Otpremnica, Trebovanje,
