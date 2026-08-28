@@ -4,6 +4,89 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.65.0] - 2026-08-28
+
+### 🎬 Demo firma sa fiktivnim podacima (§62)
+
+- **Generator demo podataka (`ERPiData/Seeds/Demo/`)** — do sada nije postojao nijedan; `AUTOTEST.db`
+  je bila prazna ljuštura, pa se nijedan proračun (KPI, bilansi, RZS, šihterica, IOS) nije mogao
+  videti sa stvarnim brojevima, samo se videlo da se ekran otvori.
+  - `DemoPodaciGenerator` (7 partial fajlova po modulima) puni **svih 151 tabelu** u bazi:
+    kontni plan i šifarnike, nabavni i prodajni lanac, materijalne kartice, glavnu knjigu sa
+    ~16.000 naloga i ~40.000 stavki, izvode/blagajnu/kompenzacije/putne naloge, zatvaranje stavki,
+    PDV evidenciju (KIR/KPR), zarade (40 radnika × 36 obračuna, šihterica, PPP-PD, HR dokumenti),
+    osnovna sredstva sa amortizacijom i popisom, proizvodnju (sastavnice, radni nalozi, škart),
+    ceo WebShop (katalog, atributi, kupci, porudžbine, recenzije, reklamacije, kuponi, posete),
+    kasu i fiskalizaciju, SEF, EFT POS, poklon kartice, kurirske manifeste, marketplace i KPI.
+  - **Deterministički**: isti seed i isti obim daju istu bazu. `DemoRandom` je jedini izvor
+    slučajnosti; „danas" dolazi iz `DemoOpcije.Danas`, a lozinke se heširaju determinističkom soli
+    (`DemoLozinka`) jer `ErpiDbContext.HashPassword` soli nasumično.
+  - **Slike artikala se crtaju u kodu** (`DemoSlike`, SVG pločice) i pišu pored baze tamo gde ih
+    ERPiApi servira — nijedna tuđa fotografija se ne preuzima.
+  - **Ništa ne izlazi napolje**: SEF/PFR/EFT POS/marketplace podešavanja su bez upotrebljivih
+    ključeva, fiskalni računi su u Sandbox okruženju.
+- **Baza po izboru** — demo firma se pravi na **SQLite, PostgreSQL ili SQL Serveru**. Generator je
+  bio provajder-agnostičan od početka (radi nad `ErpiDbContext`); dodat je samo izbor u obe ulazne
+  tačke. Panel sa parametrima serverske konekcije izdvojen je iz `NovaFirmaWindow` u zajednički
+  `ServerKonekcijaPanel`, pa oba dijaloga koriste isti kod umesto dve kopije.
+- **Pokretanje**:
+  - Desktop: dugme „🎬 Demo firma" u prozoru za izbor firme (`DemoFirmaWindow`), izbor tipa baze,
+    tri obima (veliki/srednji/mali), napredak po koracima, generisanje u pozadinskoj niti.
+  - Komandna linija: `ERPiMigration.exe --demo --out <putanja.db>` za SQLite, odnosno
+    `--provider postgres|mssql --conn "<string>"` za server (projekat je zato dobio
+    `OutputType=Exe`; i dalje se referencira kao biblioteka).
+- **Slike samo na SQLite-u** — čuvaju se u folderu pored `.db` fajla (`SlikeArtikalaStorage`), pa
+  ih za serverske baze nema šta da servira; to je zatečeno ponašanje celog sistema, ne demoa.
+  Dijalog polje automatski isključi i objasni zašto.
+- **Provereno punim obimom na sve tri baze**: SQLite 333 s (30 MB + 17 MB slika), SQL Server 2022
+  121 s, PostgreSQL 17 70 s — **151/151 tabela** na svakoj. CLI na kraju sam prijavljuje
+  „Popunjeno N od M tabela", brojeći iz EF modela, pa provera radi nezavisno od provajdera.
+- **Test pokrivenosti (`ERPiData.Tests/DemoPokrivenostTests.cs`)** — nabraja tabele iz
+  `ctx.Model.GetEntityTypes()` i pada na svaku praznu, pa svaka nova tabela automatski ulazi u
+  proveru. Uz njega i testovi determinizma, ravnoteže svih naloga glavne knjige, ispravnosti JMBG-a
+  po `JmbgValidator`-u, prijave demo korisnika i postojanja konta koja servisi traže po broju.
+  Radi nad **pravom SQLite bazom**, ne InMemory — vidi §5.
+### 🐛 Ispravke otkrivene ovim radom
+
+- **`VrsteUgovoraSeed` je nosio napomenu od 213 znakova u koloni `MaxLength(200)`** — na SQLite-u
+  je prolazilo neprimećeno (kolone su `TEXT` bez ograničenja), a na SQL Serveru/PostgreSQL-u je
+  rušilo upis sa „String or binary data would be truncated". Tekst skraćen; nov
+  `ERPiData.Tests/SeedDuzineTests.cs` proverava **sve** ugrađene šifarnike protiv `GetMaxLength()`
+  iz EF modela, pa se ovakav propust više ne može provući.
+- `Sum` nad `decimal` u SQL-u u generatoru naloga zarada (isti obrazac kao §3do i §5).
+- Propust da se sa isključenim `AutoDetectChanges` izmene nad već praćenim redovima tiho ne snimaju.
+- Redosled koraka generatora: glavna knjiga i putni nalozi su se izvršavali pre zarada i sredstava,
+  pa su čitali prazne tabele i tiho izostavljali knjiženja — bez ijedne greške, samo bez redova.
+
+### ⚡ Brzina testova
+
+`DemoPokrivenostTests` prešao na `IClassFixture` — jedna deljena demo baza umesto da svaka od
+sedam metoda generiše svoju. Demo i seed testovi: **13 testova za ~1 minut** (ranije 7 za ~10).
+Pun paket: **1415 testova za ~2,5 minuta** (ranije 14 minuta uz jedan povremeni pad).
+
+### 🐛 Pet crash-eva na ekranima iz sprinta §51–§61 i tri stavke menija (§5)
+
+Nalazi prvog uživo prolaza kroz ekrane dodate 27.08; ništa od ovoga nije hvatao postojeći paket
+testova jer `AiIKpiTests` radi nad `UseInMemoryDatabase`, koji nema relaciono prevođenje pa
+agregaciju odradi u memoriji i **prođe** tamo gde prava SQLite baza pukne.
+
+- `WhatIfKalkulatorPage` — `NullReferenceException` pri otvaranju: XAML literal `Text="100000"`
+  okidao je `TextChanged` još **usred** `InitializeComponent()`, dok polja rezultata nisu bila
+  vezana. Rešeno zastavicom `_ucitavanje` oko `InitializeComponent()`.
+- `SarzeView` — isti obrazac preko `IsChecked="True"` na `ChkSamoAktivne`.
+- `HrDokumentiPage` — `XamlParseException`: `Style="{StaticResource OutlineButton}"` ne postoji
+  nigde u repou; prebačeno na `SecondaryButton`.
+- `GET api/KpiIzvestaji/generisi` — HTTP 500 zbog `SumAsync` nad `decimal` kolonom.
+- `AiAsistentService` — tri grane pucale iz istog razloga.
+
+Dodat `ERPiData.Tests/SqliteDecimalAgregacijaTests.cs` koji namerno ide preko pravog SQLite
+provajdera i reprodukuje kvar. **Pravilo:** servis koji agregira `decimal` ili se oslanja na
+FK-ove ne sme biti pokriven samo InMemory testom.
+
+Tri ekrana su postojala u kodu ali nisu bila okačena ni u jedan meni (korisnik do njih nije mogao
+da dođe): `HrDokumentiPage` pod *👥 EVIDENCIJA*, te `SarzeView` i `SerijskiBroeviView` pod
+*📊 Kartice & Izveštaji*.
+
 ## [2.64.0] - 2026-08-27
 
 ### 🚀 Nove funkcionalnosti & Kadrovska Dokumentacija & Alarmi
