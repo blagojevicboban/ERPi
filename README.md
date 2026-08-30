@@ -3,13 +3,13 @@
 # ⚡ ERPi Enterprise Business Suite
 ### Celoviti, Hibridni Poslovni Informacioni Sistem & e-Commerce Platforma
 
-[![Version](https://img.shields.io/badge/version-2.65.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.66.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF UI](https://img.shields.io/badge/UI-WPF%20Desktop-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](ERPiApp)
 [![WebShop & Admin](https://img.shields.io/badge/Web-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](ERPiWebShop)
 [![Codebase](https://img.shields.io/badge/Codebase-640k%2B%20LOC-blueviolet.svg?style=for-the-badge&logo=codefactor&logoColor=white)](README.md#-projekat-u-brojkama--inženjerska-metrika)
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20Postgres%20%7C%20MSSQL-4479A1.svg?style=for-the-badge&logo=sqlite&logoColor=white)](docs/ARCHITECTURE.md)
-[![Tests](https://img.shields.io/badge/Tests-1616%20Passing%20(1399%20.NET%20%2B%20217%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
+[![Tests](https://img.shields.io/badge/Tests-1922%20Passing%20(1627%20.NET%20%2B%20295%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
 [![Auto-Update](https://img.shields.io/badge/Updater-Velopack-F97316.svg?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/blagojevicboban/ERPi/releases)
 
 <p align="center">
@@ -17,7 +17,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/erpi_desktop_suite.gif" alt="ERPi Enterprise Business Suite Showcase" width="96%" style="border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);" />
+  <video src="docs/showreel/erpi-master-showreel.webm" autoplay loop muted playsinline width="96%" style="border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);">
+    <a href="docs/showreel/erpi-master-showreel.webm">🎬 Pogledajte ERPi Master Showreel Video</a>
+  </video>
 </p>
 
 [Metrika Projekta](#-projekat-u-brojkama--inženjerska-metrika) • [Ključni Moduli](#-ključni-moduli-sistema) • [Arhitektura](#-arhitektura-i-tehnologije) • [WebShop & B2B](#-integrisani-webshop--b2b-portal) • [Vizuelni Prikaz](#-korisnički-interfejs-i-vizuelni-prikaz) • [Baze Podataka](#-multi-dbms-i-mrežni-rad) • [Dokumentacija](#-tehnička-dokumentacija)

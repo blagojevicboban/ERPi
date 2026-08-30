@@ -4,6 +4,615 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [Neobjavljeno]
+
+## [2.66.0] - 2026-08-30
+
+### 🎬 Demo-Reel Studio alat i MainWindow fokus fix (§85)
+
+Novi Node.js alat `tools/demo-reel/` za generisanje marketinških video/GIF snimaka (6 režima,
+Canvas 2D engine, više rezolucija) — README.md hero sada auto-play video umesto statičnog GIF-a.
+`App.xaml.cs` popravlja `PokusajAutoLogin()` da eksplicitno postavi `Application.Current.MainWindow`
+pre `Show()`.
+
+### 📸 Screenshot-ovi i detaljniji tekst u svih 5 F1 Help uputstava (§84)
+
+70 screenshot-ova (demo-firma podaci) ugrađeno u sva F1 Help uputstva
+(`ERPiApp/Resources/Help/uputstvo-*.html`), uz značajno detaljniji tekst procedura — svaki korak
+izveden iz stvarnog WPF/React koda, ne parafraza. Usput popunjena dva sadržajna gap-a u
+`uputstvo-zarade.html` koje tekst uopšte nije pominjao: PPP-PO (poseban godišnji obrazac) i
+šifarnici Praznici/Poreske olakšice/Krediti/Primaoci prihoda. Nov skill `erpi-help-screenshots`
+za buduće prolaze.
+
+### 🔧 Rasknjižavanje kompenzacija, putnih naloga i blagajne + kritična popravka iznosa (§80)
+
+E2E prolaz otkrio da tri modula (Kompenzacije, Putni nalozi, Blagajna) nisu imala rasknjižavanje
+— dodato u WPF, API i web, po uzoru na Naloge. Kritičnija popravka:
+`KompenzacijaEditWindow` je čuvao pun `Preostalo` iznos po stavci umesto da ogranči na manju
+stranu (standardna praksa prebijanja) — bez ograničenja knjiženje je gotovo uvek pucalo sa
+„zbir potraživanja mora biti jednak zbiru obaveza". Popravljeno u WPF i web. Usput ispravljen i
+bag vertikalnog centriranja teksta na 96 kontrola u 38 WPF fajlova (`Height` bez
+`VerticalContentAlignment="Center"`).
+
+### 🐛 Ispravka: SadašnjaVrednost sredstva se nije osvežavala pri rashodu/promeni (§82)
+
+`RashodWindow` je za sve tipove promene (Rashodovanje/Prodaja/Otuđenje/Brisanje/...) menjao
+`NabavnaVrednost`/`IspravkaVrednosti` ali nikad `SadasnjaVrednost` — rashodovano/prodato sredstvo
+je ostajalo u Registru/Radnoj tabli/Izveštajima sa punom knjigovodstvenom vrednošću iako je
+`JeAktivno=false`.
+
+### 🔎 Kompletan funkcionalni prolaz kroz ceo web deo — 4 prava bug-a (§83)
+
+Nastavak WPF prolaza (§77-§82): 166 web ekrana/tabova pregledano (svi admin moduli sa
+pod-tabovima, ravni tabovi, pod-ekrani bez adrese, WMS terminal, B2B portal, B2C prodavnica) preko
+`web-screens-pass` CDP drajvera na izolovanom stack-u (API na 5002 nad kopijom `DEMO.db`, nikad
+dodirnut pravi WebShop servis koji trenutno služi realnu firmu). Četiri prava bug-a nađena i
+ispravljena:
+
+- Demo generator nikad nije postavljao `ObracunPlate.Neto`/`PoreskaOsnovica` za bulk-seedovane
+  periode zarada — kolone „Neto zarada"/„Osnovica" prikazivale 0,00 na više web ekrana.
+- `DEMO.db` (web deo) nikad nije regenerisana posle ranijeg §81 fix-a (nulte Porezi/Doprinosi
+  stope) — WPF strana koristi `AUTOTEST.db`, pa je gap prošao neprimećen do sada.
+- `KontaAmortizacijePodTab.tsx` (Sredstva → Konta amortizacije) je čitao konto-listu iz F3
+  brzog lookup-a (`Take(100)`) umesto pune liste — već mapirani konta van prvih 100 po broju
+  prikazivali su se kao „—" i nisu mogli ponovo da se izaberu.
+- `AiAsistentModal.tsx` je AI odgovore štampao golim tekstom — backend piše mini-markdown
+  (`**podebljano**`), frontend ga nikad nije renderovao.
+
+`dotnet test ERPiData.Tests` 1627/1627, `npm run build` + `npx vitest run` 295/295, bez regresije;
+`DEMO.db` i `AUTOTEST.db` regenerisane. ESS portal (`/ess/*`, alias `/moj-portal`) ostaje
+netestiran — nijedan demo staff nalog nije povezan sa `Radnik` zapisom, van obima ove sesije.
+Detalji u `docs/E2E_TESTIRANJE.md`.
+
+### 🐛 Ispravka: demo poreski parametri zarada su bili prazni (§81)
+
+Nađeno tokom E2E prolaza kroz Zarade: ekran „Poreske stope i parametri" je za svaki period u demo
+bazi prikazivao nule za sve stope/limite (1. stopa poreza, neoporezivi iznos, granica 2. stope...),
+iako sam obračun zarada ispravno primenjuje 10%/28.423/656.425 RSD. Uzrok: demo generator je pri
+seedovanju `Porezi` tabele postavljao samo fond časova, ostavljajući poreska polja na podrazumevanih
+0 — isti obrazac nađen i na `Doprinosi` tabeli (stope na teret radnika/poslodavca nikad upisane).
+Ispravljeno popunjavanjem oba seed-a vrednostima koje se poklapaju sa sopstvenim „nema podataka"
+fallback-om ekrana (isti izvor istine). `dotnet test` 1627/1627, AUTOTEST.db regenerisan i vizuelno
+potvrđen.
+
+### 🐛 Ispravka: materijalna knjiženja su se mogla mešati u robni bruto bilans (§81)
+
+Nađeno tokom E2E prolaza kroz Materijalno knjigovodstvo: `RobniBrutoBilansService` je robna od
+materijalnih knjiženja razlikovao po tome da li šifra artikla postoji u šifarniku Artikli — ali
+`Materijal.SifraArtikla` je namerno isti kod kao odgovarajući artikal za deo materijala
+("materijalni šifarnik prati podskup artikala"), pa je taj test nepouzdan čim se šifre poklope.
+Posledica: „Bruto bilans materijalnog knjigovodstva" je uvek bio prazan, a „Robni Bruto Bilans"/
+„Vrednovanje zaliha" bi tiho brojali materijalna knjiženja (Ulaz/Trebovanje/Primopredaja
+materijala) kao robna čim bi se šifre poklopile.
+
+Ispravljeno dodavanjem prave `Vrsta` kolone (`Roba`/`Materijal`) na `MaterijalnaKartica`, upisane
+direktno pri knjiženju (ne izvedene naknadno iz šifre) — `RobniBrutoBilansService` sad filtrira po
+njoj. EF migracija + `EnsureColumn` mirror za zatečene baze, šema potvrđena na kopiji prave ARHIBEL
+baze. Demo generator dopunjen da materijalna dokumenta (Ulaz/Trebovanje/Primopredaja materijala)
+sada upisuju stvarne kartice, odvojeno od robnog prometa iste šifre. `dotnet test ERPiData.Tests`
+1628/1628.
+
+### 🗂️ WPF sidebar: single-open accordion sa centriranim skrolom (§81)
+
+Isti obrazac kao web admin meni (30.08.2026 odluka): klik na stavku menija sad sklapa sve ostale
+Expander grupe na istom nivou ugnježdenosti (i za top-level module poput Robno/Materijalno, i za
+pod-grupe unutar njih poput Komercijala/Promet & Skladište/Kartice/Šifarnici) — ostaje otvorena
+samo grana koja vodi do izabrane stavke. Kliknuta stavka se posle sklapanja centrira u vidljivoj
+oblasti sidebar-a (`ScrollViewer.ScrollToVerticalOffset`, ne samo `BringIntoView` koji bi je gurnuo
+tik uz ivicu). Jedan generički bubble handler po panelu (Finansije/Zarade/Sredstva), pojedinačni
+`NavXxx_Click` handleri nisu dirani.
+
+Namerno **isključeno** iz efekta: obnavljanje prikaza pri promeni modula (`TabModulZarade`/
+`TabModulSredstva` klik) — Zarade panel namerno drži tri grupe istovremeno otvorene na startu
+("Radna tabla i Periodi"/"Evidencija"/"Obračun i Isplata", prate tok meseca, v. komentar u XAML-u),
+i to se ne sme pokvariti svaki put kad se modul ponovo otvori. Novi `_potiskujAkordion` flag
+suzbija sklapanje samo za taj specifičan programski poziv (`AktiviirajPoslednjuStavku`), ne i za
+`AktivirajNavStavku` (brze akcije) gde se sklapanje i dalje očekuje kao prava navigacija.
+
+### 🔎 Kompletan vizuelni prolaz kroz sve ekrane — WPF i Web (§79)
+
+Prvi put provezeni **svi** ekrani obe strane u jednom prolazu: 112 WPF ekrana (sva tri panela
+bočnog menija) i 134 web ruta/klika (23 admin taba sa svim pod-tabovima, forma artikla, Kasa i
+Porudžbine pod-tabovi, B2B portal, ESS portal, WMS terminal, prodavnica). Zamenjuje raniju
+parcijalnu proveru i zatvara stavku koja je mesecima vođena kao najveći preostali rizik
+(`PLAN_NASTAVKA.md` §4).
+
+- **Pronađen i ispravljen pravi bag:** `PonudeView` (Magacin → Ponude/Predračuni) je pucao sa
+  `NullReferenceException` pri svakom otvaranju — `IsSelected="True"` na filteru faze u XAML-u
+  okida `SelectionChanged` tokom `InitializeComponent()`, pre nego što je `DataGrid` povezan.
+  Isti obrazac zaštite kao u `DosImportWindow`/`SredstvaDosImportWindow` (`if (DgPonude == null) return;`).
+- Infrastruktura za ponovljive prolaze ostaje u repou: `.claude/skills/run-erpi-app/prolaz.ps1`
+  (batch WPF vožnja preko UI Automation, sa keširanjem nav dugmadi i Win32-nivo detekcijom
+  dijaloga — UI Automation ume da promaši `MessageBox` otvoren iz nehendlovanog izuzetka) i
+  `ekrani.txt` manifest. Svi WPF `Expander`-i u `MainWindow.xaml` dobili `x:Name` (bio je preduslov
+  da manifest uopšte vidi skupljene sekcije Zarada/Sredstva).
+- Nema drugih nalaza — svi ostali ekrani se otvaraju sa podacima, prazna stanja su namerna
+  (poruka + dugme za akciju, ne prazan panel).
+
+### 🧾 Ispravka: dnevnica se oporezivala u celosti, bez obzira na zakonski limit (§78)
+
+Dnevnica za službeni put se **unosila u punom iznosu, a oporezivala cela** — izveštaj je javljao
+„neoporezivo 0,00" i kad je iznos bio u granicama propisa. Uzrok nije bio u računici nego u vezi:
+zakonska stavka je pokazivala na vrstu primanja *„Prekoračenje neoporezive dnevnice"*, koja je po
+definiciji oporeziva, pa limit nije imao šta da oslobodi.
+
+- Dnevnica u zemlji i inostrana dnevnica su dobile **svoje vrste primanja**. Unosi se pun iznos, a
+  obračun ga sam deli: neoporezivo do zakonskog iznosa **po danu × broj dana**, ostatak u poresku i
+  doprinosnu osnovicu.
+- Uvoz putnih naloga radi kao i pre — prekoračenje koje je već isplaćeno ostaje posebna vrsta.
+- **Zatečeni obračuni se ne menjaju.** Dnevnice unete ranije ostaju kako su knjižene; nove se dele po
+  limitu. Ako neku raniju treba ispraviti, unesite je ponovo.
+
+### 🎓 Ispravka: stipendija se knjižila kao stimulacija (§78)
+
+Stipendija učenicima i studentima je delila šifru sa *Stimulacijom* — ulazila bi u bruto zaradu i
+oporezivala se u celosti, a u pregledu neoporezivih primanja bi svaka stimulacija bila prikazana kao
+stipendija. Razdvojene su.
+
+### 🚗 Ispravka: inostrana dnevnica se evidentirala kao naknada za prevoz (§78)
+
+Kad vrsta primanja za neku zakonsku kategoriju nije postojala u šifarniku, unos je bez ikakve poruke
+padao na prvu neoporezivu vrstu — najčešće *Naknadu troškova prevoza*, sa pogrešnim kontom i
+pogrešnim limitom u pregledu iskorišćenosti. Sada se vrsta zavodi iz same zakonske stavke.
+
+### 🎁 Ispravka: unos neoporezivog primanja na webu nije radio (§77)
+
+Web ekran *Zarade → Neoporeziva i ostala primanja* **nije mogao da snimi nijedno primanje** niti da
+prikaže proveru limita. API šalje i prima vrstu primanja kao **broj**, a web ju je slao kao naziv
+(`"DnevnicaZemlja"`, odnosno `"1"` posle izbora iz liste), pa je svaki poziv vraćao grešku 400.
+Iz istog razloga se nisu prikazivali ni polje **„Broj dana službenog puta"**, ni traka godišnje
+iskorišćenosti, ni predlog iznosa — poređenje broja sa nazivom nikad nije nalazilo limit.
+
+Kvar je bio nevidljiv jer je test koristio ručno napisan uzorak podataka u pogrešnom obliku; sada
+je oblik zaključan testom koji poredi vrednosti sa onima u desktop aplikaciji.
+
+### 🧮 Broj dana službenog puta se čuva uz primanje (§77)
+
+Do sada se čuvao samo iznos, pa je podela na neoporezivo i oporezivo bila poznata jedino u trenutku
+unosa. Godišnji pregled dnevnica zato **nije mogao da prikaže prekoračenje ni kad ono postoji** i
+namerno je pokazivao nulu.
+
+- Broj dana se sada upisuje uz primanje (i sa weba i iz desktop aplikacije), a zatečena primanja se
+  vode kao jednodnevna — koliko su i tada značila.
+- Godišnji pregled meri **svaki put njegovim limitom** (dnevni iznos × broj dana) i sabira
+  pojedinačna prekoračenja.
+- Kolona *Zakonski limit* kod dnevnice pokazuje iznos za ceo put, uz oznaku „za N dana".
+
+### 🍪 Baner za kolačiće se više ne prikazuje u radnim delovima (§77)
+
+Baner stoji uz dno ekrana, pa je u backoffice-u (`/admin`), B2B portalu, ESS portalu i mobilnom WMS
+terminalu pokrivao poslednje redove svake tabele dok se ne odluči — a tamo nema ni šta da pita:
+analitika prati kupca u prodavnici, a kolačići prijave su neophodni i po propisu ne traže saglasnost.
+Sada se prikazuje samo u prodavnici.
+
+### 🔔 Poruka o grešci se prikazuje jednom, ne dvaput (§77)
+
+U backoffice-u je ista rečenica stajala dvaput — jednom kao obaveštenje pri vrhu, jednom uz samu
+radnju. Sada se obaveštenje pri vrhu javlja samo kada poruku ne prikaže sam ekran, pa se ništa ne
+gubi ni u jednom ni u drugom slučaju.
+
+### 🧹 Kursevi sa četiri decimale (§77)
+
+Devizni kursevi se prikazuju sa četiri decimale, koliko ih i objavljuje NBS — sa dve su se kupovni i
+prodajni kurs prikazivali kao isti broj. Preostalih 300 mesta koja su iznos prikazivala „kako dođe"
+(dve ili tri decimale) prebačeno je na zajednički prikaz sa dve decimale.
+
+### 🧮 Ispravka: dnevnica za višednevni put u desktop aplikaciji (§76)
+
+Unos neoporezivog primanja u desktop aplikaciji dobio je polje **Broj dana službenog puta**, koje je
+web verzija imala a desktop nije. Bez njega je desktop svaki put računao kao **jednodnevni**: za
+trodnevni put u zemlji je od isplaćenih 9.723,00 RSD prijavljivao 3.241,00 kao neoporezivo, a
+6.482,00 kao oporezivi višak — iznos koji ulazi i u osnovicu poreza i u osnovicu doprinosa, iako po
+zakonu tu ne pripada. Sada se limit računa kao dnevni iznos × broj dana.
+
+- Polje se prikazuje **samo kod dnevnica** (u zemlji i inostranstvu), gde je zakonski iznos propisan
+  po danu; kod mesečnih, godišnjih i jednokratnih primanja ga nema.
+- Zaglavlje prikazuje i dnevni iznos i zbir za uneti broj dana, a kod dnevnica se više ne prikazuje
+  traka godišnje iskorišćenosti — limit po danu se kroz godinu ne troši.
+- Prozor za unos sam prilagođava visinu sadržaju, pa se kalkulacija i polje *Napomena* više ne
+  odsecaju.
+
+> ~~Broj dana i dalje **ne ulazi u sam zapis** primanja (čuva se samo iznos) — utiče na proračun i
+> prikaz pri unosu.~~ Zatvoreno u §77: broj dana se čuva uz primanje, pa ga koristi i godišnji pregled.
+
+### 🧹 Ujednačen prikaz iznosa i poruka o greškama na webu (§76)
+
+- **Iznosi u dinarima svuda sa dve decimale.** Ranije je isti spisak umeo da pomeša „3.000",
+  „4.848,8" i „2.554,77" — zavisno od broja. Uvedene su tri zajedničke funkcije za prikaz (iznos,
+  količina, prebrojiva veličina) i primenjene na 61 mesto; količine i dalje prikazuju do tri
+  decimale, jer bi zaokruživanje krivilo podatak.
+- **107 poziva ka serveru prebačeno na zajedničku obradu odgovora.** Time su i na njih primenjene
+  ranije ispravke: prazan odgovor servera više ne obara stranicu, istekla prijava se prikazuje kao
+  „Prijava je istekla" umesto kao „učitavanje nije uspelo", a poruka greške sa servera se prikazuje
+  umesto uopštene.
+
+### 📱 Mobilni WMS terminal — komisioniranje telefonom i Zebra čitačem (§75)
+
+WMS lokacije i picking rute postoje od §51, ali su se do sada mogle samo štampati: magacioner je
+nosio papir i ništa se nije vraćalo u sistem. Sada postoji **radna površina za magacin** na adresi
+**`/wms`** — telefon ili Zebra ručni terminal, prijava istim nalogom zaposlenog, krupna dugmad i
+jedno polje za skeniranje.
+
+- **Nalog za komisioniranje** — trajni zapis picking rute, sa statusom (nov / u toku / završen /
+  otkazan), komisionarom i napretkom po stavkama. Pravi se iz račun-otpremnice u desktop aplikaciji
+  (kartica *📱 Nalozi komisioniranja*) ili u web backoffice-u; posao se prekida i nastavlja sa bilo
+  kog uređaja. Isti dokument ne može dobiti drugi nalog, niti dva komisionara mogu raditi isti.
+- **Skeniranje umesto kucanja** — stavka se potvrđuje tek kad se skenira **polica** (i artikal, ako
+  ima barkod); pogrešna polica se odbija uz poruku, jer je to jedini trenutak kad se ta greška može
+  uhvatiti. Ponovljena potvrda **zamenjuje** količinu, pa se pogrešan unos ispravlja tako što se
+  razlika vrati na policu.
+- **Delimično sakupljena stavka ne zatvara nalog** — magacioner je uzeo koliko je bilo na polici i
+  ide po ostatak; nepotpun nalog se zatvara samo ručno.
+- **Rad sa policama van naloga** — *Šta je ovo?* (skeniraj policu pa vidi šta je na njoj, ili
+  artikal pa vidi gde stoji), *Smeštaj* iz prijema, *Premeštaj* sa police na policu, *Dopune*
+  (picking pozicije ispod minimuma, sa predlogom rezervne police i jednim dugmetom) i *Dnevnik*
+  poslednjih kretanja.
+- **Dnevnik kretanja po policama** — svaki pomeraj se beleži sa vrstom (smeštaj, premeštaj, dopuna,
+  komisioniranje, korekcija), količinom, policama i korisnikom. Vidi se i na terminalu i u
+  backoffice-u i u desktop aplikaciji.
+- **Otkaz naloga vraća robu na police**, da polica ne ostane u minusu za robu koja nikad nije otišla
+  iz magacina.
+
+> **Terminal ne knjiži robu** — menja samo raspored po policama. Ulaz i izlaz iz magacina i dalje
+> idu kroz kalkulaciju i račun-otpremnicu.
+
+### ✍️ Reversi i zaduženja osnovnih sredstava + QR nalepnice (§74)
+
+Ko je zadužio koji laptop, telefon ili alat nigde se nije vodilo — registar sredstava zna šta firma
+ima, ali ne i kod koga je. Modul je u desktop aplikaciji (**Osnovna sredstva → ✍️ Reversi i
+zaduženja**) i na webu (*Osnovna sredstva → Reversi i zaduženja*).
+
+- **Revers kao dokument** — vrsta (zaduženje / razduženje), radnik, datum, mesto troška, lokacija i
+  spisak sredstava. Otvara se kao **nacrt** i tek **potvrda** menja ko drži sredstvo; potvrđen
+  revers se više ne menja, greška se ispravlja poništenjem potvrde.
+- **Zaduženje se ne čuva nego izvodi** iz lanca potvrđenih reversa — za svako sredstvo važi
+  poslednji potvrđen revers po datumu. Tabela „ko šta drži" zato ne može da se raziđe sa
+  dokumentima.
+- **Provere pri potvrdi** — zauzeto sredstvo se ne može zadužiti drugom radniku, tuđe se ne može
+  razdužiti, rashodovano se ne može zadužiti, prazan revers se ne potvrđuje. Lanac ostaje
+  hronološki: revers se ne potvrđuje sa datumom pre poslednjeg potvrđenog za isto sredstvo, niti se
+  poništava potvrda ispod novijeg reversa.
+- **Izbor sredstava je sužen na smislen skup** — kod zaduženja slobodna sredstva, kod razduženja
+  samo ono što taj radnik stvarno drži.
+- **Revers za potpis (PDF)** sa podacima radnika, spiskom sredstava, zbirom vrednosti, izjavom o
+  preuzimanju i mestom za dva potpisa.
+- **QR nalepnice** — list nalepnica (podrazumevano 3 × 8 po strani, podesivo) sa QR kodom, nazivom
+  firme, nazivom sredstva, inventarskim brojem i datumom nabavke. U QR kodu je **go inventarski
+  broj**, baš ono što skenira postojeći mobilni popis, pa nalepnica radi bez ijedne konverzije.
+  Postojeće CODE_128 nalepnice u *Registru sredstava* ostaju za ručne laserske (1D) čitače.
+- Demo baza dobija reverse: trećina sredstava zadužena, deo kasnije razdužen, jedan nacrt.
+
+**Nađeno i ispravljeno u prolazu kroz ekrane:** prozor „Nov revers" je sekao polje Napomena;
+filtriranje izbora sredstava na jedan pogodak nije ga biralo, pa je „Dodaj izabrana" odbijalo unos;
+spisak reversa nije otvarao nijedan revers, pa je desni panel stajao prazan i kad ima podataka;
+onemogućeno dugme „Dodaj sredstvo" izgledalo je isto kao upotrebljivo; zbir je pisao „1 sredstava"
+umesto „1 sredstvo". Uz to, list nalepnica se prelivao na drugu fizičku stranu (120 sredstava →
+9 strana umesto 5) jer je visina nalepnice bila tvrdo ukucana — sada se izvodi iz visine strane.
+
+### 📋 Obrazac POPDV — nov modul (§73)
+
+Pregled obračuna PDV koji se uz poresku prijavu podnosi za svaki poreski period nije postojao: ERPi
+je imao PP-PDV prijavu (Polje001–113) i KIR/KPR knjige, ali ne i **Obrazac POPDV** po Pravilniku
+(„Sl. glasnik RS“ br. 90/2017 sa izmenama). Modul je u desktop aplikaciji
+(**Porezi, SEF i fiskalizacija → 📋 Obrazac POPDV**) i na webu (*Finansije → Obrazac POPDV*).
+
+- **Pun obrazac sa ručnim unosom** — svih jedanaest delova (1, 2, 3, 3a, 4, 5, 6, 7, 8a–8e, 9, 9a,
+  10, 11), 90 redova, sa tekstom svakog reda prepisanim iz Pravilnika. Obrazac se vodi po poreskom
+  periodu (mesečni ili tromesečni obveznik), uz zaseban obrazac za izmenjenu prijavu.
+- **Zbirna polja se računaju sama** i u njih se ne unosi (čl. 45 st. 4 Pravilnika) — 1.5, 2.5, 3.8,
+  3.10, 3a.7, 3a.9, 4.1.3, 4.2.3, ceo deo 5, 6.3, 8a.6, 8a.8, 8b.6, 8v.4, 8g.5, 8đ, 8e.5, 8e.6, 9,
+  9a.4 i poreska obaveza (10 = 5.7 − 9a.4).
+- **Osenčena polja ostaju prazna** — za red kome ćelija ne pripada (npr. 3.3 nosi samo osnovicu) ne
+  postoji unos, ni na ekranu ni u zbiru.
+- **„Predloži iz knjiga"** popunjava ono što se iz zatečenih knjiga zaista vidi: 3.2 iz KIR-a, 8a.2
+  iz KPR-a i iz njih izvedene 8e.1 i 9a.3. Sve ostalo se unosi ručno, uz izričito upozorenje šta
+  predlog **ne** pokriva — uvoz, poljoprivrednici, promet za koji je poreski dužnik primalac,
+  posebni postupci i avansi se iz knjiženja ne mogu izvesti.
+- **Iznosi u dinarima, bez decimala** (čl. 45 st. 1) — zaokružuje se i uneto i izračunato.
+- **Zaključenje obrasca**, PDF za dosije i XML izvoz. Upozorenja pred podnošenje: negativna poreska
+  obaveza, negativan zbir obračunatog ili prethodnog poreza, i razlika između 9a.4 i zbira
+  8e.6+6.4+7.4.
+- Demo baza od sada ima obrazac po mesecu tekuće godine, poslednji otvoren.
+
+**Ispravljeno usput:** `PdvService.GetKprZapisiAsync` je u KPR uzimao **sve** kalkulacije, i
+neproknjižene — nacrt ulaza robe je davao odbitni prethodni porez u KPR-u, PP-PDV prijavi i sada
+POPDV-u. KIR grana je od početka imala `Where(r => r.IsKnjizen)`; sada je ima i KPR.
+
+**Svesno neurađeno:** XML izvoz je ERPi format za arhiviranje i prenos, **ne** zvanična XSD šema
+portala ePorezi — nju treba pribaviti sa `purs.gov.rs` i mapirati; struktura podataka je već tačna.
+Prenos negativnog zbira između blokova (polja 5.3 i 8e.6) primenjuje se samo kad je suprotna strana
+negativna, uz upozorenje na ekranu da taj slučaj treba proveriti ručno.
+
+### 🔒 Zaključenje poslovne godine — nov modul (§72)
+
+Godina se do sada nije mogla zatvoriti: prihodi i rashodi su ostajali otvoreni zauvek, a jedini
+postojeći kod za prelazak u novu godinu (`NovaGodinaService`) nije bio pozvan ni sa jednog ekrana i
+prenosio je **i klase 5 i 6** kao početno stanje. Modul je dostupan u desktop aplikaciji
+(**Finansije → 🔒 Zaključenje poslovne godine**) i na webu (isti meni pod *Analitika, Bilansi &
+Kontroling*).
+
+- **Zaključenje knjiži tri naloga sa datumom 31.12.** — zatvaranje klasa 5 i 6 na račun dobitka i
+  gubitka (710), obračun poreza na dobit (721 / 481, samo ako poreza ima) i raspored rezultata na
+  341 (dobitak) ili 351 (gubitak). Posle toga klase 5, 6 i 7 imaju saldo nula.
+- **Pregled pre zaključenja** prikazuje rashode i prihode po kontu, rezultat i predlog poreza, i
+  ništa ne upisuje. Prepreke (neravnoteža knjiga, nezatvorena ranija godina, nedostajuće konto)
+  blokiraju radnju i imenuju razlog; nalozi u nacrtu se prijavljuju kao upozorenje.
+- **Ponuđeni porez je predlog, ne obračun** — 15% na poslovni rezultat, uz izričitu napomenu da
+  stvarna osnovica dolazi iz poreskog bilansa (PB-1). Iznos se menja pre zaključenja.
+- **Rezultat ranijih godina se prevodi sa 341/351 na 340/350** pri svakom sledećem zaključenju, pa
+  konta „tekuće godine" nose samo poslednju zatvorenu godinu, a ne zbir svih.
+- **U zaključenu godinu se više ne može knjižiti** — ni nov nalog sa datumom iz te godine, ni izmena
+  postojećeg, iz bilo kog modula (zarade, amortizacija, kalkulacije, izvodi). Provera je u samom
+  `SaveChanges`, pa ne zavisi od toga da li ju je pozivalac pozvao.
+- **Poništenje** briše sva tri naloga i vraća godinu u rad. Godine se zaključuju redom, a poništavaju
+  redom unazad — dok je kasnija zaključena, ranija se ne otvara.
+- Demo baza od sada ima zaključenu prvu i otvorenu poslednju godinu istorije.
+
+**Ispravljeno usput:** `NovaGodinaService.PrenesiUNovuGoduAsync` je prenosio saldo *svih* konta sa
+nenultim saldom, dakle i prihode i rashode — nova godina bi počela sa lanjskom zaradom kao da je
+ovogodišnja. Sada odbija prenos dok klase 5/6/7 nisu zatvorene i prevodi 341→340 / 351→350. Metoda i
+dalje nije izvedena ni na jedan ekran: ERPi drži jednu neprekidnu glavnu knjigu, a nalog početnog
+stanja bi u njoj bio sabran povrh salda koja već stoje i udvostručio bilans stanja — ima smisla samo
+za raspored sa jednom bazom po godini.
+
+### 📝 Popis (inventar) robe — nov modul (§71)
+
+Do sada je popis postojao samo za osnovna sredstva; magacin ga nije imao, pa knjižna zaliha nije
+imala nijednu stazu kojom se ispravlja na stvarno prebrojanu. Modul je dostupan i u desktop
+aplikaciji (**🔄 Promet & Skladište → Popis (inventar) robe**) i na webu (isti meni u Robnom
+knjigovodstvu).
+
+- **Otvaranje popisa snima knjižno stanje magacina na dan popisa** sa materijalne kartice, sa
+  prosečnom nabavnom cenom po kojoj se roba i razdužuje. Opciono na listu ulaze i artikli bez
+  prometa — za robu zatečenu na polici a nikad primljenu.
+- **Prebrojana količina se unosi u tabelu**, a razlika, vrednost razlike i zbir manjka/viška se
+  računaju odmah, dok se kuca. Prazno polje znači „nije prebrojano" i **razlikuje se od prebrojane
+  nule** — popis se ne može zaključiti dok ijedna stavka nije prebrojana, da neprebrojano ne bi
+  prošlo kao manjak celokupne zalihe.
+- **Zaključenje knjiži razlike na materijalnu karticu** — višak kao ulaz po popisnoj ceni, manjak kao
+  izlaz. Posle toga je popis samo za čitanje; „Poništi zaključenje" skida sa kartice tačno one redove
+  koje je popis upisao, a odbija se ako je za neki artikal u međuvremenu knjiženo nešto drugo.
+- Dok je jedan popis magacina u toku, nov se ne može otvoriti — inače bi se ista razlika proknjižila
+  dvaput.
+- Demo baza od sada sadrži jednu popisnu listu u toku, sa nekoliko razlika.
+
+### 🖥️ Vizuelni prolaz kroz web backoffice — sedam ispravki (§70)
+
+Ekrani sa spiska „nije vizuelno provereno" prvi put su otvarani, a ne samo pozivani kroz API. Dvanaest
+ekrana, sedam nalaza — od kojih tri stranice uopšte nisu prikazivale podatke.
+
+- **Poklon kartice, kurirski manifesti i WMS lokacije bili su prazni.** Sva tri endpointa vraćaju EF
+  entitet sa učitanom kolekcijom, pa je u JSON išla i povratna navigacija; serijalizacija bi upala u
+  ciklus i pukla **pošto je odgovor već krenuo klijentu**. Zato se kvar nije video ni kao greška
+  servera — stizao je status 200 sa odsečenim telom. Poklon kartice sada prikazuju svoj spisak (80
+  izdatih, saldo 182.910,92 RSD na demo firmi) umesto poruke o grešci.
+- **Skladišna matrica je crtala pozicije bez ijedne šifre artikla** — samo količinu. Endpoint je
+  vraćao ugnežđen objekat artikla, a ekran čita šifru, naziv i jedinicu mere kao ravna polja; uz to
+  bi pretraga po artiklu na tom ekranu pukla. Sada se vidi „A01019 Emajl lak Milenium Tools R134 · 21
+  lit", a odgovor je i višestruko manji jer se više ne šalje ceo artikal sa web opisom i slikama.
+- **Kasa je pri svakom otvaranju dizala grešku u pozadini** kad smena nije otvorena — server u tom
+  slučaju vraća prazan odgovor, a prodavnica ga je pokušavala pročitati kao JSON. Popravljeno na
+  jednom mestu, za sve pozive.
+- **Kartice zakonskih neoporezivih iznosa ispisivale su nazive iz koda** — „DnevnicaZemlja",
+  „SolidarnaPomocSmrt", „Mesecni". Sada stoje srpski nazivi („Dnevnica za službeno putovanje u
+  zemlji", „Mesečno"), koji su i ranije bili upisani, samo se nisu čitali.
+- **CRM prodajni levak** je u podnaslovu prikazivao neprevedenu formulu, a zbirove po fazama sa jednom
+  decimalom pored dvodecimalnih iznosa u karticama. Iznosi poklon kartica su iz istog razloga mešali
+  „3.000", „4.848,8" i „2.554,77" — sada su svi na dve decimale.
+- **Uklonjeno React upozorenje** koje je iskakalo pri svakom otvaranju backoffice menija.
+
+Provera koja bi ovo uhvatila je dopunjena: sweep GET endpointa iz §69 sada i **serijalizuje** svaki
+odgovor, pa ciklus više ne može da prođe. Pušten namerno bez zaštite, izdvojio je tačno četiri
+endpointa od 309.
+
+### 🧮 Provera proračuna nad demo bazom — šest ispravki (§66)
+
+Demo baza (§62) je napravljena da bi ekrani prestali da pokazuju nule, ali do sada nije bila
+iskorišćena za ono zbog čega je i determinističa: da se kroz proračune propuste **pravi podaci** i
+brojevi provere na papiru. Pregled koda (§65) hvata greške koje se vide; proračun koji tačno izgleda
+a daje pogrešan broj vidi se samo ovako. Šest nalaza, svaki potvrđen brojem iz demo firme.
+
+**Statistički obrasci za RZS**
+
+- **Obrazac RAD-1 nije zatvarao krug — i prijavljivao je manju masu zarada nego što je isplaćena.**
+  Masa je uzimana iz `ObracunPlata.BrutoZarada`, u koju demo generator nije upisivao pun bruto;
+  porez, doprinosi i neto su, međutim, računati nad punim iznosom. Za 05/2026 je obrazac tvrdio bruto
+  778.620,95 uz neto 676.483,38, porez 80.263,82 i doprinose radnika 188.005,87 — gde bruto minus
+  porez minus doprinosi daje 510.351,26, a ne prijavljeni neto. Razlika od **166.132,12 RSD** je
+  odlazila Republičkom zavodu za statistiku u obrascu koji se ne slaže sam sa sobom. Masa se sada
+  čita kao `UkupnoBruto` (bruto + bolovanje), isto kako je već rade PPP-PD pregled i radna tabla
+  Zarada. Isto važi i za godišnji **RAD-G**.
+- **RAD-G je prosečnu platu delio fiksnom dvanaestinom** bez obzira na to koliko meseci u godini
+  stvarno ima obračun. Firma koja je počela u julu, prestala u martu ili izveštaj vučen pre kraja
+  godine dobijali su prosek srazmerno manji od stvarne plate — nad demo bazom sa osam meseci podataka
+  105.878 RSD umesto 158.817. Delilac je sada broj obračunatih meseci.
+
+**Zarade**
+
+- **Kalkulator zarade nije zatvarao krug ispod minimalne i iznad maksimalne osnovice doprinosa.**
+  Inverzija Neto → Bruto pretpostavlja da se doprinos plaća na sam bruto; van granica osnovice on je
+  fiksan iznos, pa formula promaši. Za traženih 25.000 neto vraćala je bruto 31.608,70, koji nazad
+  daje 23.301,67 — **1.698 RSD ispod traženog**. Isti propust je bio i u smeru Bruto 2 → Neto. Oba
+  smera sada računaju sa fiksnim doprinosom kad je osnovica na granici.
+- **Godišnji pregled neoporezivih primanja je i dalje prijavljivao dnevnice kao prekoračenje.**
+  Ispravka iz §65 ušla je samo u jednu od dve metode: pregled stanja je sabirao celu godinu dnevnica
+  i poredio je sa iznosom jednog dana, pa je radniku sa 12 urednih dnevnica u zemlji prikazivao
+  36.759 RSD „oporezivog viška" koji ne postoji. Limit po danu se ne troši kroz godinu.
+
+**KPI**
+
+- **Vrednost zaliha na izvršnom KPI izveštaju bila je izmišljena.** Stajalo je `zbir količina × 100
+  // procena` — količina puta pretpostavljena cena od 100 RSD, i to samo nad WMS lokacijama, a ne nad
+  zalihama uopšte; nad demo bazom 700.700 RSD iz 7.007 komada na 74 lokacije. Vrednost sada dolazi iz
+  robnog bruto bilansa, iz istog izvora koji koristi radna tabla Robnog, da dva ekrana ne pokazuju dva
+  broja za istu stvar. (Isti obrazac izmišljene konstante nađen je i u §3eg.)
+- **KPI je poredio prihod sa PDV-om i nabavku bez PDV-a.** Prihod je uziman kao iznos za uplatu, pa
+  je „neto operativni rezultat" u sažetku bio uvećan za celu izlaznu poresku obavezu. Prihod je sada
+  osnovica — isto kako se račun i knjiži.
+
+**Demo baza**
+
+- **Šihterica nije mogla da reprodukuje sopstveno zaglavlje.** Mesečni zbirovi su upisivani ručno, a
+  dani generisani nezavisno: za 05/2026 je zaglavlje tvrdilo 160 redovnih, 6 prekovremenih, 39 noćnih
+  i 8 sati praznika, dok su dani nosili 168 redovnih i nula svega ostalog. Klik na „Prenesi u obračun"
+  prvo preračuna zaglavlje iz dana, pa bi radniku **tiho promenio sate koji ulaze u platu**. Dani se
+  sada raspoređuju tako da se zbir poklopi po konstrukciji, zaglavlje se izvodi iz njih, a vikend je
+  slobodan dan umesto redovnog rada sa nula sati.
+- `ObracunPlata` u demo bazi sada poštuje ugovor iz `ObracunService`: `BrutoZarada` je pun bruto bez
+  bolovanja, a `BrutoNaknade`/`BrutoMinuliRad`/`BrutoStimulacija` su njegova raščlanjenja, ne dodaci.
+  Prekovremeni i noćni rad ranije nisu bili nigde u zaglavlju obračuna.
+
+Uz to: `DemoProracuniTests` (19 provera) drži nalaze zaključanim. Tvrdnje su odnosne („bruto minus
+porez minus doprinosi je neto"), ne zapamćeni iznosi, da ostanu tačne i kad se obim demo baze menja;
+jedini fiksirani brojevi su u inverziji kalkulatora, gde je račun ispisan u komentaru da se može
+ponoviti rukom.
+
+### 🛡️ Pregled koda iz sprinta od 27.08 — deset ispravki (§65)
+
+Sprint od 27.08. je za jedan dan uneo ~14 celina (§51–§61), što je bila širina bez dubine. Pregled
+tog opsega (`7003229..502286b`) našao je deset grešaka; sve su ispravljene.
+
+**Pristup i prijava**
+
+- **Sedam API kontrolera je bilo potpuno anonimno** — `Marketplace`, `PoklonKartice`, `EftPos`,
+  `AiAsistent`, `KpiIzvestaji`, `Mrp` i `KurirskiManifesti` nisu imali `[Authorize]`, a nije
+  postojala ni fallback politika ispod njih. `GET /api/Marketplace/podesavanja` je bilo kome vraćao
+  API ključeve i tajne marketplace naloga, a `POST /api/PoklonKartice/naplati` praznio bilo koju
+  poklon karticu. Svi su dobili istu zaštitu koju već nose ostali ERP kontroleri.
+- **ESS portal je puštao kupce prodavnice na podatke zaposlenih.** Goli `[Authorize]` prima svaki
+  token koji je izdao ovaj API, uključujući kupčev, a identitet radnika se izvodio iz claim-a koji
+  za kupca nosi `WebKorisnikId` — pa se taj broj tražio u tabeli `Korisnici` kao `KorisnikId`.
+  Podudaranje je bilo stvar slučaja, a ishod JMBG, zarada i platni listići tuđeg zaposlenog. Uvedena
+  je politika **„Osoblje"**; pregled tuđeg dosijea sada traži i pravo na zarade, ne samo rolu.
+- **ESS nalozi (uloga „Radnik") su prolazili kroz cele Zarade, Finansije, Magacin i Kasu.** Uloga
+  čisti svako pojedinačno pravo, ali je token i dalje nosio rolu „Zaposleni", koju svi ti kontroleri
+  prihvataju — radnik je preko API-ja mogao čitati tuđe plate i odobriti sam sebi odsustvo. Sada
+  dobija sopstvenu rolu „Radnik", koju nijedan ERP kontroler ne prima.
+- **Marketplace webhook** ostaje bez prijave (poziva ga tuđa platforma), ali sada traži tajnu kanala
+  u zaglavlju `X-ERPi-Webhook-Secret`, upoređenu u konstantnom vremenu. Kanal bez podešene tajne ne
+  prima webhook-e.
+
+**Novac**
+
+- **Poklon kartica se nikad nije zaduživala.** Kasa je proveravala saldo i tu stala — kartica se ne
+  bi ni pomerila, pa je jedna mogla platiti neograničeno računa. Broj kartice sada putuje uz red
+  plaćanja, a server ga proverava **pre** fiskalizacije (kartica važi i saldo pokriva ceo iznos) i
+  skida **posle** nje. Odbija se i ista kartica u dva reda.
+- **EFT POS je bez podešenog terminala tiho radio na Simulatoru**, koji svaku transakciju vraća kao
+  odobrenu — kasa je fiskalizovala kartično plaćanje kroz koje nijedna banka nije prošla. Naplata,
+  storno i dnevno zatvaranje sada odbijaju rad dok terminal nije podešen i sačuvan. Prazna IP adresa
+  se više ne tumači kao poziv na simulaciju.
+- **Svako otvaranje EFT POS podešavanja ostavljalo je nov red u bazi** — podrazumevani zapis se
+  upisivao bez `MagacinId`, pa ga sledeći poziv za isti magacin nije nalazio. Predložak se sada ne
+  upisuje.
+
+**Zalihe**
+
+- **Šarže su nestajale na Primopredaji.** Transfer je za šaržno praćen artikal knjižio samo izlaz iz
+  izvornog magacina; u odredišni se nikad nije upisivao, dok je materijalna kartica pokazivala uredan
+  prelaz. Šarža sada stvarno prelazi — otvara se ili dopunjuje istoimena šarža odredišnog magacina, sa
+  istim rokom i nabavnom cenom.
+- **Transfer bez izabranih serijskih brojeva je tiho prolazio** kao uspešan: dokument proknjižen,
+  kartica pokazuje prelaz, nijedan komad ne promeni magacin. Transfer sada ide kroz istu proveru kao
+  ostala knjiženja (izbor postoji, broj komada odgovara količini).
+- **Storniranje prijema je guralo šaržu u minus** kad je roba iz nje već izdata.
+
+**Zarade**
+
+- **Dnevnice su bile ograničene na iznos jednog dana za celu godinu.** `Dnevni` period limita je
+  padao u granu za godišnji kumulativ, pa je radniku sa 3.241 RSD/dan bilo neoporezivo ukupno
+  3.241 RSD godišnje — sve preko toga išlo je u osnovicu poreza **i doprinosa**. Limit se sada računa
+  kao *iznos po danu × broj dana*, bez trošenja kroz godinu, a web forma za dnevnice dobija polje
+  **„Broj dana službenog puta"**.
+- **Štampa šihterice je pucala** kad je prva PDF radnja u procesu — jedina `*Document.cs` klasa iz
+  tog sprinta koja nije postavljala QuestPDF licencu. U API-ju se nije videlo jer se licenca postavlja
+  globalno pri pokretanju, u desktopu jeste.
+
+### 🔑 Opoziv prijave i zaštita od tihog pregaživanja izmena (§64)
+
+- **Prijava se konačno može opozvati.** JWT je bez stanja, pa je izdat token do sada važio punih 7
+  dana bez obzira na sve: „Odjava" je brisala token samo u pregledaču, promena lozinke nije
+  izbacivala nikoga, a ugašen nalog je nastavljao da radi do isteka tokena. Uvedena je **generacija
+  tokena** (`Korisnik.TokenVerzija` / `WebKorisnik.TokenVerzija`) — token nosi vrednost iz trenutka
+  prijave, a API je pri svakoj proveri poredi sa onom u bazi i odbija stariju.
+  - Generacija se uvećava pri **promeni lozinke**, **gašenju naloga** i na izričitu **„Odjavi sve
+    uređaje"**. Izmena prava se namerno ne računa — prava se ionako čitaju iz baze pri svakom
+    zahtevu, pa nema razloga isterati korisnika iz aplikacije usred posla.
+  - Nova dugmad: 🚪 u desktop pregledu korisnika, `POST /api/Korisnici/{id}/odjavi-sve-uredjaje`
+    (administrator), `POST /api/Korisnici/odjavi-moje-uredjaje` i
+    `POST /api/auth/odjavi-sve-uredjaje` (nad sopstvenim nalogom).
+  - Ista provera hvata i **ugašen nalog**: do sada je gašenje delovalo tek pri sledećoj prijavi.
+  - Tokeni izdati pre ove izmene se i dalje prihvataju dok se nad nalogom jednom ne uradi opoziv —
+    nadogradnja verzije ne izbacuje sve redom iz aplikacije.
+- **`Jwt:ExpiryDays` više nije mrtva konfiguracija.** Stajao je u `appsettings.json` i izgledao kao
+  da nešto podešava, dok je `JwtService` na oba mesta hardkodovao `AddDays(7)`. Sada se čita; vrednost
+  van opsega 1–365 se odbacuje da omaška ne napravi token koji istekne odmah ili traje godinama.
+- **`Artikal`, `Partner`, `Radnik` i `Sredstvo` dobili su token istovremenosti** (`RowVerzija`). Do
+  sada su ga imali samo dokumenti (`Nalog`, `Kalkulacija`, `WebPorudzbina`), pa su kod šifarnika
+  dvoje ljudi na istom zapisu — a to je u web adminu realan scenario — tiho pregazili jedan drugog.
+  Sada drugi dobija poruku „Zapis je u međuvremenu izmenio neko drugi", kroz već postojeće rukovanje
+  (409 Conflict na API-ju, dijalog u desktopu).
+
+### 🔗 Prijateljski URL artikala i HTML opis u prodavnici (§63)
+
+- **Slug je konačno deo adrese proizvoda** — `/proizvod/A02500/libela-ravel-n401-a02500`. Polje
+  „Prijateljski URL (slug)" je postojalo i uređivalo se, ali adresa ga nikad nije nosila: ruta je
+  primala jedan segment, a jedino mesto koje je slug koristilo bio je **kanonički link**, koji je
+  time vodio na adresu gde se prikazuje prodavnica umesto proizvoda — dok su sitemap i JSON-LD
+  prijavljivali treći oblik. Šifra ostaje jedini identifikator, pa stari linkovi rade nepromenjeni;
+  stranica sama prepiše adresu na kanonički oblik. Isti oblik sada grade i sitemap
+  (`SitemapGenerator.PutanjaArtikla`) i fidovi (`ProductFeedService.PutanjaArtikla`).
+- **HTML opis artikla se prikazuje** umesto da se ispisuje kao goli tekst. `Artikal.WebOpis` je
+  oduvek HTML — WPF `WebArtikalEditWindow` ima traku za formatiranje i živi pregled, a fidovi ga
+  propuštaju kroz `OcistiHtmlOpis` — ali je prodavnica na stranici proizvoda štampala same oznake
+  (`<p>`, `<ul><li>`). Sadržaj se sada čisti kroz DOMPurify (`utils/sigurniHtml.ts`) sa listom
+  tagova izvedenom iz onoga što WPF traka ubacuje, uključujući tabele sa inline stilovima.
+- **Meta opis više ne nosi HTML** — `SeoMeta` je sirov `webOpis` sekao na 160 znakova, pa su u
+  `<meta name="description">` odlazile oznake; sada ide kroz postojeći `ocistiHtmlOpis`. Isto i na
+  teaser kartici u `BentoGrid`.
+- **Web admin je dobio uređivač opisa** sa istom trakom kao WPF (B/I/U, H2/H3, lista, tabela,
+  callout) i prekidačem *Izvor / Pregled*; pregled ide kroz isti filter kao prodavnica, pa admin
+  vidi tačno ono što će kupac videti.
+- **Pomoć „?" uz polja identifikatora** (EAN-13/JAN, MPN, UPC, ISBN) sa objašnjenjem i **stvarnim**
+  primerom barkoda — simbol se crta iz pravog EAN-13 kodiranja (`utils/ean13.ts`), pa je i očitljiv,
+  a ne ukrasne crtice.
+- **Povezani artikli se biraju pretragom** po nazivu ili šifri, umesto ručno kucanog JSON niza
+  ID-jeva (`[2, 5, 8]`) — brojčani ID-jevi se nigde u adminu ni ne prikazuju, pa je polje tražilo
+  podatak do kog se nije moglo doći.
+- **Količinski popusti su tabela pragova** („od N kom → X% popusta"), umesto JSON zapisa koji se pri
+  grešci tiho odbacivao — artikal bi ostao bez popusta za koji je neko mislio da ga je uneo.
+- **Lista artikala: prekidač objave i pregled u prodavnici.** Kolona *Objavi na web* je bila samo
+  zelena tačkica, a objavljivanje jednog artikla je tražilo ulazak u formu i čuvanje; sada je
+  prekidač. Uz *Uredi* stoji i „oko" koje otvara stranicu artikla u novoj kartici, ugašeno za
+  neobjavljene artikle (nemaju svoju stranicu).
+
+### 🔒 Zaključavanje baze, JWT ključ i tri kvara nađena kroz web admin (§63)
+
+- **SQLite WAL** (`ERPiData/Services/SqlitePragmaInterceptor.cs`) — bazu firme po pravilu drže
+  desktop i API servis **istovremeno**, a u zatečenom rollback-journal režimu pisac zaključava ceo
+  fajl, pa je svaki čitalac povremeno dobijao `SQLite Error 5: 'database is locked'`. U logu se to
+  videlo kao nasumičan HTTP 500 (npr. na `/api/poseta/evidentiraj`) koji bi sekund kasnije prošao.
+  Novi interceptor postavlja `journal_mode=WAL` i `busy_timeout=15s` na svaku SQLite konekciju.
+  `synchronous` **nije** promenjen — uz WAL se obično preporučuje `NORMAL`, ali on dopušta gubitak
+  poslednjih transakcija pri nestanku struje, što za knjigovodstvo nije prihvatljiva trampa.
+  `ErpiWebServer` je usput preusmeren kroz `ConfigureOptions` — golim `UseSqlite` je zaobilazio i
+  pragme i audit interceptor.
+- **`Jwt:Secret` više ne stoji u `appsettings.json`** — vrednost je bila fiksna i commit-ovana u
+  repo, pa je svaka instalacija potpisivala tokene ključem koji je javno poznat svakome sa izvornim
+  kodom, uključujući token sa `Admin` ulogom. `JwtService` je i ranije umeo da generiše nasumičan
+  ključ po instalaciji (`%ProgramData%\ERPiApi\jwt.secret`); taj upis ga je samo preskakao.
+  Rezervni ključ, kad se trajni ne može ni pročitati ni upisati, sada je nasumičan po pokretanju
+  procesa uz upozorenje na konzoli, umesto iste javno poznate konstante.
+- **`GET /api/Zarade/hr-dokumenti` je padao sa HTTP 500** čim bi u listi postojao dokument sa
+  učitanim šablonom — `HrDokument.HrSablon` → `HrSablon.Dokumenti` zatvaraju ciklus („A possible
+  object cycle was detected"). Uveden `HrDokumentDto`; usput je iz odgovora izašao i ceo `Radnik`
+  graf — JMBG, adresa stanovanja, ugovorena zarada — na ekran koji koristi samo ime i broj radnika.
+- **Poruka „Učitavanje … nije uspelo" na isteklu prijavu** — `proveriOdgovor` sada 401 i 403
+  razdvaja od ostalih grešaka („Prijava je istekla. Prijavite se ponovo." / „Ovaj nalog nema pravo
+  pristupa ovom delu sistema."). Pošto tu funkciju koriste svi Web ERP moduli, ispravka važi svuda,
+  ne samo na ekranu artikala. `authHeaders` pada nazad na kupčev `erpi_token` kad staff token
+  nedostaje, pa je pod istom porukom bio i sasvim ispravno prijavljen kupac bez prava na admin rutu.
+
 ## [2.65.0] - 2026-08-28
 
 ### 🎬 Demo firma sa fiktivnim podacima (§62)

@@ -164,6 +164,27 @@ graph TD
     end
 ```
 
+### Adresa proizvoda mora imati jednog autora
+
+Stranica proizvoda je `/proizvod/{sifra}` ili `/proizvod/{sifra}/{slug}` — **šifra je jedini
+identifikator**, slug je čitljivi dodatak i ne koristi se za pronalaženje artikla, pa stariji
+linkovi bez njega rade nepromenjeni. `ProizvodStranica` po učitavanju prepiše adresu na oblik sa
+slugom, da isti artikal ne živi na tri adrese.
+
+Taj oblik gradi **tačno jedna funkcija po strani**, i one moraju ostati iste:
+
+| Strana | Funkcija |
+|---|---|
+| Frontend | `utils/proizvodPutanja.ts` → `putanjaProizvoda` |
+| Sitemap | `SitemapGenerator.PutanjaArtikla` |
+| Fidovi (Google Shopping, ePonuda) | `ProductFeedService.PutanjaArtikla` |
+
+Isti odnos već postoji za kategorije (`utils/kategorijaPutanja.ts` ↔ `SitemapKategorija`). Kad se
+raziđu, kvar je nevidljiv u aplikaciji a skup napolju: do 28.08.2026 je `SeoMeta` u
+`<link rel="canonical">` upisivao slug oblik koji nijedna ruta nije primala, pa je stranica
+proizvoda pretraživaču prijavljivala adresu na kojoj stoji prodavnica, dok su sitemap i JSON-LD
+tvrdili treće.
+
 ---
 
 ## 🛠️ 1.6 WebShop Backoffice Administratorska Arhitektura (`/admin`)
@@ -293,6 +314,52 @@ graph TD
   (`UseSqlite`/`UseNpgsql`/`UseSqlServer`) na osnovu eksplicitnog `DatabaseProviderType` ili
   auto-detekcije formata konekcionog stringa (`DetectProvider`, v. §2). I dalje važi princip
   "jedna baza (fajl ili šema) po firmi" — nema posebne master baze (v. §2).
+- **SQLite radi u WAL režimu** (`SqlitePragmaInterceptor`, od 28.08.2026). Bazu firme normalno drže
+  **dva procesa istovremeno** — `ERPiApp` desktop i `ERPiApi` servis koji u isto vreme prima
+  porudžbine. U podrazumevanom rollback-journal režimu pisac zaključava ceo fajl, pa je svaki
+  čitalac povremeno dobijao `SQLite Error 5: 'database is locked'` (u logu: nasumičan HTTP 500 koji
+  bi sekund kasnije prošao). Interceptor je zakačen **samo u SQLite granu** `ConfigureOptions` —
+  PostgreSQL i SQL Server imaju zaključavanje po redu i MVCC, pa im ništa slično ne treba;
+  `DatabaseProviderTests` čuva tu granicu. `synchronous` se namerno ne dira: uz WAL se obično
+  preporučuje `NORMAL`, ali on dopušta gubitak poslednjih transakcija pri nestanku struje, što za
+  knjigovodstvene podatke nije prihvatljiva trampa.
+
+### Token istovremenosti (`IImaRowVerziju`)
+
+Entiteti koje menjaju **dva pravca istovremeno** — desktop i web — nose `RowVerzija`, ručno održavan
+token istovremenosti (`rowversion` ne postoji na SQLite/PostgreSQL). `OnModelCreating` ga generički
+prijavljuje kao `IsConcurrencyToken` za svaki tip koji implementira interfejs, a `SaveChanges` ga sam
+uvećava; pozivaoci ga ne diraju. Ko sačuva na zastareloj vrednosti dobija `DbUpdateConcurrencyException`
+umesto da tiho pregazi tuđu izmenu.
+
+Danas ga nose: `Nalog`, `Kalkulacija`, `WebPorudzbina` (dokumenti) i — od 29.08.2026 — `Artikal`,
+`Partner`, `Radnik`, `Sredstvo` (šifarnici; web admin i desktop menjaju iste zapise).
+
+Izuzetak se **ne hvata na pozivnim mestima** — rukovanje je globalno na obe strane:
+`ERPiApi/Services/KonkurentnostIzuzetakHandler` vraća 409 Conflict sa čitljivom porukom, a
+`ERPiApp/App.xaml.cs` (`DispatcherUnhandledException`) prikazuje dijalog. Dodavanje interfejsa novom
+entitetu zato ne traži izmenu nijednog kontrolera ni ekrana — samo model, migraciju i `EnsureColumn`.
+
+### Opoziv prijave — JWT bez tabele sesija
+
+Token je bez stanja i po sebi važi do isteka (`Jwt:ExpiryDays`, podrazumevano 7 dana). Da bi se
+prijava mogla prekinuti pre toga, svaki nalog nosi **generaciju izdatih tokena** —
+`Korisnik.TokenVerzija` za osoblje i `WebKorisnik.TokenVerzija` za kupce. Token nosi vrednost iz
+trenutka prijave, a `TokenOpozivValidator` (na `JwtBearerEvents.OnTokenValidated`) je pri svakom
+zahtevu poredi sa onom u bazi i odbija stariju. Uvećavanje brojača time trenutno gasi sve prijave
+tog naloga, na svim uređajima.
+
+Uvećava se pri **promeni lozinke**, **gašenju naloga** i na izričitu **„Odjavi sve uređaje"**.
+Izmena prava se namerno ne računa — prava se čitaju iz baze pri svakom zahtevu, pa nema razloga
+prekidati rad korisniku. Isti upit čita i `IsActive`, pa ugašen nalog gubi pristup odmah, a ne tek
+pri sledećoj prijavi.
+
+Namerno **bez keša**: keš bi uveo prozor u kom opozvan token i dalje prolazi, a smisao je da odjava
+deluje odmah. Cena je jedno čitanje po primarnom ključu po zahtevu.
+
+Ovo **nije** spisak aktivnih sesija — ne zna se ko je gde prijavljen, samo se sve prijave mogu
+poništiti odjednom. Za prvo bi trebala tabela sesija; brojač je izabran kao jeftinije rešenje koje
+pokriva stvarnu potrebu (opoziv).
 
 ### 1.2 `ERPiApi` (ASP.NET Core REST API Servis)
 - ASP.NET Core 8 Web API sa Swagger/OpenAPI dokumentacijom i JWT Bearer autentifikacijom.
@@ -442,6 +509,17 @@ sloj ispred izbora firme: globalna prijava i lokalni JSON registar poznatih firm
     granularni `Pravo*` flegovi (`PravoFinansije`, `PravoRobno`, `PravoProizvodnja`, ...) —
     kontroliše *šta sme da radi unutar* već izabrane firme. `PostaviPodrazumevanaPravaZaUlogu`
     postavlja standardni profil flegova po ulozi, sa mogućnošću ručne izmene (`Prilagodjeno`).
+  - **Na API-ju** te uloge postaju **tri grube role** u JWT-u (`GenerisiTokenZaOsoblje`): `Admin`
+    (ima `PravoAdministracije`), `Radnik` (ESS nalog, `UlogaKorisnika.Radnik`) i `Zaposleni` (sve
+    ostalo). ERP kontroleri primaju `Admin,Menadzer,Zaposleni` — `Radnik` namerno **nije** među
+    njima, jer ESS nalog nema nijedno `Pravo*` (§65; dok je dobijao „Zaposleni", prolazio je kroz
+    Zarade i Finansije uprkos ispražnjenim flegovima). Granularni `Pravo*` idu kao zasebni claim-ovi
+    i ostaju UI-nivo granica, isto kao meni u desktopu.
+  - **Politika `Osoblje`** (`Program.cs`) razdvaja osoblje od kupaca prodavnice preko claim-a
+    `TipNaloga=Osoblje`. Potrebna je zato što goli `[Authorize]` prima **svaki** token ovog API-ja —
+    isti izdavalac i potpis — pa i kupčev; a role tu ne pomažu, jer `WebKorisnik.IsAdmin` takođe
+    dobija rolu `Admin`. Koristi je `EssController`, gde se identitet radnika izvodi iz
+    `KorisnikId`-a (za kupca bi to bio `WebKorisnikId`, tj. tuđi red u drugoj tabeli).
 - **`AppSession`** (statička klasa) drži `TrenutnaFirma`/`TrenutniKorisnik` (po-firmi `Korisnik`)
   **i** `TrenutniGlobalniKorisnik` (`GlobalUser`) — **ne drži** `ErpiDbContext` instancu.
   `AppSession.IsAdministrator` i `ImaPravo*` propertiji kombinuju oba sloja (globalni admin
