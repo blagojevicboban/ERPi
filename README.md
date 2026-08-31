@@ -3,7 +3,7 @@
 # ⚡ ERPi Enterprise Business Suite
 ### Celoviti, Hibridni Poslovni Informacioni Sistem & e-Commerce Platforma
 
-[![Version](https://img.shields.io/badge/version-2.66.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.67.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF UI](https://img.shields.io/badge/UI-WPF%20Desktop-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](ERPiApp)
 [![WebShop & Admin](https://img.shields.io/badge/Web-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](ERPiWebShop)
@@ -17,9 +17,10 @@
 </p>
 
 <p align="center">
-  <video src="docs/showreel/erpi-master-showreel.webm" autoplay loop muted playsinline width="96%" style="border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);">
-    <a href="docs/showreel/erpi-master-showreel.webm">🎬 Pogledajte ERPi Master Showreel Video</a>
-  </video>
+  <img src="docs/showreel/erpi-master-960x540.gif" alt="ERPi Master Showreel" width="96%" style="border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);" />
+</p>
+<p align="center">
+  <sub>🎬 <a href="docs/showreel/erpi-master-showreel.webm">Pun kvalitet (video, .webm)</a> — GitHub ne pušta autoplay na &lt;video&gt; tagu, GIF iznad radi svuda.</sub>
 </p>
 
 [Metrika Projekta](#-projekat-u-brojkama--inženjerska-metrika) • [Ključni Moduli](#-ključni-moduli-sistema) • [Arhitektura](#-arhitektura-i-tehnologije) • [WebShop & B2B](#-integrisani-webshop--b2b-portal) • [Vizuelni Prikaz](#-korisnički-interfejs-i-vizuelni-prikaz) • [Baze Podataka](#-multi-dbms-i-mrežni-rad) • [Dokumentacija](#-tehnička-dokumentacija)

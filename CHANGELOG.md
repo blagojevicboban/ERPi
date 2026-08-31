@@ -6,6 +6,82 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
+## [2.67.0] - 2026-08-31
+
+### 🚀 Nove funkcionalnosti
+
+**Mesečni/godišnji neoporezivi limiti u obračunu zarada (§88)** — poslednja imenovana rupa iz §78.
+Prevoz, jubilarna nagrada, solidarna pomoć i poklon deci su imali `NeoporeziviLimit = 0`, što se
+čitalo kao „nema gornje granice" — obračun ih nikad nije oporezivao ni preko pravog zakonskog
+limita. `ObracunService` sad, pre podele, računa kumulativ kroz mesec/godinu (isti princip koji je
+`NeoporezivaPrimanjaService` već koristio za prikaz pri unosu i godišnji izveštaj), i tek tu podelu
+primenjuje na obračun. Dnevni limiti (dnevnica) ostaju nepromenjeni — važe po zapisu, ne kumulativno.
+
+**Prevod naziva/opisa artikla na EN/DE (§87)** — postojao je u bazi, ali je bio mrtav kod na obe
+strane: stranica proizvoda je čitala opis mimo funkcije za prevod (uvek srpski, bez obzira na
+izabrani jezik), a ekran za unos prevoda nije postojao ni na WPF-u ni na webu. Nov tab „🌐 Prevodi"
+u admin šifarniku artikala; unos u adminu se sada stvarno vidi na B2C strani proizvoda kad je jezik
+promenjen na EN/DE.
+
+### 🏗️ Arhitektura — razbijanje „fat" kontrolera, pet tura (§89-§93)
+
+Istraga je pokazala da su `AdminController`/`MagacinController`/`ZaradeController` već bili
+60-91% dobro faktorisani — sirova logika bez servisa je bila uska i imenovana, ne raspoređena po
+celom fajlu. Izdvojeno u `ERPiData/Services`, isti obrazac kao postojeći `PartnerService`/
+`MestaTroskaService`: šifarnici materijala/poreskih tarifa, dashboard-i (WebShop admin, Zarade
+radna tabla), CRUD kategorija sa zaštitom od ciklusa u stablu, CRM pregled kupaca, tri
+fire-and-forget email/SMS bloka porudžbina, bulk petlja obračuna zarada (`ObracunService.
+PokreniObracunAsync`), i kontrolne provere PPP-PD pregleda. 60 novih testova, provereno
+end-to-end nad izolovanom kopijom demo baze na svakoj turi. DI kontejner za servise, `ICurrentUser`
+apstrakcija i AutoMapper su razmotreni i namerno odbačeni — protivreče anti-apstrakcija konvenciji
+projekta.
+
+### 🏗️ Arhitektura — FluentValidation umesto ručnih provera, sedam tura (§94-§100)
+
+Sistematski pregled svih 33 kontrolera u `ERPiApi`. Eksplicitan `Validator.Instance.Validate(dto)`
+poziv u kontroleru (namerno NE kroz MVC auto-validaciju/DI, da funkcionalni testovi koji zovu
+akciju direktno i dalje validiraju), validator drži samo strukturu zahteva, provere nad bazom
+ostaju u kontroleru. Pokriveni: Porudžbine, Magacin (Pretplate, Uvoz), Admin (magacin preuzimanje,
+atributi, kategorije, kuponi, reklamacije, izmena kupca), Zarade (banke, praznici, krediti,
+olakšice, doprinosi — uz korisnikovu izričitu potvrdu da se dirne jedini modul sa realnim
+produkcionim korisnicima), B2B, SEF ulazne fakture, Katalog, ESS, Auth i Finansije (nalozi,
+preknjižavanje, štampa kartica).
+
+**Pravi nalaz i popravka usput:** `POST api/auth/register` (anonimna, javno dostupna registracija
+kupca) nije imao **nikakvu** proveru obaveznih polja — prazan email je pucao kao gola greška
+servera umesto čitljive poruke, a prazna lozinka/ime/prezime su tiho pravili nalog sa praznim
+poljima. Zatvoreno novim validatorom.
+
+101 nov test kroz svih sedam tura, 0 regresije, build čist u Debug i Release konfiguraciji.
+
+### ⚡ Optimizacija — `.AsNoTracking()` na izveštaje Glavne knjige (§101)
+
+Bruto bilans, Kartica konta i APR prošireni izveštaji (statistički, Cash Flow, promene na
+kapitalu) sad učitavaju podatke bez EF Core change-tracking-a — čisto read-only izveštaji koji
+nikad ne snimaju nazad ono što učitaju. (Analiza je usput pokazala da imenovani „kartezijanski
+proizvod" rizik u ovim upitima ne postoji — dva `.Include()` poziva idu na reference navigacije,
+ne kolekcije, pa `.AsSplitQuery()` ovde ne bi doneo ništa.)
+
+### 🐛 Ispravke
+
+- **Demo baza: `Prosek` u obračunu zarada je bio jednak mesečnom bruto iznosu, ne bruto satnici
+  (§102).** Kod ponovnog pokretanja obračuna nad već obračunatim periodom, obračunski motor čita
+  `Prosek` kao prosečnu dnevnicu za plaćeno odsustvo i množi je danima godišnjeg odmora —
+  `BrutoZarada` je znala da eksplodira na desetine miliona. Ispravljen demo generator (satnica =
+  osnovna plata / fond časova) i regenerisana postojeća demo baza. Potvrđeno da prave baze firmi
+  nikad nisu imale ovaj red — rizik je bio ograničen na demo/prezentacione podatke.
+- F1 Help „Materijalno knjigovodstvo" dobija 7 screenshot-ova iz ranijeg kruga koji su postojali
+  ali nisu bili iskorišćeni (§86).
+- **Demo-Reel Studio: animirani GIF izvoz je pravio nečitljive fajlove.** Klasična GIF-LZW zamka —
+  dekoder ne sme da doda novi rečnički unos na svoj prvi kod posle svakog Clear Code-a (nema još
+  prethodni unos sa čim da ga spoji), pa mu je rečnik trajno jedan unos iza enkoderovog. Bez
+  kompenzacije, granica za povećanje širine koda pogađala je enkoder tačno jedan kod ranije nego
+  dekoder, i svaki dekoder (pregledač, GitHub) je gubio sinhronizaciju čim bi tok prešao 511
+  kodova — GIF je ispadao kao jednobojna mrlja umesto snimka ekrana. Popravljeno i potvrđeno
+  nezavisnom bibliotekom (Pillow) kao krajnjim proveravačem. README hero sada koristi ovaj GIF
+  (autoplay svuda, uključujući GitHub, gde `<video autoplay>` ne radi) uz link na video pun
+  kvalitet.
+
 ## [2.66.0] - 2026-08-30
 
 ### 🎬 Demo-Reel Studio alat i MainWindow fokus fix (§85)
