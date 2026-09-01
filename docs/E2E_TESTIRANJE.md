@@ -424,6 +424,17 @@ Dve lažne uzbune u prvom prolazu, obe razjašnjene bez ispravke koda:
 
 - [x] `/admin` — Dashboard — KPI (promet danas/mesečno, B2B zahtevi na čekanju, katalog na webu 1717/60 kat.), Poslednje porudžbine, Najprodavaniji artikli, grafikon poseta.
 - [x] `porudzbine` — Porudžbine — 3 pod-taba (Web porudžbine/Zbirni kurirski manifesti/Marketplace integracije), lista sa statusima (Prihvaćena/Nova) i B2B bedžom, Detalji & Status po redu.
+- [x] `porudzbine` — **SignalR live push (§110, 01.09.2026)** — dva NEZAVISNA CDP taba, oba prijavljena
+  kao isti admin, otvoren `/admin/porudzbine`. Treća strana (node skript, van oba taba) kreira
+  porudžbinu preko `POST /api/porudzbine/kreiraj` — simulira pravog kupca na checkout-u, ne dugme u
+  adminu. Provereno na oba taba, BEZ ijednog ručnog refresh-a/klika: nov red se pojavljuje na vrhu
+  tabele, bedž „Porudžbine" u bočnom meniju raste na 1; tab evaluiran unutar 4s prozora je uhvatio i
+  sam Toast („🛒 Nova porudžbina WP-... — ... (22.990,00 RSD)"). API log potvrđuje čist tok: jedan
+  `POST /hubs/erpi-live/negotiate` po tabu (200), pa `GET /api/admin/porudzbine` + `GET
+  /api/admin/dashboard` na OBA taba odmah posle kreiranja porudžbine, bez ijedne greške. Odvojeno,
+  preko `curl`: `negotiate` vraća 401 bez tokena i 200 sa `?access_token=` u query stringu — hub
+  handshake auth ispravan. Izolovana kopija `DEMO.db`, API 5002/vite 5174; skript je privremen, u
+  scratchpad-u, ne u repou (ne dira deljeni `driver.mjs`).
 - [x] `artikli` — Artikli na webu — vidi napomenu iznad (slike su lažna uzbuna); 1717 artikala, kolone slika/šifra/naziv/kategorija/cena/akcijska cena/objavi prekidač/Novo-Top bedž, Masovni uvoz slika/Eksportuj CSV.
 - [x] `kategorije` — Kategorije — stablo kategorija (Ručni alat/Električni alat/Vodovod.../15+ grupa), broj artikala po kategoriji, redosled/istaknuto/prekidač objave po redu.
 - [x] `osobine` — Osobine — 7 osobina (Boja/Veličina/Snaga/Napon/Materijal/Garancija/Težina), tip (izbor/broj), broj vrednosti, osa varijanti Da/Karakteristika.

@@ -6,6 +6,52 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
+## [2.68.0] - 2026-09-02
+
+### 🚀 Realtime — SignalR Live Hub v1 (§110)
+
+Web Admin sad dobija novu web porudžbinu bez ručnog osvežavanja stranice. Nov `/hubs/erpi-live`
+(`ErpiLiveHub` + `ErpiLiveNotifier`), pozvan iz istog trenutka kad se šalje postojeća tray
+notifikacija za WPF. Frontend (`useErpiLiveHub`, `@microsoft/signalr`) puni isti `osveziSignal`
+mehanizam koji dugme „Osveži" već koristi — nova porudžbina se pojavi u tabeli i osveži bedž u
+bočnom meniju, uz Toast obaveštenje sa brojem porudžbine i iznosom. JWT preko query stringa za
+WebSocket handshake, ograničeno samo na hub rute. Obim v1 namerno usko — samo Web Admin, samo nova
+porudžbina; WPF kao klijent, status porudžbine, lager-sync i SEF status ostaju za sledeću turu
+(vidi `docs/DIZAJN_SIGNALR.md`). Vizuelno provereno preko dva stvarna nezavisna taba (ne simulacija)
+— oba dobijaju red i Toast bez ijednog ručnog refresh-a.
+
+### ⚡ Frontend — React Query keš/dedup, četiri ture (§106-§109)
+
+Deljen `QueryClient` (`retry: false`, `staleTime: 30s`) uveden za slučajeve gde nezavisne komponente
+STVARNO zovu isti endpoint sa istim parametrima — ne mehanička zamena svuda. Konkretni parovi:
+pretraga u zaglavlju i Ctrl+K modal (debounce + dedup), recenzije artikla (stranica proizvoda i
+detalji su nezavisno zvali isti endpoint — dva mrežna poziva za isti podatak na svakom otvaranju),
+mesta preuzimanja (Click & Collect, artikal + checkout), adrese isporuke (checkout + B2B profil, uz
+`invalidateQueries` posle izmene), obavezni atributi kategorije. Usput ispravljeno: forma naloga je
+zvala API samo za `googleClientId` iako je ceo objekat podešavanja već dostupan kroz postojeći
+kontekst — brisanje nepotrebnog mrežnog poziva, ne React Query slučaj. Namerno NEKONVERTOVANO gde
+nema stvarnog deljenja (B2B portal, admin pretraga partnera/artikala sa različitim parametrima po
+pozivaocu) — potvrđeno naknadnim pregledom (§111) da tu nema keš-dobitka.
+
+### 🏗️ Backend — strukturirano logovanje i code-splitting (§103-§104)
+
+Serilog u `ERPiApi`: dnevni rotacioni fajl (`%ProgramData%\ERPiApi\Logs\erpiapi-{port}-.log`) +
+konzola, jedan red po HTTP zahtevu. `React.lazy`/`Suspense` prošireno na ~40 pod-tabova unutar
+9 admin modula (Finansije, Zarade, Magacin, Materijalno, Proizvodnja, Osnovna sredstva, Kasa, SEF,
+B2B/Firma) — svaki pod-tab sopstveni JS chunk, učitava se tek kad se otvori.
+
+### 🐛 Ispravke
+
+**Kursna lista NBS — trka pri prvom keširanju je duplirala valute (§105).** Dva konkurentna zahteva
+za isti, još-nekeširan datum (dva otvorena admin taba, ili React StrictMode dupli efekat u dev-u)
+su oba videla praznu keš tabelu i oba upisala ceo NBS odgovor — trajno duplirajući svaku valutu.
+Nov jedinstven indeks (`Datum`, `ValutaOznaka`) + gubitnik trke sad vraća ono što je pobednik
+stvarno upisao, umesto da baci grešku.
+
+### 📊 Testovi
+
+1799 → **1803/1803** (.NET), 295 → **321/321** (vitest).
+
 ## [2.67.0] - 2026-08-31
 
 ### 🚀 Nove funkcionalnosti
