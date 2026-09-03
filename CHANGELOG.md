@@ -6,6 +6,19 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
+## [2.68.1] - 2026-09-03
+
+### 🐛 Ispravke — pad ekrana Zarade → Krediti i obustave
+
+`HorizontalAlignment="Between"` u koloni „Otplata (Progres)" (`KreditiPage.xaml`) nije validna
+WPF vrednost (CSS refleks, `HorizontalAlignment` enum ima samo `Left/Center/Right/Stretch`) —
+`XamlParseException` je pucao lenjo, tek kad se ta kolona prvi put renderovala (radnik sa
+aktivnim kreditom selektovan), pa je ekran prijavljivan sa „Neočekivana greška" umesto da build
+ili prvo otvaranje ekrana odmah pokažu problem. Uklonjen nevalidan atribut; potvrđeno na
+stvarnom slučaju koji je pad izazivao (kredit „Galerija podova", radnica sa aktivnom ratom).
+Usput dodat `x:Name` na search-box radnika (nije imao ime, pa ga UI-driver za automatizovano
+testiranje nije mogao adresirati).
+
 ## [2.68.0] - 2026-09-02
 
 ### 🚀 Realtime — SignalR Live Hub v1 (§110)
