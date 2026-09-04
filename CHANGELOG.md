@@ -4,6 +4,21 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [Neobjavljeno]
+
+### 🐛 Zarade — osnovica doprinosa u PPP-PD prijavi kod olakšice koja umanjuje doprinose (§120)
+
+Prijava je osnovicu doprinosa uvek izvodila iz obračunatog PIO (`PIO / 24 %`). To je tačno u
+najvećem broju slučajeva, ali **ne** kad radnik ima olakšicu koja umanjuje doprinose: po
+specifikaciji Poreske uprave osnovica ostaje pun bruto, a olakšica se primenjuje tek na obračunate
+iznose, pa deklarisani PIO namerno nije 24 % osnovice. Izvođenje je tu vraćalo premalu osnovicu — a
+Poreska uprava iz razlike između punog i umanjenog doprinosa knjiži zaduženje NSZ-u odnosno RF PIO,
+pa pogrešna osnovica ne kvari samo prijavu nego i iznos koji fond potražuje. Za takve obračune se
+sada uzima osnovica koju je obračun stvarno koristio.
+
+Izvođenje ostaje glavni put za sve ostalo — provereno nad pravom bazom da je ispravno i tamo gde
+polje sa osnovicom nosi zastarelu vrednost iz obračuna urađenog pre 04.09.2026.
+
 ## [2.69.0] - 2026-09-04
 
 ### 🐛 Zarade — oznaka težine nalaza prazna preko API-ja (§119)
