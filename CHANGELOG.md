@@ -4,7 +4,231 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
-## [Neobjavljeno]
+## [2.69.0] - 2026-09-04
+
+### 🐛 Zarade — oznaka težine nalaza prazna preko API-ja (§119)
+
+Kontrolne provere perioda vraćaju nalaze sa oznakom težine („Greška" / „Upozorenje"). WPF ih tako i
+ispisuje, ali je preko `GET /api/zarade/preflight` — i još desetak endpointa koji vraćaju nalaze —
+polje `tezinaTekst` stizalo **prazno**: nad istim tipom su postojala dva mapera, a samo je onaj
+korišćen na jednom jedinom mestu (paket naloga za prenos) to polje punio. Maper je sada jedan.
+Web ekrani se ovim ne menjaju — svi već čitaju `tezina`, pa se prazno polje na njima nije ni videlo.
+
+**F1 pomoć** (odeljak „Zakonske granice koje program proverava") dopunjena je četvrtom proverom —
+zbir osnovica po isplatama kod zarade isplaćene u više delova — i ispravljena: tvrdila je da se
+gornja granica osnovice primenjuje samo ako je uneta u šifarnik `Doprinosi`, što je bilo tačno do
+03.09.2026, a od tada obe granice imaju ugrađenu vrednost po periodu koju šifarnik samo pregazi.
+
+
+### 🐛 Zarade — „Ponovo obračunaj" nije osvežavao osnovicu doprinosa (§118)
+
+Preračunavanje zatečenog obračuna (WPF „Porezi i parametri" i „Doprinosi" posle snimanja, web
+dugme **„Ponovo obračunaj"**) prepisivalo je iznose, ali je **osnovicu za obračun doprinosa
+ostavljalo staru**. Posledica: platni listić je prikazivao osnovicu od pre izmene parametara uz
+nove doprinose obračunate na novoj, a **provera perioda** je na osnovu te stare vrednosti javljala
+nepostojeće prekoračenje najniže/najviše osnovice.
+
+Uzrok je bio to što su tri puta preračunavanja imala **svaki svoj prepisan spisak polja** —
+`BrutoOsnovica`, `BrutoPioOsnovica` i `MinimalnaPlataOsnovica` nisu bili ni na jednom od njih.
+Sada sva tri idu kroz zajednički `ObracunService.PreslikajIznose`, koji prepisuje **sve** što
+obračun izvodi. Time su usput prestala da zaostaju i:
+
+- **poreska olakšica** (oznaka i iznosi) na desktop putu — stara oznaka je mogla otići u PPP-PD
+  prijavu uz nove iznose;
+- **cena časa i fond časova** — menjaju se sa vrednošću boda, a stoje na listiću;
+- **detaljne bruto stavke i prosek** na web putu, koji ih ranije nije prepisivao.
+
+Uneti sati se i dalje ne diraju.
+
+
+### 🧾 Zarade — PPP-PD MFP „prethodno prijavljeno" za dvodelnu isplatu (§117)
+
+Kad se zarada za isti obračunski period isplaćuje u delovima (akontacija pa konačna), Poreska
+uprava traži da **konačna (K) prijava** nosi **MFP polja** sa zbirovima već prijavljenim na
+prethodnim delovima. ERPi ih do sada nije emitovao — `DeklarisaniMFP` je radio samo za poreske
+olakšice — pa je K prijava dvodelne isplate mogla biti odbijena. Dve stvari su bile pogrešne:
+
+- **Poreska osnovica na K prijavi je bila previsoka.** Obračun je i na konačnom delu ponovo
+  oduzimao pun neoporezivi iznos, iako je već potrošen na akontaciji. `ObracunService` sad na
+  konačnoj isplati oduzima samo ono što je od neoporezivog ostalo
+  (`ONI = max(0, srazmerni − već iskorišćeni)`), pa se poreska osnovica i porez poklapaju sa
+  obračunskom validacijom PU. Osnovica doprinosa je već bila tačna (§115).
+- **MFP polja se sada emituju** na K prijavi za svakog radnika koji ima prethodni deo:
+  **MFP.1 / MFP.11** (zbir iskorišćenog neoporezivog), **MFP.2 / MFP.12** (zbir osnovica
+  doprinosa), **MFP.4** (zbir bruto prihoda). Polje sa iznosom 0 se izostavlja, kako je i u PU
+  primerima. Akontacija („A") i prijava nad celim mesecom MFP ne nose. Na istoj oznaci poreska
+  olakšica ima prednost.
+
+Provereno protiv PU izvora — `PIDBDSpecifikacijaObracuna` i „Primeri popunjavanja PPP-PD" —
+i reprodukovan njihov primer „isplata zarade u dva jednaka dela" (ukupno 40.000, neoporezivi
+11.242, najniža osnovica 22.282): akontacija bruto 20.000 / por. osn. 8.758 / osn. dopr. 22.282 bez
+MFP; konačna bruto 20.000 / por. osn. **20.000** / osn. dopr. **17.718** uz
+MFP.1=11.242, MFP.2=22.282, MFP.4=20.000, MFP.11=11.242, MFP.12=22.282.
+
+**Web pregled pre izvoza** (PPP-PD pod-tab) pokazuje MFP red odmah ispod radnika, pa se na ekranu
+vidi tačno ono što XML nosi. F1 pomoć (Zarade → „Isplata zarade u više delova") dobija odeljak o
+MFP poljima sa istim primerom.
+
+### 🐛 Web PPP-PD pregled — stari redovi ostajali u tabeli pri sužavanju obuhvata
+
+U obuhvatu „Ceo period" isti radnik ima po jedan red za svaku isplatu meseca, pa je React ključ
+`brojRadnika` bio **dupliran**; pri prelasku na jednu isplatu React je ostavljao stare `<tr>` u
+DOM-u — tabela je prikazivala 33 reda dok je zaglavlje pisalo „17 radnika". Zatečeno, nađeno
+prolaskom kroz ekran pri proveri §117.
+
+### ✨ Zarade — načini ugovaranja zarade: po času, mesečna bruto, mesečna neto (§116)
+
+Ugovor o radu (ZoR čl. 33 st. 1 tač. 11) osnovnu zaradu utvrđuje na jedan od dva načina — **po
+radnom času** ili **kao mesečni iznos** — a mala praksa često ugovara i **neto** iznos. ERPi je do
+sada znao samo koeficijent i „osnovnu platu" i izbor **pogađao** iz toga koje je polje popunjeno
+(kod baza uvezenih iz DOS-a često oba). Novo polje **„Način obračuna zarade"** na kartonu radnika
+(WPF i Web) čini izbor eksplicitnim i dodaje dva dosad nepokrivena slučaja:
+
+- **Automatski** — zatečeno ponašanje, bit-identično. Sve postojeće baze su na ovoj vrednosti i
+  nijedan raniji obračun se ne menja.
+- **Mesečna bruto zarada** — „osnovna zarada za mesec": iznos je uvek isti, cena časa se deli
+  fondom časova tog meseca (npr. isti neto u februaru sa 160 i julu sa 184 časa).
+- **Po času — bruto satnica** — „osnovna zarada po času": cena časa je fiksna, mesečni iznos varira
+  sa brojem radnih sati.
+- **Mesečna neto zarada** — ugovoreni neto se preračunava u mesečnu bruto istom inverzijom koju
+  koristi What-If kalkulator, pa dalje kao mesečna bruto.
+
+F1 pomoć (Zarade → Radnici) dobija tabelu sva četiri načina sa pravnim osnovom i **primer obračuna**
+za iznos 120.000 kroz fond 160 i 176 časova.
+
+Uz to: `Provera perioda` — kontrola „Bruto ispod najniže osnovice" je dobila isti fallback na
+`ParametriZarada` kao ostale tri provere iz §115 (pre je ćutala kad šifarnik `Doprinosi` nije
+popunjen). Generator HR ugovora — tag `{{Plata}}` za radnika na koeficijentu (bez unete osnovne
+plate) sad računa iznos iz koeficijenta × vrednost boda umesto da ostavi prazno polje (ZoR čl. 33
+traži dinarski iznos).
+
+### ✨ Zarade — zakonske granice zarade: minimalac i osnovice doprinosa (§115)
+
+Obračun do sada nije javljao kad zarada padne **ispod minimalne** (ZoR čl. 111–112) — F1 pomoć je
+to i pisala kao „ostaje kontrola korisnika". Sad **Provera perioda** poredi svaki obračun sa tri
+zakonske granice i daje **upozorenje, ne grešku** (zaključavanje i PPP-PD prijava prolaze), a uz to
+su dve granice ispravljene u samom obračunu.
+
+- **Zarada ispod minimalne** — prosečan neto po času ispod minimalne cene rada (od 1.1.2026.
+  **371,00** neto/čas; od 1.10.2025. bilo je 337,00). Samo upozorenje — obračun ne doplaćuje sam.
+  Provera je namerno blaga: u netu su i minuli rad i uvećanja, koja po čl. 112 st. 3 idu *povrh*
+  minimalca, pa nalaz pre izostane nego što digne lažnu uzbunu.
+- **Osnovica doprinosa ispod najniže** — obračun je nasleđenu granu iz `OBRAC.PRG` primenjivao
+  bezuslovno (polje `Akont` se u njoj nije ni čitalo): kad je bruto ispod *polovine* najniže
+  osnovice, doprinosi su išli na tu polovinu — radnik sa bruto 20.000 je plaćao doprinose na
+  25.648,50 umesto na 51.297, dakle na **pola zakonskog minimuma**. Grana je uklonjena; osnovica je
+  sad uvek puna najniža (2026: **51.297**), srazmerna odrađenom vremenu. Nepuno radno vreme nije
+  bilo pogođeno (tamo srazmera već radi ispravno).
+- **Osnovica doprinosa iznad najviše** — gornja granica se primenjivala samo ako je *Najviša
+  osnovica* uneta u šifarnik *Doprinosi*; bez tog unosa je 0 značilo „bez ograničenja" umesto „nije
+  uneto", pa su doprinosi išli na pun bruto — radnik sa bruto 800.000 je plaćao 159.200 umesto
+  145.831 (poslodavac 121.200 umesto 111.022), **oboje preplata**. Sad se uzima zakonska najviša za
+  period (2026: **732.820**); šifarnik je i dalje pregazi kad je popunjen. Porez i dalje ide na pun
+  bruto — kap važi samo za doprinose.
+
+Obe ispravke menjaju iznose tek kad se period **ponovo obračuna**; već isplaćeni obračuni ostaju
+netaknuti. Provereno nad kopijom prave baze (PSSS Pirot, 08/2026, 17 radnika): nijedan radnik nije
+imao zaradu u opsegu koji te dve granice pogađaju, pa je razlika u neto isplati i trošku poslodavca
+**0,00** — ponovni obračun tог meseca ništa ne bi promenio.
+
+Nov `ParametriZarada` drži zvanične iznose po periodima (minimalna cena rada, neoporezivi iznos
+zarade, najniža/najviša osnovica) na jednom mestu. Isti brojevi su do sada stajali ukucani na šest
+mesta i **razišli se**: What-If je nosio osnovice iz 2024 (40.143/573.470), šabloni iz 2025
+(45.950/656.425), a obračun 2026 (51.297).
+
+### 🐛 Zarade — neoporezivi iznos i osnovice doprinosa osveženi na 2026 (§115)
+
+Neoporezivi iznos zarade je od 1.1.2026. **34.221** („Sl. glasnik RS" 109/2025) — usklađuje se
+1. januara, za razliku od ostalih neoporezivih iznosa (prevoz, dnevnice, jubilarna nagrada) koji se
+menjaju 1. februara. Kroz aplikaciju je stajala vrednost iz 2025 (28.423), i to zamrznuta za sve
+periode: obračun bez unetog šifarnika je i za 2023. i za 2026. dobijao isti, pogrešan iznos. Sad
+prati period. Isto važi i za najnižu i najvišu osnovicu doprinosa. **What-If kalkulator** (WPF i
+web) je klapovao na osnovice stare dve godine — sad su 51.297 / 732.820.
+
+Šifarnici `Porezi`/`Doprinosi` i dalje imaju prednost kad ih knjigovođa popuni; ove vrednosti se
+koriste kad su prazni. Nema izmene šeme — nijedna postojeća baza se ne dira.
+
+### ✨ Zarade — isplata u više delova: najniža osnovica po delu (§115)
+
+Kad se zarada za pun mesec isplaćuje u delovima (akontacija pa konačna), program sada primenjuje
+pravilo iz Zakona o doprinosima:
+
+- Na **akontaciju** manju od najniže mesečne osnovice (2026: **51.297**) doprinosi idu na **punu**
+  najnižu osnovicu — ne srazmerno satima te isplate — jer je zaposleni radio pun mesec, samo nije u
+  celosti isplaćen.
+- Na **konačnu** isplatu doprinosi idu na **razliku**: ukupna mesečna zarada minus zbir osnovica
+  prethodnih delova. Konačna isplata pri obračunu pročita osnovice već prijavljene na akontaciji.
+
+Primer (bruto 60.000, 2 × 30.000): akontacija — osnovica 51.297; konačna — osnovica 8.703; zbir
+60.000, doprinosi tačno na celu zaradu. Ranije je svaki deo bio svoj nezavisan obračun, pa je zbir
+osnovica promašivao mesečni minimum (premalo kad su delovi klapovani srazmerno svojim satima,
+previše kad su pune sate na svakom delu).
+
+„Provera perioda" ima novo upozorenje **„Osnovica po isplatama ne odgovara mesečnoj"** za delove
+obračunate ranijom verzijom ili ručno izmenjene.
+
+**Otvoreno:** PPP-PD prijava konačne isplate (K) ne popunjava MFP polja „prethodno prijavljeno"
+(bruto/osnovica/neoporezivi iz akontacije) — Poreska uprava K prijavu bez njih, koja se ne slaže
+sa A prijavom, može odbiti. Zahteva proveru aktuelne PU specifikacije PPP-PD. `DeklarisaniMFP` u
+`XmlExportService` trenutno radi samo za poreske olakšice.
+
+### 🧹 Zarade — nasleđena polja u parametrima obračuna označena kao informativna (§115)
+
+Polje „Garantovana zarada" (WPF) / „Prosečna zarada" (web) je isti nasleđeni podatak iz DOS
+programa pod dva različita naziva — obračun ga uopšte ne čita, a šablon ga puni sa 45.950. Sad obe
+strane nose isti naziv („Garantovana zarada — informativno") i napomenu da se ne koristi. Isto za
+polje „Gornja granica 2. stope" (`Drugast`). Vrednosti se ne diraju.
+
+### 🐛 Zarade — uvećanja idu na osnovnu zaradu, bez minulog rada (§114)
+
+Prekovremeni, noćni i rad na dan praznika su se množili sa *cena sata + minuli rad po satu*, pa je
+staž ulazio u osnovicu uvećanja i onda se još uvećavao za 26% odnosno 110%. Osnovicu za uvećanu
+zaradu po **Zakonu o radu čl. 108 st. 5** čini osnovna zarada — bez minulog rada i bez drugih
+uvećanja; po st. 3 se procenti sabiraju na tu istu osnovicu umesto da se slažu jedan na drugi. Rad
+nedeljom je i ranije išao po goloj satnici, pa je računica sad dosledna i unutar sebe. Minuli rad
+nije izgubljen — plaća se kroz svoju stavku, na redovne sate. Razlika se vidi samo u mesecima sa
+prekovremenim, noćnim ili prazničnim radom i tek kad se takav mesec ponovo preračuna; već
+isplaćeni obračuni ostaju netaknuti. Nov test `Calculate_Uvecanja_RacunajuSeNaOsnovnuZaraduBezMinulogRada`
+zaključava pravilo (uvećanja ista za radnika sa 0 i sa 30 godina staža).
+
+Provera je rađena i nad pravom bazom (PSSS Pirot, kopija, 17 radnika, 08/2026): minuli rad se do
+pare poklapa sa `redovni sati × cena sata × 0,4% × godine`, a godine staža sa datumom zaposlenja
+kod svih 17. Kroz istoriju (105 promena staža od 2020) automatski izračun se poklapa sa onim što
+je radio stari program kod svih tekućih radnika.
+
+### 📚 Zarade — pravni osnov uz svaku stavku obračuna (F1 pomoć)
+
+U uputstvu za zarade (F1 i Web pomoć) nov odeljak **⚖️ Pravni osnov po stavkama obračuna**: tri
+tabele — zarada za obavljeni rad, naknade zarade i ostala primanja/porez/doprinosi — gde uz svaku
+stavku stoji formula po kojoj program računa i član propisa (ZoR, ZPDG, ZDOSO), plus spisak onoga
+što program *ne* proverava sam (minimalna zarada, staž kod poslodavca prethodnika, ograničenje
+obustava na trećinu). Iste oznake članova sada stoje i u komentarima `ObracunService.Calculate`.
+
+Usput ispravljeno u istom uputstvu: naknada za godišnji odmor i neradni praznik su bile opisane
+kao osnovna zarada iako se plaćaju po **proseku** iz prethodnih 12 meseci (ZoR čl. 114), formula
+bolovanja je delila prosek sa fondom sati iako je prosek već satnica, a odeljak o stažu je tvrdio
+da se godine unose isključivo ručno — program ih računa iz datuma zaposlenja i ručnu vrednost
+koristi samo ako je veća.
+
+### ✨ Zarade — vidi se odakle „Prosek (12m)" (§113)
+
+Prosečna bruto satnica po kojoj se plaćaju bolovanje, godišnji odmor i plaćeno odsustvo
+(Zakon o radu čl. 114-116) do sada se videla samo kao broj u poslednjoj koloni tabele obračuna.
+Sad se u desnom panelu ekrana *Obračun plate* otvara kartica **PROSEK (12M)** sa razradom: svih
+12 meseci osnovice (bruto za rad, izuzete naknade zarade, radni časovi, satnica meseca), red
+UKUPNO i formula `zbir bruta ÷ zbir časova`; tooltip reda razlaže izuzeto po vrstama, a dugme
+„?" nosi zakonski osnov. Ako je prosek ručno prekucan na ekranu *Radni sati*, kartica to kaže i
+pokazuje koliko bi bio po evidenciji; radniku bez istorije se vrednost označava kao procena.
+Ista razrada je i na webu, u platnom listiću (`GET /api/zarade/obracuni/{id}/prosek-razrada`).
+
+### 🐛 Zarade — aktivan period se više ne gubi po pokretanju (§113)
+
+`AppConfig.ActiveGodina/ActiveMesec` su živeli samo u memoriji, pa je posle svakog starta svaki
+ekran zarada nudio tekući kalendarski mesec (u septembru prazan 9/2026, iako je poslednji obračun
+bio 8/2026) dok se period ne otvori na ekranu *Obračunski periodi*. Sad se izvodi iz baze pri
+prvom čitanju: **najnoviji period sa bar jednim nezaključanim obračunom**, pa najnoviji uopšte,
+pa tekući mesec ako firma nema nijedan obračun. Otključavanje starijeg meseca radi ispravke tako
+vodi upravo na njega. Isto pravilo se sad koristi i pri izboru perioda posle brisanja.
 
 ## [2.68.1] - 2026-09-03
 

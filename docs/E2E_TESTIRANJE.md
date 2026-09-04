@@ -553,3 +553,209 @@ gore.
 - [x] `/uslovi-koriscenja` — ispravno prazno stanje „Sadržaj još nije unet. Za više informacija obratite se prodavcu." (graciozan fallback, ne prazna/pukla stranica).
 - [x] `/politika-privatnosti` — isti obrazac praznog stanja kao gore.
 - [x] `/pravo-na-odustanak` — isti obrazac praznog stanja kao gore.
+
+---
+
+## §117 — PPP-PD MFP „prethodno prijavljeno", dvodelna isplata (03.09.2026)
+
+Zaseban, ciljan prolaz (ne deo prvobitnog spiska ekrana) — dokazuje da MFP polja na konačnoj (K)
+PPP-PD prijavi stvarno prolaze ceo lanac: isplata → obračun → pregled → XML, **na obe strane**.
+
+**Scenario je morao da se napravi:** nijedna zatečena baza nema obračunski period sa više od jedne
+isplate (provereno upitom `SELECT Godina,Mesec,COUNT(*) FROM Isplate GROUP BY 1,2 HAVING COUNT(*)>1`
+nad PSSS 2026 i `DEMO.db` — nula redova), pa dvodelna isplata do §117 nikad nije bila provezena
+end-to-end. Napravljen sintetički scenario na **izolovanoj kopiji** PSSS 08/2026
+(`scratchpad/E2E_MFP.db`, original nedirnut, 17 radnika):
+
+1. zatečena isplata 304 prevedena u **Akontaciju**, njeni radni sati prepolovljeni;
+2. dodata isplata 305 **Konačna zarada** sa drugom polovinom sati;
+3. oba obračuna pokrenuta **kroz aplikaciju** (`POST /api/zarade/pokreni-obracun`), ne SQL-om —
+   tako motor stvarno prolazi kroz K granu.
+
+**Motor (nad podacima, ne samo „poziv ne puca"):**
+
+| | Bruto | Por. osnovica | Lični odbitak | Porez |
+|---|---|---|---|---|
+| A (304) Nikolić | 95.888,95 | 86.392,08 | 34.221,00 | 8.639,21 |
+| K (305) Nikolić | 129.444,22 | **129.444,22** | **0,00** | 12.944,42 |
+
+Na K prijavi poreska osnovica = bruto, lični odbitak 0 — neoporezivi je potrošen na akontaciji i
+ne oduzima se drugi put. To je tačno ponašanje koje traži obračunska validacija PU
+(`ONI = min(SRAZPNI − MFP.1, MAXNI − MFP.11, WPP39)`).
+
+**Web (`web-screens-pass` obrazac + privremeni CDP skript u scratchpad-u za podešavanje `<select>`-a
+— deljeni `driver.mjs` zna samo klik po tekstu, nije menjan):** API 5002 / vite 5174 nad izolovanom
+kopijom.
+
+- [x] `/admin/zarade` → PPP-PD, „Ceo period" — 34 reda, zaglavlje 34, bez MFP (nema izabrane isplate).
+- [x] PPP-PD, izabrana **Akontacija (304)** — 17 redova, **0 MFP redova**.
+- [x] PPP-PD, izabrana **Konačna (305)** — 17 redova + **17 MFP redova**, svaki odmah ispod svog
+      radnika; `Osn. porez == Bruto` na svakom redu; Nalazi 0; bez HTTP ≥ 400.
+- [x] `POST /api/zarade/ppp-pd/xml` (K) — 17/17 `PodaciOPrihodima` nosi `DeklarisaniMFP`;
+      prvi red: MFP.1=34.221,00 · MFP.2=132.766,29 · MFP.4=132.766,28 · MFP.11=34.221,00 ·
+      MFP.12=132.766,29.
+- [x] Isti endpoint sa oznakom **A** (304) — 17 redova, **0** `DeklarisaniMFP`, poreska osnovica
+      98.545,28 (= bruto − 34.221), tj. neoporezivi je primenjen tu.
+
+**Unakrsna provera:** MFP.4 == `<Bruto>` sa A prijave, MFP.2 == `<OsnovicaDoprinosi>` sa A prijave,
+MFP.1 == A `Bruto − OsnovicaPorez`. Sva tri se poklapaju do dinara.
+
+**WPF (`run-erpi-app`, izolovana kopija prekopirana preko `AUTOTEST.db`, obrisana posle):**
+
+- [x] Zarade → PPP-PD — zarade, isplata **1. Akontacija** — „Učitano 17 obračuna", „Kopiraj XML" daje
+      17 redova i **0** `DeklarisaniMFP`.
+- [x] Ista stranica, isplata **2. Konačna zarada** — 17 obračuna, ukupno bruto 2.110.277,49
+      (identično web pregledu), „Kopiraj XML" daje 17/17 `DeklarisaniMFP` sa **istim** iznosima kao
+      web XML.
+
+**Nađeno usput (zatečen bag, ne regresija §117):** web PPP-PD pregled je pri prelasku sa „Ceo period"
+na jednu isplatu ostavljao stare `<tr>` u DOM-u — 33 reda uz zaglavlje koje piše 17. Uzrok: React
+ključ `key={r.brojRadnika}`, a u obuhvatu celog perioda isti radnik ima red po isplati, pa su ključevi
+bili duplirani. Ispravljeno (`${brojRadnika}-${index}`) i ponovo provezeno: 17/17, 34/34, bez ostataka.
+
+**Dve zamke potvrđene na svojoj koži** (obe već zapisane u skill-ovima, ovde kao potvrda da važe):
+`ERPiApi` ignoriše `--urls` i traži `--port`, a pokretanje bez njega padne na zauzet 5000 (pravi
+instalirani servis); i kopiranje SQLite baze bez `-wal` fajla — prvi WPF prolaz je pokazao „0
+obračuna" jer su konačni obračuni još bili u žurnalu.
+
+**Neprovereno:** ponašanje kod tri i više delova (scenario ima dva), i K prijava radnika koji ima
+poresku olakšicu *i* prethodni deo na istoj MFP oznaci — logika prednosti olakšice je pokrivena
+jediničnim testom, ali ne i stvarnim ekranom.
+
+
+---
+
+## §118 — „Ponovo obračunaj" osvežava osnovicu doprinosa (04.09.2026)
+
+Šta se dokazuje: posle izmene parametra perioda i potvrđenog preračunavanja, **osnovica za obračun
+doprinosa u obračunu odgovara doprinosima koji su na nju obračunati** — na oba klijenta. Pre
+ispravke je ostajala vrednost od pre izmene, pa je listić pokazivao staru osnovicu uz nove
+doprinose, a provera perioda javljala nepostojeće prekoračenje granica.
+
+**Baza:** izolovana kopija `KOR01_POLJOPR.SAVETOD.I STRUCNA SLUZB.PIROT 26.db` (PSSS PIROT),
+period 08/2026, 17 radnika, obračuni nezaključani. Original nedirnut. Lozinka `admin` naloga
+promenjena **na kopiji** da bi prijava kroz API prošla.
+
+### Web — API 5002 nad kopijom, vite 5174
+
+Oba koraka kroz aplikaciju (isti pozivi koje UI dugmad šalju), ne SQL-om:
+
+1. `PUT /api/zarade/doprinosi/1181` — najniža osnovica PIO 0 → **150.000** (Doprinosi pod-tab → Sačuvaj).
+2. `POST /api/zarade/pokreni-obracun` `{godina:2026, mesec:8, isplataId:304}` — dugme „Ponovo
+   obračunaj". Odgovor: „Obračun je uspešno izvršen za 17 radnika."
+
+| | pre | posle |
+|---|---|---|
+| `BrutoOsnovica` (min–max) | 92.410,40 – 237.634,68 | **150.000,00 – 150.000,00** |
+| `MinimalnaPlataOsnovica` | 51.297,00 | **150.000,00** |
+| `DoprinosPioRadnik ≠ BrutoPioOsnovica × 14%` | — | **0 od 17 redova** |
+
+- [x] `/admin/zarade` otvoren u headless Chrome-u (`web-screens-pass`) — iscrtava se, bez HTTP ≥ 400;
+      u dnevniku samo dva poznata React Router upozorenja i jedno prekinuto SignalR pregovaranje
+      pri odlasku sa stranice.
+- [x] **Platni listić PDF sa web-a** (`GET /api/zarade/obracuni/5005/platni-listic/pdf`, 200,
+      65 KB) — `Osnovica za obracun doprinosa 150.000,00`, `Doprinos za PIO (14,00%) 21.000,00`.
+      To je isti `PlatniListicDocument` koji štampa i WPF.
+
+### WPF — ista kopija preko `AUTOTEST.db`, `run-erpi-app`
+
+Ekran **Zarade → Porezi i parametri** (drugi od dva WPF puta; „Doprinosi" ekran nema polje za
+najnižu osnovicu, vidi nalaz 2 u dnevniku §118):
+
+1. Vrednost boda 1.860,34 → **6.000,00**, „💾 Sačuvaj podešavanja poreza".
+2. Dijalog „Preračunavanje plata — Pronađeno je 17 obračunatih plata za ovaj period. Da li želite
+   da automatski preračunate…?" → **Da**.
+3. „Uspešno preračunate plate za 17 zaposlenih sa novim poreskim parametrima."
+
+| | pre | posle |
+|---|---|---|
+| `BrutoOsnovica` (min–max) | 150.000,00 (svi) | **204.468,41 – 599.027,00** (stvarni bruto, iznad granice) |
+| `MinimalnaPlataOsnovica` | 150.000,00 | 150.000,00 (granica se nije menjala) |
+| `CenaSataRedovan` (max) | ~1.306 | **4.214,29** (prati bod 6.000) |
+| `DoprinosPioRadnik ≠ BrutoPioOsnovica × 14%` | — | **0 od 17 redova** |
+| `Napomena` | — | „Ažurirano izmenom poreskih parametara 04.09.2026 06:29" na svih 17 |
+
+- [x] Ekran **Obračun plate** → red „Krstic Danijela": panel „Stavke platnog listića" pokazuje
+      **Bod: 6.000,00** (dakle čita preračunat red), PIO 40.199,60 na Bruto 1 287.140,00 — tačno 14 %.
+
+### Zašto je ovo dokaz, a ne samo „poziv ne puca"
+
+Jedinični testovi su pušteni i **sa privremeno skinutom ispravkom**: 3 od 4 padaju
+(`Expected: 50000, Actual: 34000`). Isti odnos važi i za scenario iznad — bez ispravke bi tabele
+„posle" nosile stare osnovice uz nove doprinose.
+
+### Neprovereno
+
+Ekran „Provera perioda" (`PreFlightService`) nije vožen posle ove izmene — on je drugi potrošač
+`BrutoOsnovica`, a njegov dug iz §115 je i dalje otvoren u `PLAN_NASTAVKA.md` §10.E.
+
+
+---
+
+## §119 — UI prolaz kroz zakonske granice i kontrolne provere (§10.E, 04.09.2026)
+
+Dug iz §115: te provere i etikete su bile pokrivene jediničnim testovima
+(`ZakonskeGraniceZaradaTests`), ali nikad viđene na ekranu.
+
+**Baza:** druga izolovana kopija PSSS 08/2026 (`E2E_PREFLIGHT.db`), original nedirnut.
+
+**Scenario je morao da se napravi.** Sam period u zatečenom stanju daje **0 grešaka i 17
+upozorenja**, i sva su „Nedostaje e-mail" — a to je i više od 15 koliko dijalog prikazuje, pa bi
+nove provere ispale iz spiska. Zato su na kopiji: (1) svi radnici dobili e-mail, da se šum skloni;
+(2) ubačena po jedna situacija za svaku od četiri provere iz §115. **Provere 9 i 10 se posle §115
+ne mogu izazvati kroz aplikaciju** — motor od tada klapuje ispravno, pa one i postoje samo kao mreža
+za redove iz starije verzije programa ili iz ručne izmene; takvi redovi su upisani direktno u kopiju,
+što je tačno ono stanje koje provera treba da uhvati.
+
+| Provera | Kako je izazvana |
+|---|---|
+| Osnovica ispod najniže (#9) | Krstić: `BrutoOsnovica` 30.000 uz pun fond 168/168 |
+| Osnovica iznad najviše (#10) | Milojević: `BrutoOsnovica` 800.000 (> 732.820) |
+| Zarada ispod minimalne (#8) | Manić: bruto 45.000 na 168 časova → neto 208,60/čas < 371,00 |
+| Osnovica po isplatama (višedelna) | Vidanović: druga isplata istog meseca sa osnovicom 20.000 |
+
+### WPF — Zarade → Obračunski periodi → „🔒 Zaključaj" nad Avgustom 2026
+
+- [x] Red „Avgust 2026 · AKTIVAN · 18 obračuna · 🔓 Otvoreno"; klik na „Zaključaj" otvara
+      **„Potvrda administratora"** (put za administratora, jer scenario nosi i jednu grešku).
+- [x] Dijalog nabraja **1 grešku i 5 upozorenja**, sve četiri nove provere među njima, sa punim
+      brojkama: „Zbir osnovica doprinosa po 2 isplate (154.060,09) je 43.627,67 ISPOD mesečne
+      osnovice (197.687,76)…", „Doprinosi su obračunati na 800.000,00, iznad najviše mesečne
+      osnovice 732.820,00…", „…zakonska najniža osnovica za 168 od 168 časova iznosi 51.297,00.",
+      „Neto 208,60 po času je ispod minimalne cene rada 371,00…".
+- [x] Oznaka težine se ispisuje čitljivo („[Greška]" / „[Upozorenje]") — isto polje `TezinaTekst`
+      koje je preko API-ja stizalo prazno (vidi nalaz ispod).
+- [x] Odgovoreno „No" — period je ostao otključan.
+
+### WPF — Zarade → Porezi i parametri, „informativno" etikete
+
+- [x] „Garantovana zarada (informativno): 68.264,00" i „Gornja granica 2. stope (informativno):
+      656.425,00" — obe iscrtane prigušenom bojom, odvojeno od polja koja obračun stvarno koristi.
+- [x] ToolTip se pojavljuje na prelazak mišem: „Nasleđeno polje iz DOS programa. Obračun ga ne
+      koristi — minimalnu zaradu program proverava po minimalnoj ceni rada (371,00 neto/čas u 2026),
+      a najnižu osnovicu doprinosa po šifarniku Doprinosi."
+
+### Web — Zarade → What-If kalkulator & Budžet
+
+- [x] Polje „Neoporezivi iznos (čl. 15a)" nosi **34221** kao podrazumevanu vrednost (do sada
+      potvrđeno samo u WPF-u), a rekapitulacija ispisuje „Neoporezivi iznos zarade (olakšica):
+      34.221,00 RSD". Bez greške u konzoli osim dva poznata React Router upozorenja.
+
+### Nalaz iz ovog prolaza — `tezinaTekst` prazan preko API-ja
+
+Ista lista nalaza koja u WPF dijalogu ima „[Greška]"/„[Upozorenje]" preko
+`GET /api/zarade/preflight` vraća `"tezinaTekst": ""`. Uzrok: nad istim tipom su postojala **dva
+mapera** u `ZaradeController` — jedan je punio to polje, drugi (koji koristi `preflight` i još
+desetak endpointa) nije. Maper je sveden na jedan i pokriven testom
+(`Preflight_NalazNosiCitljivuOznakuTezine`). Nijedna web komponenta ne čita `tezinaTekst` (sve
+grane idu preko `tezina`), pa se na ekranu nije videlo — zato je i preživelo.
+
+### Dve zamke za drajver, potvrđene ovde
+
+- **Prozor ERPiApp-a ume da se pomeri van ekrana** posle `SetForegroundWindow`/restarta, i tada
+  `driver.ps1 ss` snima **belu sliku** iako je UIA stablo puno i aplikacija radi. Leči se
+  `MoveWindow(hwnd, 0, 0, 1600, 1000)` pre snimanja; `click1` koordinate su ionako relativne na
+  tekući `BoundingRectangle` prozora, pa se posle pomeranja moraju preračunati.
+- **Modalni `MessageBox` se ne mora pojaviti kao dete `RootElement`-a** u trenutku kad se traži —
+  dijalog je bio otvoren i vidljiv na snimku iako ga je nabrajanje UIA prozora prijavilo kao
+  nepostojećeg. Ne zaključivati „klik nije prošao" pre nego što se pogleda snimak.
