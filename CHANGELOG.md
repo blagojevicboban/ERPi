@@ -17,8 +17,12 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
   Polja `Radnik.StopaPio` / `StopaZdravstvo` / `StopaNezaposlenost` (i ista na `Kategorija`) su po
   konvenciji razlomak (0,1400), a demo ih je upisivao kao procenat (14,0). Ispravljeno; „Ponovo
   obračunaj" nad demo periodom više ne računa doprinose na višestruko uvećanu osnovicu.
-- Obe ispravke se odnose **samo na demo bazu** (`DEMO.db`) — prave baze firmi nisu dirane.
-- 2 nova testa (`DemoProracuniTests`).
+- **Način ugovaranja zarade (§116):** demo radnici su svi bili na „Automatski" — sada je ~60%
+  raspoređeno na `MesecnaBruto` / `PoCasuBruto` / `MesecnaNeto`, sa `OsnovnaPlata` u odgovarajućoj
+  jedinici (bruto satnica / mesečni neto), pa demo firma pokazuje i te grane obračuna i platnog listića.
+- Sve ispravke se odnose **samo na demo bazu** (`DEMO.db`) — prave baze firmi nisu dirane. RNG niz
+  generatora očuvan (isto seme → ista baza, menjaju se samo polja zarada).
+- 3 nova testa (`DemoProracuniTests`).
 
 ### 🏢 Izbor firme
 
