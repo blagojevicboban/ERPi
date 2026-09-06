@@ -28,12 +28,42 @@
 >
 > **Uz to, dve tačke koje dokument nije predvideo, a morale su se rešiti:** `AddDbContextCheck`
 > (health check nad „tom" bazom) se u tenant režimu ne registruje, jer `/healthz` namerno ide van
-> razrešavanja zakupca; i mount lokalnih slika artikala (`/slike`) se preskače, jer se izvodi iz
-> jedne konekcije a firme ih imaju N — serviranje pod istim prefiksom bi značilo da kupac jedne
-> firme pogodi sliku druge po imenu datoteke.
+> razrešavanja zakupca; i mount lokalnih slika artikala (`/slike`) je prvo bio samo isključen (v1,
+> §121) jer se izvodi iz jedne konekcije a firme ih imaju N — **11.K je to zatvorio**:
+> `TenantSlikeMiddleware` očekuje `/slike/<šifra-zakupca>/<ostatak>` i servira iz foldera baš te
+> firme (`SlikeArtikalaStorage.KoreniFolder` je već per-baza); nepoznata šifra ili izlazak iz
+> korenog foldera → 404, nikad fallback na „prvu" bazu.
 >
 > Kod: [`ERPiApi/Services/Tenancy/`](../ERPiApi/Services/Tenancy/). Testovi:
-> `ERPiData.Tests/MultiTenantRazresavanjeTests.cs` + `MultiTenantIzolacijaTests.cs`.
+> `ERPiData.Tests/MultiTenantRazresavanjeTests.cs` + `MultiTenantIzolacijaTests.cs` +
+> `TenantSlikeMiddlewareTests.cs`.
+>
+> ## ✅ FRONTEND TENANT-AWARENESS (11.K.3)
+>
+> Backend je od 11.E/11.K.2 spreman, ali `ERPiWebShop` je slao `/api` i `/hubs` pozive bez
+> `X-Tenant-Id` (→ 404 iz `TenantResolutionMiddleware`) i tražio slike sa `/slike/<id>/…` bez
+> prefiksa šifre (→ 404 iz `TenantSlikeMiddleware`). 11.K.3 to zatvara:
+>
+> - **Izvor šifre:** `VITE_TENANT_ID` env — jedan frontend build/instanca po firmi, isti model
+>   kao `VITE_PORT`/`VITE_API_TARGET` u `vite.config.ts`. Prazna → jednofirmsko ponašanje,
+>   bajt-identično (kao `tenantMode` u `Program.cs`). **Bez login birača firme** (§2: registar
+>   puni ops; birač bi tražio izuzet endpoint i otkrivao spisak klijenata).
+> - **`X-Tenant-Id` na svaki poziv:** monkey-patch `window.fetch` u
+>   [`src/services/tenant.ts`](../ERPiWebShop/src/services/tenant.ts) (`instalirajTenantFetch`,
+>   zvan iz `main.tsx`) — jedini chokepoint za ~20 `*Api.ts` modula + `dohvatiJson` + SignalR
+>   `negotiate`. Ne dira strane URL-ove ni ne-`/api` putanje; ne gazi header koji je poziv već
+>   postavio.
+> - **SignalR WebSocket** ne nosi custom header iz pretraživača, pa `useErpiLiveHub` dodaje
+>   `?tenant=<šifra>` na hub URL. `HeaderTenantResolver` sad čita i `?tenant=` (header preteže) —
+>   isti obrazac kao `access_token` kroz query.
+> - **Slike:** `tenantSlikaUrl` (u `tenant.ts`) ubacuje šifru u `/slike/<id>/…` → `/slike/<šifra>/<id>/…`;
+>   `slicicaUrl`/`slikaUrl` u `utils/placeholderSlika.ts` ga provlače, ostala render-mesta
+>   (kartice, detalji, korpa, SEO/OG) direktno.
+>
+> Kod: `ERPiWebShop/src/services/tenant.ts`, `utils/placeholderSlika.ts`, `hooks/useErpiLiveHub.ts`;
+> `ERPiApi/Services/Tenancy/ITenantResolver.cs`. Testovi: `src/services/tenant.test.ts`,
+> `src/utils/placeholderSlika.test.ts`, `src/hooks/useErpiLiveHub.test.ts`,
+> `MultiTenantRazresavanjeTests.HeaderResolver_QueryParametarKaoRezerva_HeaderPreteze`.
 
 ## 1. Šta danas postoji (provereno u kodu, ne pretpostavljeno)
 

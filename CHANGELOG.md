@@ -6,12 +6,46 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
-### ⚡ Live obaveštenje o promeni statusa web porudžbine (11.K)
+### 📦 Komisiono poslovanje i konsignacija (11.G)
 
-- SignalR hub (`/hubs/erpi-live`) sada emituje i event `statusPorudzbine` kad admin promeni status
-  web porudžbine (Poslata / Spremno za preuzimanje / Isporučena…). Ako je Web Admin panel otvoren u
-  više sesija/tabova, svi vide promenu i osveže listu bez ručnog „Osveži" — isti mehanizam kao za
-  „nova porudžbina". Bez žive konekcije panel radi identično kao pre (fetch-na-zahtev).
+Kompletna podrška za prijem i prodaju tuđe robe (komision / konsignacija) u magacinskom i finansijskom poslovanju:
+- **Modeli i baza (`ERPiData`):**
+  - Entiteti `KomisionaPrijemnica` i `KomisionaPrijemnicaStavka` za vanbilansni prijem robe od komitenta.
+  - Entiteti `KomisionaOdjava` i `KomisionaOdjavaStavka` za periodični obračun prodate robe.
+  - Oznaka `Magacin.JeKomision` za namensko vođenje komisionih skladišta.
+  - Migracija `DodajKomisionoPoslovanje` i usklađivanje kroz `EnsureDbSchemaUpdated` raw SQL DDL.
+- **Strogo računovodstveno pravilo (dokazano testovima):**
+  - Komisioni prijem robe **ne zadužuje Glavnu knjigu** (0 naloga u `db.Nalozi`) i ne menja finansijski saldo komitenta.
+  - Finansijska obaveza (konto 4350) i trošak nabavne vrednosti (konto 5010) nastaju isključivo prilikom potvrde **Komisione odjave**, srazmerno stvarno prodatim količinama.
+- **Automatizacija i KEP:**
+  - `KomisionoPoslovanjeService` sa automatskim predlaganjem odjave na osnovu realizovane prodaje u periodu, obračunom marže i praćenjem komisionog lagera po komitentima.
+  - Vođenje KEP evidencije za komisionu robu (zaduženje po prijemnicama, razduženje po odjavama).
+- **A4 QuestPDF obrazac:**
+  - `KomisionaOdjavaDocument` generiše štampu obračuna odjave za slanje komitentu sa specifikacijom prodatih artikala, ugovorenim cenama, prodajnim cenama, obračunatim PDV-om, komisionom maržom i rekapitulacijom obaveze.
+- **Web interfejs i REST API:**
+  - REST kontroler `KomisionController` (`/api/komision/*`) za prijemnice, odjave, lager, predloge i PDF štampu.
+  - Novi pod-tab na Web Adminu: `Magacin & Robno → 🤝 Komision / Konsignacija` sa modalima za kreiranje novih prijemnica i pokretanje periodičnih odjava.
+- **Testovi i demo podaci:**
+  - 8 novih unit testova u `KomisionoPoslovanjeTests` koji proveravaju sva poslovna pravila, nepromenjenost GK na prijemu i tačnost knjiženja na odjavi.
+  - Ugrađeno generisanje komisionog prometa u `DemoPodaciGenerator` (`GenerisiKomisionoPoslovanje`).
+
+### ⚡ SignalR v2 & Multi-Tenant v2 (11.K)
+
+- **Live obaveštenje o promeni statusa web porudžbine.** SignalR hub (`/hubs/erpi-live`) sada
+  emituje i event `statusPorudzbine` kad admin promeni status web porudžbine (Poslata / Spremno za
+  preuzimanje / Isporučena…). Ako je Web Admin panel otvoren u više sesija/tabova, svi vide promenu
+  i osveže listu bez ručnog „Osveži" — isti mehanizam kao za „nova porudžbina". Bez žive konekcije
+  panel radi identično kao pre (fetch-na-zahtev).
+- **Slike artikala po zakupcu u `--tenants` režimu.** Do sada su se lokalne slike (`/slike`) u
+  multi-tenant režimu uopšte nisu servirale (jedan proces, N firmi). Nov `TenantSlikeMiddleware`
+  servira `/slike/<šifra-zakupca>/…` iz foldera baš te firme; nepoznata šifra ili izlazak iz
+  korenog foldera → 404, bez fallback-a na tuđu bazu.
+- **Frontend prati zakupca u `--tenants` režimu (11.K.3).** `ERPiWebShop` sada, kad je postavljen
+  `VITE_TENANT_ID`, svaki `/api` i `/hubs` poziv šalje sa `X-Tenant-Id` headerom (jedinstveni
+  presretač `window.fetch`-a), a URL-ove slika prefiksuje šifrom zakupca (`/slike/<šifra>/…`).
+  SignalR hub dobija šifru kroz `?tenant=` (WebSocket iz pretraživača ne nosi header). Bez te
+  promenljive ponašanje je nepromenjeno (jedna firma po instanci). Nema login birača firme —
+  registar zakupaca puni ops.
 
 ### 🐛 Demo podaci — osnovice doprinosa i stope na platnom listiću
 
