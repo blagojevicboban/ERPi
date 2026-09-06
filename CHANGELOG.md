@@ -6,6 +6,13 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
+### ⚡ Live obaveštenje o promeni statusa web porudžbine (11.K)
+
+- SignalR hub (`/hubs/erpi-live`) sada emituje i event `statusPorudzbine` kad admin promeni status
+  web porudžbine (Poslata / Spremno za preuzimanje / Isporučena…). Ako je Web Admin panel otvoren u
+  više sesija/tabova, svi vide promenu i osveže listu bez ručnog „Osveži" — isti mehanizam kao za
+  „nova porudžbina". Bez žive konekcije panel radi identično kao pre (fetch-na-zahtev).
+
 ### 🐛 Demo podaci — osnovice doprinosa i stope na platnom listiću
 
 - **Osnovica za obračun doprinosa** na demo platnom listiću je prikazivala `0,00` iznad stvarnih
