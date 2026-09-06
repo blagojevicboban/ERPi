@@ -4,6 +4,27 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [Neobjavljeno]
+
+### 🐛 Demo podaci — osnovice doprinosa i stope na platnom listiću
+
+- **Osnovica za obračun doprinosa** na demo platnom listiću je prikazivala `0,00` iznad stvarnih
+  iznosa PIO/zdravstva/nezaposlenosti. Demo generator nije popunjavao `BrutoOsnovica` /
+  `BrutoPioOsnovica` / `FondSatiMesecni` / `CenaSataRedovan` u obračunima plata — sada se upisuju
+  (iznos nad kojim su doprinosi obračunati). Utiče i na „Proveru perioda" (kontrole osnovice
+  ispod/iznad zakonske granice su se za demo firmu tiho preskakale).
+- **Stope doprinosa radnika** na demo platnom listiću su pisale `1400,00%` / `515,00%` / `75,00%`.
+  Polja `Radnik.StopaPio` / `StopaZdravstvo` / `StopaNezaposlenost` (i ista na `Kategorija`) su po
+  konvenciji razlomak (0,1400), a demo ih je upisivao kao procenat (14,0). Ispravljeno; „Ponovo
+  obračunaj" nad demo periodom više ne računa doprinose na višestruko uvećanu osnovicu.
+- Obe ispravke se odnose **samo na demo bazu** (`DEMO.db`) — prave baze firmi nisu dirane.
+- 2 nova testa (`DemoProracuniTests`).
+
+### 🏢 Izbor firme
+
+- Dugme „Otvori firmu" na ekranu izbora firme se sada zasivi kad je lista prazna (ranije je
+  izgledalo aktivno, a klik je samo ispisivao grešku „Izaberite firmu sa liste").
+
 ## [2.71.0] - 2026-09-06
 
 ### 💳 EFT POS PinPad — ECR protokol dokazan simulatorom i integrisan u desktop kasu (§126)
