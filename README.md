@@ -3,13 +3,13 @@
 # ⚡ ERPi Enterprise Business Suite
 ### Celoviti, Hibridni Poslovni Informacioni Sistem & e-Commerce Platforma
 
-[![Version](https://img.shields.io/badge/version-2.70.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.71.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF UI](https://img.shields.io/badge/UI-WPF%20Desktop-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](ERPiApp)
 [![WebShop & Admin](https://img.shields.io/badge/Web-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](ERPiWebShop)
 [![Codebase](https://img.shields.io/badge/Codebase-640k%2B%20LOC-blueviolet.svg?style=for-the-badge&logo=codefactor&logoColor=white)](README.md#-projekat-u-brojkama--inženjerska-metrika)
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20Postgres%20%7C%20MSSQL-4479A1.svg?style=for-the-badge&logo=sqlite&logoColor=white)](docs/ARCHITECTURE.md)
-[![Tests](https://img.shields.io/badge/Tests-2245%20Passing%20(1922%20.NET%20%2B%20323%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
+[![Tests](https://img.shields.io/badge/Tests-2254%20Passing%20(1931%20.NET%20%2B%20323%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
 [![Auto-Update](https://img.shields.io/badge/Updater-Velopack-F97316.svg?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/blagojevicboban/ERPi/releases)
 
 <p align="center">
@@ -35,7 +35,7 @@
 
 | 📏 Obim Koda | 🗄️ Baza Podataka | 🖥️ Desktop Klijent | 🌐 Web & API | 🧪 Kvalitet & Testovi |
 | :---: | :---: | :---: | :---: | :---: |
-| **640.000+**<br/><sub>Ukupno linija koda</sub> | **99 Modela**<br/><sub>141 EF migracija</sub> | **192 Ekrana**<br/><sub>WPF prozori i dijalozi</sub> | **298+ Komponenti**<br/><sub>24 REST kontrolera</sub> | **2.245 Testova**<br/><sub>100% prolaznost</sub> |
+| **~400.000**<br/><sub>linija ručno pisanog koda</sub> | **120+ Modela**<br/><sub>91 EF migracija</sub> | **211 Ekrana**<br/><sub>WPF prozori i dijalozi</sub> | **34 Kontrolera**<br/><sub>276 React komponenti</sub> | **2.254 Testa**<br/><sub>100% prolaznost</sub> |
 
 </div>
 
@@ -45,18 +45,20 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│  UKUPAN KODNI SKLOP:  ~640.000+ LOC  •  1.450+ Fajlova  •  330+ Verifikovanih Verzija    │
+│  UKUPAN KODNI SKLOP:  ~400.000 LOC ručno pisanog koda  •  1.950+ Fajlova  •  68 Verzija  │
 └──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+<sub>Metrika broji ručno pisan kod; ~90 EF Core `*Designer.cs` / `ModelSnapshot.cs` (generisano) nije uračunato.</sub>
+
 | Tehnološki Sloj | Datoteke | Linije Koda (LOC) | Ključne Odlike i Komponente |
 | :--- | :---: | :---: | :--- |
-| **Backend & Poslovna Logika (C#)** | `915` | **508.200** | .NET 8, EF Core 8, 52 servisa, SEF UBL 2.1, WMS, MRP, AI NLP, 35+ QuestPDF šablona |
-| **WebShop & Web Backoffice (TSX/TS)** | `282` | **74.500** | React 19, Vite, TypeScript, Tailwind CSS, WMS, Manifesti, Marketplace, AI chat |
-| **Desktop Korisnički Interfejs (XAML)** | `192` | **24.100** | WPF MVVM, brzi unos na tastaturi, napredni gridovi, svetla i tamna tema |
-| **Testni Suite (.NET + React)** | `116` | **23.500** | 1.581 automatizovani test (1.372 xUnit .NET + 209 Vitest/React) |
-| **Integrisana Pomoć & Dokumentacija** | `48` | **27.800** | F1 HTML kontekstualna pomoć, 10+ internih vodiča, arhitektonska specifikacija |
-| **Konfiguracija, SQL & Skripte** | `20+` | **7.500+** | Multi-DBMS šeme (SQLite, PostgreSQL, MS SQL), Velopack deployment, CI skripte |
+| **Backend & Poslovna Logika (C#)** | `629` | **140.700** | .NET 8, EF Core 8, 135 servisa, SEF UBL 2.1, EPP, SUF QR, WMS, MRP, AI NLP, 44 QuestPDF šablona |
+| **WebShop & Web Backoffice (TSX/TS)** | `317` | **96.200** | React 18, Vite, TypeScript, Tailwind CSS v4, WMS, Manifesti, Marketplace, AI chat |
+| **Desktop Korisnički Interfejs (C# + XAML)** | `494` | **94.100** | WPF, code-behind (bez MVVM), brzi unos na tastaturi, napredni gridovi, svetla i tamna tema |
+| **Testni Suite (.NET + React)** | `220` | **46.400** | 2.254 automatizovana testa (1.931 xUnit .NET + 323 Vitest/React) |
+| **Integrisana Pomoć & Dokumentacija** | `40+` | **20.000+** | F1 HTML kontekstualna pomoć (6 vodiča), 15+ internih `docs/` vodiča, arhitektonska specifikacija |
+| **Konfiguracija & Skripte** | `20+` | **7.500+** | Multi-DBMS šeme (SQLite, PostgreSQL, MS SQL), Velopack deployment, CI skripte |
 
 <br/>
 
@@ -64,13 +66,13 @@
 
 | Arhitektonski element | Količina | Opis i nivo zrelosti |
 | :--- | :---: | :--- |
-| **Baza podataka / EF Modeli** | **93 modela** | Kompletan relacioni domen (Finansije, Zarade, Sredstva, Robno, Proizvodnja, Servis) |
-| **EF Core Migracije** | **135 migracija** | Dvosmerna podrška: SQLite, PostgreSQL, Microsoft SQL Server |
-| **REST API Kontroleri** | **21 kontroler** | Skalabilan ASP.NET Core REST backend za WebShop, integracije i mobilne klijente |
-| **Poslovni servisi (Services)** | **46 servisa** | Poslovna logika: obračuni zarada, amortizacija, lager, SEF, NBS, porezi |
-| **WPF Pogledi & Dijalozi** | **188 prozora** | Brzi desktop ERP klijent sa prečicama, naprednim gridovima i pretragama |
-| **WebShop & Web Strane** | **280+ komponenti** | React 19 + TypeScript, Tailwind, REST klijent, B2B korpa i katalog |
-| **QuestPDF Izveštaji** | **30+ dokumenata** | Vektorski PDF-ovi: Fakture, Nalozi za knjiženje, KEP, Isplatni listići, Popisne liste |
+| **Baza podataka / EF Modeli** | **120+ modela** | Kompletan relacioni domen (Finansije, Zarade, Sredstva, Robno, Proizvodnja, WebShop, Kasa) |
+| **EF Core Migracije** | **91 migracija** | Dvosmerna podrška: SQLite, PostgreSQL, Microsoft SQL Server |
+| **REST API Kontroleri** | **34 kontrolera** | Skalabilan ASP.NET Core REST backend za WebShop, integracije i mobilne klijente |
+| **Poslovni servisi (Services)** | **135 servisa** | Poslovna logika: obračuni zarada, amortizacija, lager, SEF, SUF, NBS, porezi, EFT POS |
+| **WPF Pogledi & Dijalozi** | **211 prozora** | Brzi desktop ERP klijent sa prečicama, naprednim gridovima i pretragama |
+| **WebShop & Web Strane** | **276 komponenti** | React 18 + TypeScript, Tailwind v4, REST klijent, B2B korpa i katalog |
+| **QuestPDF Izveštaji** | **44 dokumenta** | Vektorski PDF-ovi: Fakture, Nalozi za knjiženje, KEP, Isplatni listići, Popisne liste |
 
 ---
 
@@ -113,7 +115,7 @@ graph TD
 | **Obračun Zarada & HR** | 👥 | Evidencija zaposlenih i ugovora (radni odnos, ugovor o delu, autorski, PP poslovi), automatski obračun poreza i doprinosa, generisanje zvaničnih XML fajlova za Poresku upravu (**PPP-PD** / **PPP-PO**), šabloni ugovora sa PDF štampom i isplatni listići. |
 | **Osnovna Sredstva** | 🏗️ | Šifarnik opreme i nekretnina, računovodstvena (MRS 16) i poreska amortizacija (čl. 10b, Obrazac OA/PB-1), godišnji popis sa bar-kod skenerima, reversi, rashodovanja i automatsko knjiženje. |
 | **SEF e-Fakture & e-Otpremnice** | ⚡ | Direktna dvosmerna integracija sa SEF portalom (UBL 2.1), masovno slanje i preuzimanje faktura, e-Transport otpremnice sa prevoznicima i automatsko evidentiranje poreza. |
-| **Maloprodajna Kasa (POS)** | 🧾 | ESIR kasa usklađena sa **PFR v3 protokolom** Poreske uprave (L-PFR i V-PFR), brza pretraga artikala, barkod skeneri, vagana roba, refundacije, smene, pazar i direktna ESC/POS termalna štampa. Ugrađen lokalni PFR simulator za obuku osoblja. |
+| **Maloprodajna Kasa (POS)** | 🧾 | ESIR kasa usklađena sa **PFR v3 protokolom** Poreske uprave (L-PFR i V-PFR), brza pretraga artikala, barkod skeneri, vagana roba, refundacije, smene, pazar i direktna ESC/POS termalna štampa. **EFT POS PinPad** naplata karticom po ECR protokolu (Ingenico / Nexgo / Castles) — iznos ide na terminal, račun se ne izdaje dok banka ne odobri. Ugrađeni lokalni PFR i EFT POS simulatori za obuku osoblja. |
 | **Izvodi Banke & Auto-Knjiženje** | 🏦 | Automatski uvoz i parsiranje elektronskih izvoda (Halcom, Asseco, Pexim), automatsko prepoznavanje partnera po PIB/računu i automatsko zatvaranje otvorenih stavki u Glavnoj knjizi. |
 | **DMS & PDF Izveštaji** | 📄 | Digitalna arhiva dokumenata i priloga uz naloge i artikle, profesionalni PDF izveštaji generisani putem **QuestPDF** endžina sa ugrađenim NBS IPS QR kodom. |
 
@@ -164,12 +166,12 @@ ERPi omogućava fleksibilan izbor baze podataka prilagođen infrastrukturi predu
 
 ```
 ERPi Solution (ERPi.slnx)
- ├── 🖥️ ERPiApp          → WPF Desktop aplikacija (.NET 8 Windows, XAML, MVVM)
+ ├── 🖥️ ERPiApp          → WPF Desktop aplikacija (.NET 8 Windows, XAML, code-behind)
  ├── ⚡ ERPiApi          → ASP.NET Core 8 Web API (JWT Bearer, REST, Swagger, NBS IPS QR)
  ├── 🛍️ ERPiWebShop      → React 18 + TypeScript + Vite + Tailwind CSS v4 (Storefront & Admin)
  ├── 🗄️ ERPiData         → EF Core 8 biblioteka sa domain modelima, servisima i QuestPDF štampom
  ├── 🔄 ERPiMigration    → Uvoznik starih Clipper/FoxPro DBF baza (CP852 kodni raspored)
- └── 🧪 ERPiData.Tests   → xUnit automatizovani testovi (1272 backend testova prolazi)
+ └── 🧪 ERPiData.Tests   → xUnit automatizovani testovi (1.931 backend testova prolazi)
 ```
 
 ## 📸 Korisnički Interfejs i Vizuelni Prikaz
@@ -178,7 +180,7 @@ ERPi Solution (ERPi.slnx)
 
 ### 🛍️ ERPi WebShop & B2B Veleprodajni Portal
 <p align="center">
-  <em>Moderan, ultra-brz React 19 + Tailwind B2C WebShop i B2B portal sa integrisanim platnim metodama (NBS IPS QR, Kartice) i live sinhronizacijom zaliha.</em>
+  <em>Moderan, ultra-brz React 18 + Tailwind B2C WebShop i B2B portal sa integrisanim platnim metodama (NBS IPS QR, Kartice) i live sinhronizacijom zaliha.</em>
 </p>
 
 <img src="docs/screenshots/webshop_storefront.png" alt="ERPi WebShop Storefront" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
@@ -200,6 +202,7 @@ ERPi Solution (ERPi.slnx)
 
 Za detaljnije vodiče pogledajte dokumentaciju u direktorijumu `docs/`:
 
+- 🖥️ **[Sistemski zahtevi](docs/SYSTEM_REQUIREMENTS.md)** — OS, CPU, RAM i prostor na disku za radno mesto i server.
 - 🏗️ **[Arhitektura sistema i baze podataka](docs/ARCHITECTURE.md)** — Slojno razdvajanje, konekcije i EF Core šeme.
 - 🌐 **[WebShop Vodič & NBS IPS QR](docs/WEBSHOP.md)** — Integracija B2C prodavnice, B2B portala i plaćanja.
 - 📋 **[Plan nastavka](PLAN_NASTAVKA.md)** — Pregled stanja i roadmap preostalih funkcionalnosti.

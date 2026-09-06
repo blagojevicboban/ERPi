@@ -4,6 +4,63 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.71.0] - 2026-09-06
+
+### 💳 EFT POS PinPad — ECR protokol dokazan simulatorom i integrisan u desktop kasu (§126)
+
+Kartična naplata preko bankarskog PinPad terminala (Ingenico / Nexgo / Castles, ECR protokol na
+TCP/IP) postojala je od ranije, ali komunikacija sa terminalom nije bila proverena nijednim testom,
+a desktop kasa iznos uopšte nije slala na terminal. Ova izmena to zatvara:
+
+- **`EcrPosSimulatorServer`** — lokalni TCP servis koji se ponaša kao EFT POS terminal (za razvoj i
+  automatizovano testiranje bez uređaja). Dekodira `STX … ETX + LRC` okvir, telo
+  `tip + valuta + iznosUParama + referenca`, i vraća `respKod + RRN + auth + PAN + naziv kartice`.
+  Namerno odbija ono što bi odbio i pravi terminal: neispravan LRC (NAK), nepoznatu valutu,
+  iznos ≤ 0, nepoznat tip poruke. Režimi: odobreno / odbijeno / isteklo vreme / kupac prekinuo.
+- **`IngenicoEcrDriver`** prepisan da govori taj protokol kako treba — ispravan LRC, ACK/NAK sa
+  ponovnim slanjem, provera LRC-a dolaznog okvira, strukturiran parser polja, mapiranje odgovornog
+  koda u status (odobreno / odbijeno / kupac prekinuo), timeout iz podešavanja terminala. Serijska
+  (COM) veza vraća jasnu poruku umesto tihog tretiranja kao TCP.
+- **Desktop kasa (`ERPiApp`)** — prozor naplate na „Platnu karticu" sada šalje iznos na terminal
+  pre fiskalizacije, prikazuje tok („Šaljem iznos na PinPad… / Odobreno / Odbijeno") i ne dozvoljava
+  zaključenje računa dok banka ne odobri. Posle naplate se prikazuje bankarski slip. Refundacija ne
+  pokreće terminal (povraćaj na karticu kasir radi ručno, isto kao na Web kasi).
+- 9 novih testova preko stvarnog socketa (`EftPosEcrSimulatorTests`).
+
+**Granica:** bez fizičkog terminala i sertifikacije kod procesora banke se ne može tvrditi da radi
+sa pravim uređajem — obe strane ECR razgovora piše isti kod. Tačan raspored polja propisuje procesor
+konkretne banke; pre puštanja kod klijenta uskladiti sa njihovom ECR specifikacijom.
+
+### 🐛 Ispravke iz revizije koda — osnovica doprinosa po delovima isplate, avansi na SEF-u (§127)
+
+- **Zarade:** akontacija kod isplate zarade u više delova sada oduzima osnovice doprinosa već
+  prijavljene na ranijim delovima meseca (kao i konačni deo). Dve ili tri akontacije više ne nose
+  svaka pun mesečni minimum osnovice — zbir osnovica svih delova je tačno jedna mesečna osnovica.
+- **SEF / Magacin:** avansni račun (Tip = 2) se više ne knjiži kroz redovan put
+  (204 / 612 / 470 + razduženje magacina) — `KnjiziRacunAsync` ga odbija, a masovno knjiženje i
+  dugme „Knjiži" ga preskaču.
+- **SEF UBL:** zbir avansa koji se zatvara ne sme biti veći od iznosa fakture (odbija se pri
+  čuvanju; generator dodatno seče `PrepaidAmount` na `TaxInclusiveAmount` kao odbranu).
+- **SEF / Magacin:** `RacunOtpremnica.UkupnoAvans` se uvek izvodi iz vezanih avansa — i kada se svi
+  uklone — da ne ostane ustajala vrednost koja potcenjuje `PayableAmount` u UBL-u i „preostalo" u PDF-u.
+- 7 novih testova.
+
+### 🎨 Demo podaci ne liče na stvarne kontakte (§127)
+
+- Mejlovi demo firmi/kupaca na `.invalid` TLD (RFC 2606) umesto domena izvedenih iz naziva firme ili
+  imena kupca — koji su mogli da pogode stvarni registrovani domen.
+- Telefoni po „555" obrascu, IP adrese web poseta iz RFC 5737 TEST-NET blokova, generička adresa
+  demo firme umesto konkretne ulice i broja.
+- RNG niz generatora očuvan — demo baza ostaje identična za isto seme.
+
+### 🚀 Ponuda demo firme pri prvom pokretanju
+
+- Kada je lista firmi prazna (prva instalacija), ekran izbora firme sada nudi „Napravi demo firmu za
+  upoznavanje" uz jasnu napomenu da su podaci izmišljeni i da se ništa ne šalje na SEF/PU. Ponuda se
+  ne prikazuje kada je pretraga odsekla sve firme, ni korisniku bez administratorskih prava.
+- Nova stranica `docs/SYSTEM_REQUIREMENTS.md` — sistemski zahtevi (OS, CPU, RAM, disk, rezolucija,
+  portovi i mrežni zahtevi za SEF/PFR/NBS/kurire), linkovana iz README.
+
 ## [2.70.0] - 2026-09-06
 
 ### 🧾 Automatsko storniranje i uračunavanje avansa na SEF-u (UBL 2.1 konačna faktura) (§124)
