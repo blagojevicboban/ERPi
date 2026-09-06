@@ -6,6 +6,114 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
+### 🧾 Automatsko storniranje i uračunavanje avansa na SEF-u (UBL 2.1 konačna faktura) (§124)
+
+Kompletna podrška za avansne račune i automatsko zatvaranje/storniranje avansa na SEF-u prilikom
+izdavanja konačne fakture, u skladu sa UBL 2.1 standardom Ministarstva finansija RS:
+
+- **Model i baza podataka (`ERPiData`):**
+  - Proširen `RacunOtpremnica` poljima `Tip` (`AvansniRacun = 2`), `UkupnoAvans`, `PreostaloZaUplatu`, i
+    navigacionim svojstvom `VezaniAvansi`.
+  - Novi model `RacunOtpremnicaAvans` (tabela `RacunOtpremnicaAvansi`) i DTO `OtvoreniAvansDto`.
+  - EF Core migracija `20260905162859_DodajAvansneRacuneIVezaneAvanse` i raw SQL idempotentna metoda
+    `EnsureAvansiTables` u `ErpiDbContext.EnsureDbSchemaUpdated`.
+- **UBL 2.1 generator i parser (`SefUblGenerator`, `SefUblParser`):**
+  - Izdavanje avansnog računa generiše UBL 2.1 XML sa šifrom vrste dokumenta `386` (`Prepayment invoice`).
+  - Konačna faktura sa vezanim avansima automatski generiše elemente `<cac:BillingReference>` i
+    `<cac:InvoiceDocumentReference>` (vrsta `386`) sa brojem i datumom svakog uplaćenog avansa.
+  - Generišu se tagovi `<cac:PrepaidPayment>` sa datumom uplate i uplaćenim iznosom.
+  - U `<cac:LegalMonetaryTotal>` se iskazuje `<cbc:PrepaidAmount>` (odbitak avansa) i tačan preostali iznos
+    `<cbc:PayableAmount>` za plaćanje.
+  - `SefUblParser` dvosmerno čita vezane avanse, uplaćene iznose i datume uplate.
+- **Poslovni servis (`RacunOtpremnicaService`):**
+  - `GetOtvoreniAvansiZaPartneraAsync`: proračun otvorenih avansa partnera kompatibilan sa SQLite agregacijom
+    (memorijsko grupisanje) i podrškom za Postgres/MSSQL.
+  - `SaveRacunAsync`: automatsko ažuriranje vezanih avansa, proračun `UkupnoAvans` i `PreostaloZaUplatu`.
+- **PDF Štampa (`PdfReportService`):**
+  - Za avanse: naslov „AVANSNI RAČUN br. X".
+  - Za konačne fakture: prikaz odbitka „Uračunat avans: -X RSD", specifikacija uračunatih avansnih računa
+    i istaknut iznos „PREOSTALO ZA UPLATU".
+- **REST API (`ERPiApi`):**
+  - Endpoint `GET /api/magacin/otpremnice/otvoreni-avansi/{partnerId}`.
+  - Prošireni DTO modeli `RacunOtpremnicaDto` i `KreirajRacunOtpremnicuRequest` sa poljima avansa.
+- **WebShop Admin (`ERPiWebShop`):**
+  - `OtpremnicaFormaModal.tsx`: radio birač tipa dokumenta (Račun / Predračun / Avansni račun), sekcija
+    otvorenih avansa sa unosom iznosa zatvaranja i automatskim proračunom za uplatu.
+  - `OtpremnicePodTab.tsx`: filter „Avansi", bedž „Avans" i prikaz odbitka u koloni „Za uplatu".
+- **WPF Desktop (`ERPiApp`):**
+  - `RacunOtpremnicaEditWindow.xaml`: radio birač tipa i expander „Uračunaj primljene avanse" sa tabelom i unosom.
+  - `RacuniOtpremniceView.xaml`: radio filter `Avansi` i kolona „Za uplatu".
+- **Testovi i verifikacija:**
+  - 4 nova xUnit testa u `ERPiData.Tests/SefAvansiTests.cs` (100% prolaze).
+  - E2E browser subagent verifikacija: uspešno testiran ceo tok izdavanja avansa, konačne fakture sa vezanim
+    avansom i provere salda za uplatu.
+
+### ⚡ SUF QR očitavanje fiskalnih računa — automatski uvoz troškova i blagajne (§123)
+
+Automatsko očitavanje i knjiženje fiskalnih računa (gorivo, materijal, reprezentacija) direktnim
+preuzimanjem originalnog digitalnog zapisa sa portala Poreske uprave (`suf.purs.gov.rs`).
+
+- **Ekstrakcija i parsiranje:** `SufVerifikacioniParser` i `SufApiClient` validiraju domen, preuzimaju
+  račun preko JSON API-ja ili HTML `<pre>` žurnala i razlažu zaglavlje, stavke i poresku rekapitulaciju
+  (20%, 10%, oslobođeno) u standardni `UblParsedInvoice`.
+- **Poslovni servis (`SufService`):** Automatski pronalazi ili otvara partnera po PIB-u / matičnom broju
+  u šifarniku `Partneri`, i omogućava dva odredišta knjiženja:
+  1. **Ulazni račun u Glavnu knjigu (KPR):** Formira nacrt naloga sa kontom troška (npr. 5330/5500),
+     ulaznim PDV-om (konto 2700 sa popunjenom osnovicom i stopom koji se automatski vide u KPR evidenciji)
+     i obavezom prema dobavljaču (konto 4350).
+  2. **Isplata iz Blagajne:** Formira isplatnicu gotovine (`BlagajnickiNalog`) sa svrhom, protivkontom
+     troška i punim iznosom.
+  Tekst žurnala fiskalnog računa se po želji trajno arhivira u DMS arhivu priloga.
+- **API kontroler (`SufController`):** `/api/suf/ocitaj` i `/api/suf/kreiraj-dokument` sa predloženim kontima
+  i DTO modelima.
+- **Web UI:** Komponenta `SufQrUvozModal.tsx` sa skeniranjem preko kamere (video stream + native `BarcodeDetector`)
+  ili unosom linka, dostupna na Blagajni (`FinansijeTab`), Dnevniku GK (`NaloziPodTab`) i SEF/izvodima (`SefIzvodiTab`).
+- **WPF UI:** Prozor `SufQrUvozWindow.xaml` dostupan preko dugmeta `⚡ SUF QR` na `BlagajnaView` i
+  `SefUlazneFaktureWindow`.
+- **Testovi:** 22 nova testa (`SufVerifikacioniParserTests`, `SufServiceTests`, `SufControllerTests`), 100% prolaznost.
+
+### 🧾 SEF — Zbirna evidencija prethodnog poreza (EPP) i korekcije (§122)
+
+Evidencija prethodnog poreza (EPP) na SEF portalu dobija drugu polovinu. Do sada je radila samo
+**Pojedinačna** evidencija (jedan zapis = jedan promet, §35); sada je tu i **Zbirna** evidencija
+(`vat-recording/group`) — jedan agregatni zapis za ceo poreski period, sa ~80 polja po kategorijama
+koje SEF traži odvojeno: redovan promet po stopama, avansi, promet bez naknade, turistički promet,
+umetnička dela/antikviteti, i promet gde je poreski dužnik isporučilac odnosno primalac (uključujući
+storno varijante). U web administraciji (SEF & Izvodi → Evidencija prethodnog poreza) sada su dva
+pod-taba, „Pojedinačna" i „Zbirna evidencija".
+
+Uz to, obe evidencije sada podržavaju **korekciju** već poslatog zapisa: izmena poslatog zapisa u
+formi odmah šalje novu verziju na SEF (`correction`), koja tamo zamenjuje staru — ranije se poslati
+zapis mogao samo otkazati i uneti ponovo.
+
+- **Verifikacija enum vrednosti i UI kontrole:** Utvrđeno prema zvaničnoj SEF API specifikaciji
+  da Zbirna evidencija (`GroupVatRecordDto`) ne sadrži proizvoljna enum polja već isključivo numeričke
+  iznose i `vatPeriod` (1–16). Za Pojedinačnu evidenciju (`IndividualVatRecordDto`) vrednosti su
+  formalizovane u `EppZapis.cs`: `DocumentDirection` (0 = Inbound, 1 = Outbound), `DocumentType`
+  (0 = Invoice, 1 = CreditNote, 2 = DebitNote, 3 = PrepaymentInvoice, 4 = InternalAccountForTurnoverOfForeigner,
+  5 = OtherInternalStatement) i `InternalInvoiceOption` (null, 0 = Turnover, 1 = Prepayment).
+  U WebShop admin modalu (`EppZapisFormaModal.tsx`) sirovi numerički unosi zamenjeni su intuitivnim
+  padajućim listama (`<select>`) sa dvojezičnim opisima. Proveden automatizovani E2E browser test.
+
+### 🏢 Multi-tenant hosting — jedan proces za više firmi (§121)
+
+Nov, **opcioni** način rada servera: jedan `ERPiApi` proces može da opsluži više firmi, svaku sa
+svojom bazom. Namenjen knjigovodstvenim agencijama — do sada je svaka firma tražila sopstvenu
+instalaciju Windows servisa da bi imala web/B2B pristup.
+
+Uključuje se isključivo argumentom `--tenants <putanja do tenants.json>`; **bez njega se ništa ne
+menja** — postojeće instalacije rade identično kao pre. Firmu bira zaglavlje `X-Tenant-Id` u
+zahtevu; nepoznata ili izostavljena šifra vraća 404 i nikad se ne poslužuje „podrazumevana" baza.
+
+Podaci firmi su razdvojeni na tri načina: svaka firma dobija svoju bazu po zahtevu, prijava jedne
+firme **ne važi** kod druge (token nosi šifru firme i proverava se pri svakom pozivu), a dnevnik
+rada nosi šifru firme u svakom redu. Periodični poslovi (napuštene korpe, obaveštenja o zalihama,
+pretplate) obilaze **sve** firme u svakom prolazu, s tim da nedostupna baza jedne firme ne
+zaustavlja obradu ostalih.
+
+Van ovog koraka ostaju: prikaz više firmi na istom ekranu, samostalno otvaranje nove firme kroz web,
+lokalne slike artikala i live obaveštenja po firmi.
+
 ### 🐛 Zarade — osnovica doprinosa u PPP-PD prijavi kod olakšice koja umanjuje doprinose (§120)
 
 Prijava je osnovicu doprinosa uvek izvodila iz obračunatog PIO (`PIO / 24 %`). To je tačno u

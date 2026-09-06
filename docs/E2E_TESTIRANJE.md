@@ -759,3 +759,121 @@ grane idu preko `tezina`), pa se na ekranu nije videlo — zato je i preživelo.
 - **Modalni `MessageBox` se ne mora pojaviti kao dete `RootElement`-a** u trenutku kad se traži —
   dijalog je bio otvoren i vidljiv na snimku iako ga je nabrajanje UIA prozora prijavilo kao
   nepostojećeg. Ne zaključivati „klik nije prošao" pre nego što se pogleda snimak.
+
+---
+
+## §121 — Multi-tenant hosting: izolacija dve firme u istom procesu (04.09.2026)
+
+Dokazuje ono što `docs/DIZAJN_MULTI_TENANT.md` §6 traži — ne „rade li dva konteksta" (trivijalno),
+nego **da li se curenje između firmi zaista sprečava**.
+
+**Postavka.** Dve izolovane kopije `DEMO.db` u scratchpad-u (`firmaA.db`, `firmaB.db`), kopiji B
+promenjen naziv firme u `ZAKUPAC B TEST DOO` da se odgovori razlikuju. `tenants.json` sa obe,
+`ERPiApi --port 5002 --no-tray --tenants <put>`. **Nijedna prava baza firme nije dirana.**
+
+| Provera | Očekivano | Dobijeno |
+|---|---|---|
+| `/healthz` **bez** `X-Tenant-Id` | 200 (monitoring ne sme da traži firmu) | ✅ 200 |
+| `/api/katalog/proizvodi` bez zaglavlja | 404, bez pada na podrazumevanu bazu | ✅ 404 |
+| Isto, sa nepostojećom šifrom | 404 + čitljiva poruka | ✅ „Firma 'nemaMe' nije u registru zakupaca." |
+| Prijava `admin` uz `X-Tenant-Id: firmaA` | token | ✅ |
+| Prijava `admin` uz `X-Tenant-Id: firmaB` | token | ✅ |
+| `GET /api/firma/osnovni` (token A + firmaA) | „ERPi Demo d.o.o." | ✅ |
+| `GET /api/firma/osnovni` (token B + firmaB) | „ZAKUPAC B TEST DOO" | ✅ |
+| **token A + `X-Tenant-Id: firmaB`** | **401** | ✅ 401 |
+| **token B + `X-Tenant-Id: firmaA`** | **401** | ✅ 401 |
+
+### Nalaz koji je oborio deo dizajn-dokumenta
+
+Odgovori obe firme nose **`"firmaId": 1`**. `Firma.FirmaId` je autoinkrementni PK *unutar baze te
+firme*, a svaka baza ima tačno jedan `Firma` red — pa je vrednost ista u svakoj bazi. Dizajn-dokument
+(§4, §5 t.1) je tražio baš `firmaId` kao ključ provere ukrštanja firmi; ta provera bi propuštala
+token firme A na bazu firme B, tj. „glavna odbrana od ukrštanja podataka" bila bi kozmetička.
+Implementirano je poređenje po `Sifra` (jedinstvena u registru po konstrukciji), claim `TenantSifra`.
+
+### Nalaz: property u logu koji se nigde ne vidi
+
+`TenantResolutionMiddleware` je kačio `LogContext.PushProperty("TenantSifra", …)`, ali **nijedan
+tekstualni sink to nije ispisivao** — Serilog `outputTemplate` (i konzolni i fajl) renderuje samo
+`{Message}`, pa je zahtev §5 t.4 („`firmaId` mora ući kao structured property da operater može da
+filtrira log po firmi") bio ispunjen samo na papiru. Ispravljeno: u multi-tenant režimu oba template-a
+dobijaju `[{TenantSifra}]`; na jednofirmskom putu se ne dodaje ništa.
+
+Uz to se pokazalo da `UseSerilogRequestLogging()` stoji **iznad** ovog middleware-a u cevovodu (mora,
+da bi i odbijeni zahtev bio zabeležen), pa se `PushProperty` opseg zatvori pre nego što taj sloj
+ispiše svoj red — baš „HTTP GET … responded" red, najkorisniji operateru, ostao bi bez firme.
+Rešeno kroz `EnrichDiagnosticContext`, koji se popunjava na kraju zahteva kad je `HttpContext.Items`
+već razrešen. Potvrđeno u logu:
+
+```
+[17:51:04 INF] [-]       HTTP GET  /healthz              responded 200
+[17:51:07 INF] [firmaA]  HTTP POST /api/auth/prijava-osoblje responded 200
+[17:51:08 INF] [firmaA]  HTTP GET  /api/firma/osnovni    responded 200
+[17:51:08 INF] [firmaB]  HTTP GET  /api/firma/osnovni    responded 401   ← token firme A
+[17:51:09 INF] [-]       HTTP GET  /api/firma/osnovni    responded 404   ← bez zaglavlja
+```
+
+Redovi van zahteva (start, pozadinski poslovi) nose `[-]`, ne prazno `[]`.
+
+### Nalaz iz pregleda sopstvenog diff-a: 500 umesto 401 na putanjama van `/api`
+
+`TenantResolutionMiddleware` namerno preskače `/healthz`, `/ready`, `/swagger` i statičke fajlove —
+ali `/healthz`, `/ready` i SPA fallback se **rutiraju posle `UseAuthentication`**. Zahtev ka takvoj
+putanji koji ipak nosi `Authorization` zaglavlje išao je u `OnTokenValidated`, gde
+`TokenOpozivValidator` traži `ErpiDbContext` iz `RequestServices` — a fabrika ga u tenant režimu ne
+ume napraviti bez razrešene firme.
+
+Izmereno na oba redosleda (isti binary, samo zamenjena dva reda):
+
+| Redosled u `OnTokenValidated` | `/healthz` + token | `/ready` + token |
+| :--- | :---: | :---: |
+| `TokenOpoziv` → `TenantClaim` (prvobitno) | **500** | **500** |
+| `TenantClaim` → `TokenOpoziv` (ispravljeno) | **200** | **200** |
+
+U logu prvog slučaja: `System.InvalidOperationException: ErpiDbContext je zatražen pre nego što je
+firma razrešena`. Provera firme je jeftina (ne dira bazu) i zato ide prva — usput je i logičniji
+redosled: „da li je token uopšte za ovu firmu" pre „da li je opozvan u bazi te firme".
+
+### Regresija jednofirmskog puta — pokrenuto **bez** `--tenants`
+
+Isti binary, `--db <kopija A>`, port 5004: `/healthz` i `/ready` **200** (`AddDbContextCheck` je tu
+ponovo registrovan), prijava radi **bez ikakvog zaglavlja**, `/api/firma/osnovni` vraća „ERPi Demo
+d.o.o.", izdati token **nema** `TenantSifra` claim, log redovi **nemaju** prefiks firme, i mount
+lokalnih slika artikala se normalno izvršava (`Slike artikala: …\Slike\firmaA`). Dakle ništa od
+multi-tenant sloja ne dodiruje podrazumevani put.
+
+### Pozadinski poslovi
+
+Nisu vožene kroz živi proces (prvi prolaz kasni 2–3 minuta, interval 10–15 min / 24 h) — pokriveni su
+testovima nad dve prave SQLite baze: `PozadinskiPosaoObilaziSveZakupce` (kupon `VRATISE5` nastaje u
+**obe** baze) i `NedostupnaBazaJednogZakupcaNeZaustavljaOstale`. Oba testa su namerno probijena pre
+prihvatanja i potvrđeno je da tada padaju (presedan §105).
+
+---
+
+## §123 — SUF QR očitavanje fiskalnih računa sa portala Poreske uprave (05.09.2026)
+
+Verifikacija implementacije tačke **11.B iz `PLAN_SEPTEMBAR_2026.md`**: PFR uvoz troškova putem QR koda
+sa portala Poreske uprave (`suf.purs.gov.rs`), automatsko uparivanje/otvaranje partnera po PIB-u,
+knjiženje ulaznog računa u Glavnu knjigu (sa automatskim KPR stavkama) ili isplate iz gotovinske blagajne,
+uz arhiviranje žurnala računa u DMS priloge.
+
+### Testirana funkcionalnost i prolaz
+
+| Komponenta / Sloj | Šta je testirano | Ishod |
+| :--- | :--- | :---: |
+| `SufVerifikacioniParser.IzvuciVl` | Validacija domena `suf.purs.gov.rs`, ekstrakcija `vl` koda iz URL-a ili direktnog unosa, odbijanje zlonamernih/nepoznatih domena | ✅ 14/14 testova |
+| `SufVerifikacioniParser.ParsirajJson` | Ekstrakcija podataka iz zvaničnog JSON odgovora PFR servisa (broj računa, datum, PIB dobavljača, rekapitulacija poreza, stavke) | ✅ |
+| `SufVerifikacioniParser.ParsirajZurnal` | Fallback parsiranje ćiriličnog/latiničnog tekstualnog isečka žurnala (podvlake, regex stopa, poreske osnovice i iznosi PDV-a) | ✅ |
+| `SufService.OcitajAsync` | Poziv SUF servisa sa parsiranjem, provera postojanja partnera u bazi po PIB-u, predlaganje konta troškova (5xxx), PDV (2700) i dobavljača (4350) | ✅ 5/5 testova |
+| `SufService.KreirajDokumentAsync (GK)` | Kreiranje naloga Glavne knjige, upis stavki (5xxx Duguje, 2700 Duguje sa StopaPdv/Osnovica za KPR, 4350 Potražuje), balansiranje, proknjižavanje i DMS prilog | ✅ |
+| `SufService.KreirajDokumentAsync (Blagajna)` | Kreiranje `BlagajnickiNalog` isplate gotovine za trošak, upis partnera i svrhe isplate, proknjižavanje i DMS prilog | ✅ |
+| `SufController` (`ERPiApi`) | Autentifikacija, autorizacija (`Admin,Operater,Komercijalista`), validacija DTO-a, `POST /api/suf/ocitaj` i `POST /api/suf/kreiraj-dokument` | ✅ 3/3 testa |
+| `SufQrUvozModal.tsx` (`ERPiWebShop`) | Integracija kamere sa `BarcodeDetector` API-jem, ručni unos URL-a/`vl` koda, prikaz kartice računa, status partnera, izbor odredišta i konta | ✅ Vitest + `tsc && vite build` |
+| `SufQrUvozWindow.xaml` (`ERPiApp`) | WPF prozor za SUF uvoz, binding modela računa, dinamičko učitavanje konta, dugmad u `BlagajnaView` i `SefUlazneFaktureWindow` | ✅ `dotnet build` 0/0 |
+
+### Nalaz tokom testiranja i ispravka
+- **Žurnal tabelarna podvlaka:** Prilikom parsiranja rekapitulacije poreza iz tekstualnog žurnala, ispod zaglavlja stoji linija crtica `----------------------------------------`. Prva verzija petlje se prekidala na prvoj liniji crtica pre nego što je pročitala poreske stope. Ispravljeno preskakanjem prve linije crtica do čitanja stopa i prekidom tek na sledećoj liniji razdvajanja.
+- **Frontend test i `globalThis`:** `SufQrUvoz.test.ts` je u prvoj verziji koristio `global.fetch` što je obaralo TypeScript proveru u sklopu `npm run build`. Ispravljeno prelaskom na `globalThis.fetch`.
+- **Regresiona provera:** Svih 1,918 .NET testova i 323 frontend Vitest testova prolaze bez ijedne greške.
+

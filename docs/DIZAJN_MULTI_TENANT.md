@@ -3,6 +3,37 @@
 > Dizajn-korak pre koda, po `PLAN_NASTAVKA.md` stavci 10 ("Dugoročno — ovo je promena proizvoda,
 > ne refaktor: prvo dizajn-dokument, tek onda kod"). Ovaj dokument fiksira obim v1, odluke i ono
 > što je namerno van njega — kad se odobri, implementacija ide po ovome, ne ad-hoc.
+>
+> ## ✅ v1 IMPLEMENTIRAN (04.09.2026, §121)
+>
+> Korisnik je odgovorio na sva tri otvorena pitanja iz §7: (1) rešava **stvaran, tražen slučaj** —
+> ide u kod; (2) **header/path**, ne subdomen; (3) tri pozadinska servisa **moraju od prvog dana da
+> rade za sve zakupce** (širi obim od preporuke §5 t.3).
+>
+> **Dve stvari u ovom dokumentu su se pri implementaciji pokazale netačnim i ispravljene su u kodu
+> drugačije nego što piše ispod — tekst §4/§5 je ostavljen nepromenjen kao trag odluke, ovde je
+> šta stvarno važi:**
+>
+> 1. **Provera ukrštanja firmi ide po `Sifra`, NE po `FirmaId`** (suprotno §4 i §5 t.1).
+>    `Firma.FirmaId` je autoinkrementni PK *unutar baze te firme*, a svaka baza ima tačno jedan
+>    `Firma` red — pa je vrednost praktično uvek `1` u svakoj bazi. Potvrđeno na živom E2E-u: obe
+>    test-baze vraćaju `"firmaId": 1`. Poređenje po njemu bi propustilo token firme A na bazu firme
+>    B, tj. „glavna odbrana od ukrštanja podataka" bila bi kozmetička. JWT zato nosi claim
+>    `TenantSifra`, a `TenantInfo` uopšte nema `FirmaId` (ima `Naziv`, samo za log).
+> 2. **Nije upotrebljen `IHttpContextAccessor`** (suprotno skici u §4). Tri pozadinska servisa rade
+>    van HTTP zahteva i nemaju `HttpContext`, pa bi fabrika `ErpiDbContext`-a koja čita iz njega
+>    pukla baš za njih — a odgovor na pitanje 3 traži da rade za sve zakupce. Umesto toga postoji
+>    **scoped `CurrentTenantAccessor`**, koji pune i middleware (HTTP put) i petlja pozadinskog
+>    servisa (po zakupcu). Jedan mehanizam za oba puta.
+>
+> **Uz to, dve tačke koje dokument nije predvideo, a morale su se rešiti:** `AddDbContextCheck`
+> (health check nad „tom" bazom) se u tenant režimu ne registruje, jer `/healthz` namerno ide van
+> razrešavanja zakupca; i mount lokalnih slika artikala (`/slike`) se preskače, jer se izvodi iz
+> jedne konekcije a firme ih imaju N — serviranje pod istim prefiksom bi značilo da kupac jedne
+> firme pogodi sliku druge po imenu datoteke.
+>
+> Kod: [`ERPiApi/Services/Tenancy/`](../ERPiApi/Services/Tenancy/). Testovi:
+> `ERPiData.Tests/MultiTenantRazresavanjeTests.cs` + `MultiTenantIzolacijaTests.cs`.
 
 ## 1. Šta danas postoji (provereno u kodu, ne pretpostavljeno)
 
