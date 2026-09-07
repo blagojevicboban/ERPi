@@ -4,7 +4,7 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
-## [Neobjavljeno]
+## [2.72.0] - 2026-09-07
 
 ### 📦 Komisiono poslovanje i konsignacija (11.G)
 
