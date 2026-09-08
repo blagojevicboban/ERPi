@@ -919,3 +919,90 @@ servis na 5000 nije dodirnut.
   proveren na uređaju.
 - **WPF** — `SufQrUvozWindow` nema kameru (ni ranije); 11.H je po planu samo Web.
 
+---
+
+## §131 — 11.K: Live lager — `stanjeZalihe` SignalR event bez ručnog refresh-a (08.09.2026)
+
+Verifikacija **11.K live lager** (`docs/DIZAJN_LAGER_SYNC.md`, Varijanta A): pozadinski
+`LagerSyncBackgroundService` (~10 s) detektuje promenu raspoloživosti web artikala i gurne jedan
+`stanjeZalihe` event ka svim otvorenim admin tabovima i web kasi. Bag ove klase je neuočljiv u
+jednom tabu — vidi se tek kad se uporede dva nezavisna klijenta (isti razlog kao
+`erpi-signalr-live-check` skill).
+
+### Metodologija
+
+Izolovan stack: `ERPiApi --port 5002` nad kopijom `DEMO.db`
+(`scratchpad/lagersync-test.db`), vite na 5174 (`VITE_API_TARGET=…5002`), headless Chrome na CDP
+9333. Namenski skript (`scratchpad/lager-live-check.mjs`, obrazac
+`.claude/skills/erpi-signalr-live-check/live-check.mjs`), ali sa nezavisnim posmatračem: pre
+navigacije se preko `Page.addScriptToEvaluateOnNewDocument` ubaci omotač `WebSocket`-a koji beleži
+svaki primljen SignalR okvir u `window.__hubFrames` — ne oslanja se na React logiku app-a. Pravi
+WebShop servis na 5000 nije dodirnut.
+
+Dva nezavisna CDP taba na `/admin/porudzbine`, oba prijavljena kao isti admin (`admin`/`demo1234`
+preko `/api/auth/prijava-osoblje`). Treća strana (skript) kreira porudžbinu preko
+`POST /api/porudzbine/kreiraj` za artikal 12 (`A01011`, `raspolozivaKolicina` 471) × 5 komada —
+rezervacija spusti raspoloživost. Čeka se 16 s (jedan LagerSync ciklus + margina), bez ijedne
+interakcije sa tabovima.
+
+### Testirana funkcionalnost i prolaz
+
+| Korak | Šta je provereno | Ishod |
+| :--- | :--- | :---: |
+| Backend prolaz | `api.log` sadrži tačno jednu `[LagerSync] 1 artikala promenilo raspoloživost.` liniju posle porudžbine; nijedan `[LagerSync] Prolaz nije uspeo` | ✅ |
+| Tab A prima event | `window.__hubFrames` sadrži okvir `{"type":1,"target":"stanjeZalihe","arguments":[{"sifraMagacina":null,"promene":[{"sifraArtikla":"A01011","nazivArtikla":"Testenina Milenium Tools P258","raspolozivo":466}],"vreme":"…"}]}` — bez ijednog klika | ✅ |
+| Tab B prima isti event | Identičan `stanjeZalihe` okvir, isti `vreme` (jedan emit, dva klijenta) | ✅ |
+| Payload tačan | `raspolozivo` 471 → **466** (471 − 5 rezervisano); serijalizacija ugnežđene liste (`StanjeZaliheEventDto.Promene`) prošla čisto kroz SignalR | ✅ |
+| `novaPorudzbina` i dalje radi | Oba taba: `novaPorudzbina` okvir + broj porudžbine `WP-20260908-7561` u tabeli bez refresh-a (nije regresija) | ✅ |
+| Prikaz zdrav | `A_posle.png` / `B_posle.png` — porudžbine tabela sa podacima, nova porudžbina na vrhu, bedž „Porudžbine 1" ažuriran | ✅ |
+| Jedinični testovi | `LagerSyncServiceTests` (8): snimak uzima samo web+kartica artikle, izlaz vraća tačan artikal sa novom raspoloživošću, bez promene ćuti, ne-web se ne prijavljuje, `ZigAsync` raste/ne-raste. Probijen (uklonjen dedup) → 3 padnu. `ErpiLiveNotifierTests` (+2): grupa/event/payload + best-effort. `useErpiLiveHub.test.ts` (+1): `stanjeZalihe` handler | ✅ 1964/1964 .NET, 349/349 vitest |
+| Regresija | `dotnet build ERPi.slnx` 0/0, `npm run build` OK (`tsc` čist) | ✅ |
+
+### Granice (izričito neprovereno)
+
+- **POS kasa prijem** — `KasaTab` je na istom `osveziSignal`-u kao ostali tabovi; hook + AdminPanel
+  bump su jedinično pokriveni, ali živ prolaz kroz otvoren kasa ekran nije vožen (event mehanizam
+  je isti kao za porudžbine tab koji jeste dokazan).
+- **Latencija** — event je stigao unutar 16 s prozora; tačan trenutak (koji tik) nije meren.
+- **`--tenants` režim** — testiran samo jednofirmski; per-tenant grupisanje je svesno van obima
+  (`docs/DIZAJN_LAGER_SYNC.md` §3.3).
+- **Otpuštanje rezervacije pri otkazivanju** — žig (`MAX(Id)`) ne hvata promenu statusa bez novog
+  reda; dizajn to prihvata (§5).
+
+---
+
+## §132 — 11.K: Live SEF status — `sefStatus` SignalR event (08.09.2026)
+
+Verifikacija **11.K live SEF status** (`docs/DIZAJN_LAGER_SYNC.md` §3.5): pozadinski
+`SefStatusPollerBackgroundService` (~10 min) prozove SEF za e-fakture koje čekaju ishod i gurne
+`sefStatus` event kad je neka odobrena/odbijena.
+
+### Metodologija i granice
+
+Pun živ E2E kroz pravi SEF Demo portal **nije rađen** — `SefApiClient` base URL je fiksno
+`demoefaktura.mfin.gov.rs` (nema način da se preusmeri na lokalni mock bez custom `HttpClient`-a
+koji poller ne može da ubaci u runtime-u), a SEF simulator (za razliku od PFR/EFT-POS) ne postoji.
+Uvođenje test-only kuke u produkcioni kod nije srazmerno dobitku jer je najveći deo lanca deljen sa
+§131:
+
+| Deo lanca | Kako je pokriveno |
+| :--- | :--- |
+| Kandidat upit (`KandidatiAsync` — samo `Poslata` + `SefId`) | `SefStatusSyncServiceTests.Kandidati_vraca_samo_poslate_sa_sefId` |
+| SEF prozivanje + mapiranje statusa + dif | `SefStatusSyncServiceTests` ×4 sa `LazniSefHandler` (Approved→Odobrena, Rejected→Odbijena, „Sent"→ćuti, prazna lista ne zove SEF); **probijen** uklanjanjem `!= Poslata` filtera → `Prozovi_i_dalje_poslata_cuti` padne |
+| `SefService.OsveziStatuseAsync` (HTTP + upis statusa) | postojeći, `SefMasovnoSlanjeTests` |
+| `ErpiLiveNotifier.SefStatusPromenjenAsync` → grupa/event/payload | `ErpiLiveNotifierTests` ×2 |
+| **SignalR isporuka do dva browser taba** | **§131 uživo** — `ErpiLiveNotifier` → `Clients.Group("admin")` → oba taba prime okvir; `sefStatus` je ista cev, drugi naziv/DTO |
+| `useErpiLiveHub` `sefStatus` handler | `useErpiLiveHub.test.ts` (mock `@microsoft/signalr`) |
+| `AdminPanel` → `osveziSignal` + Toast | trivijalno (dve linije), isti obrazac kao `naStatusPorudzbine` koji je dokazan |
+| Poller registracija (`AddHostedService`, 3-arg ctor DI, tenant petlja) | isti kod kao `LagerSyncBackgroundService` — startao i emitovao uživo u §131 |
+
+### Prolaz
+
+| Provera | Ishod |
+| :--- | :---: |
+| `dotnet build ERPi.slnx` 0/0 | ✅ |
+| `SefStatusSyncServiceTests` 5/5, vacuous-check (probijen filter → 1 pad) | ✅ |
+| `ErpiLiveNotifierTests` +2 (grupa `"admin"`, event `"sefStatus"`, best-effort) | ✅ |
+| `useErpiLiveHub.test.ts` +1 (`sefStatus` handler) | ✅ |
+| Izolovan start API-ja (`--db` kopija `DEMO.db`, `--port 5003`) — `SefStatusPollerBackgroundService` registrovan, API se digao bez greške | ✅ |
+

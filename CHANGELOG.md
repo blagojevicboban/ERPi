@@ -4,6 +4,35 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.74.0] - 2026-09-08
+
+### 📦 Live lager — zalihe na webu i kasi se osvežavaju same (11.K)
+
+Kada se roba proknjiži u ERPi desktopu (kalkulacija, ulaz, nivelacija, popis, proizvodnja, izlazni
+račun) ili na kasi, Web Admin i web kasa (`Kasa (maloprodaja)`) do sada su prikazivali staro stanje
+zaliha dok operater ručno ne osveži stranicu. Sada se osvežavaju sami, u roku od ~10 sekundi.
+
+- **Pozadinski prolaz** (`LagerSyncBackgroundService`, ~10 s) poredi raspoloživost web artikala sa
+  prethodnim prolazom i, ako se nešto pomerilo, gurne jedan `stanjeZalihe` SignalR event ka Web
+  Adminu i kasi. Isti pristup kao „Obavesti me kad artikal bude na stanju" — prati se ishod
+  (raspoloživost koju vidi katalog), ne pojedinačna mesta knjiženja, jer najveći deo knjiženja radi
+  desktop aplikacija koja ne deli proces sa serverom.
+- **Bez „zvona"/Toast poruke** za promenu zaliha — jedan prolaz posle grupnog knjiženja pomeri
+  desetine artikala; prikaz se osvežava tiho.
+- Jeftin „da li se išta pomerilo" žig (`MAX(Id)` materijalne kartice i web-porudžbina stavki) —
+  u mirnom periodu tik je dva indeksna upita, bez učitavanja cele kartice.
+
+### 🧾 Live SEF status — e-faktura odobrena/odbijena bez ručne provere (11.K)
+
+Do sada se status e-fakture na SEF-u proveravao samo klikom na dugme u SEF/Izvodi tabu. Sada
+pozadinski poller (`SefStatusPollerBackgroundService`, na ~10 min) sam prozove SEF za fakture koje
+čekaju ishod i, čim je neka odobrena ili odbijena, Web Admin dobije Toast poruku i osvežen prikaz.
+
+- Radi samo ako je SEF API ključ podešen; prozivaju se samo fakture sa statusom „Poslata" i
+  dodeljenim SEF ID-jem (isti kriterijum kao postojeće masovno osvežavanje statusa).
+- Per-firma izolacija SignalR kanala u `--tenants` režimu i dalje ostaje za zaseban korak
+  (`docs/DIZAJN_LAGER_SYNC.md` §3.3).
+
 ## [2.73.0] - 2026-09-08
 
 ### 📷 QR / bar-kod skeniranje kamerom uživo — rezervni dekoder za iPhone i Firefox (11.H)
