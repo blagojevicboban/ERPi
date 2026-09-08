@@ -4,6 +4,29 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [2.73.0] - 2026-09-08
+
+### 📷 QR / bar-kod skeniranje kamerom uživo — rezervni dekoder za iPhone i Firefox (11.H)
+
+Skeniranje QR koda fiskalnog isečka (SUF QR uvoz) i bar-koda artikla na Web aplikaciji do sada je
+radilo samo na Android/Chrome uređajima (preko `BarcodeDetector` API-ja); na iPhone-u (Safari) i u
+Firefox-u kamera bi se uključila ali ne bi ništa prepoznala.
+
+- **Deljeni `useKameraSkener` hook** — jedno mesto za sva tri skenera u aplikaciji
+  (`SufQrUvozModal` fiskalni QR, `BarcodeScannerModal` Ctrl+K skener na prodavnici,
+  `BarkodSkenerModal` unos bar-koda u admin formama artikla). Objedinjuje: pristup kameri,
+  `BarcodeDetector` kad postoji, **rezervni `jsQR` dekoder** (učitava se lenjo, tek kad zatreba,
+  kao poseban chunk — ne opterećuje početno učitavanje) za pretraživače bez `BarcodeDetector`-a,
+  prekidač blica, zamenu prednje/zadnje kamere, i zvučni + vibro signal pri očitavanju.
+- **`SufQrUvozModal`** je time dobio blic, zamenu kamere, uspravni prikaz prilagođen telefonu i
+  jasnu napomenu kad je aktivan rezervni dekoder.
+- Rezervni dekoder prepoznaje **samo QR** (dovoljno za SUF); 1D bar-kodovi (EAN/Code-128) na
+  iPhone/Firefox i dalje idu na ručni unos, uz vidljivo objašnjenje u skeneru.
+- Napomena: WPF desktop nema skeniranje kamerom (nema telefonske kamere) — tamo ostaje brz unos
+  URL-a / koda, kao i do sada.
+- 10 novih testova (`useKameraSkener.test.ts`) + E2E prolaz kroz modal sa lažnim media uređajem
+  (`docs/E2E_TESTIRANJE.md` §130).
+
 ## [2.72.0] - 2026-09-07
 
 ### 📦 Komisiono poslovanje i konsignacija (11.G)

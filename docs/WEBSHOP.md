@@ -789,7 +789,8 @@ Implementiran je napredni sistem brze pretrage inspirisan modernim Command Palet
    - **Brze Prečice:** Direktni linkovi ka Listi želja, Upoređivanju, B2B Portalu i Istoriji porudžbina.
 
 2. **📷 Web Barcode & QR Skener Kamerom (`BarcodeScannerModal.tsx`)**:
-   - **Optičko Očitavanje:** Koristi HTML5 `MediaDevices.getUserMedia` i `BarcodeDetector` API za prepoznavanje standarda: **EAN-13**, **EAN-8**, **Code-128**, **Code-39** i **QR Code**.
+   - **Deljeni skener (`useKameraSkener` hook, §130 / 11.H):** Isti hook pokreće sva tri skenera u aplikaciji — ovaj (Ctrl+K prodavnica), `SufQrUvozModal` (fiskalni QR sa portala Poreske uprave) i `BarkodSkenerModal` (unos EAN/UPC/ISBN u admin formi artikla).
+   - **Optičko Očitavanje:** `MediaDevices.getUserMedia` + `BarcodeDetector` (Android/Chrome, prepoznaje **EAN-13**, **EAN-8**, **Code-128**, **Code-39**, **QR Code**), a na pretraživačima bez `BarcodeDetector`-a (**iOS Safari**, **Firefox**) automatski se uključuje **rezervni `jsQR` dekoder** — učitava se lenjo (zaseban chunk), prepoznaje **samo QR**; 1D bar-kodovi na tim pretraživačima idu na ručni unos, uz vidljivo objašnjenje.
    - **Vizuelni i Zvučni Odziv:** Animirani laserski nišan, zvučni signal (*880Hz audio beep*) i haptička vibracija mobilnog telefona pri uspešnom očitavanju.
    - **Kontrole:** Prekidač za blic / lampu (Torch) i prebacivanje prednje/zadnje kamere.
     - **Desktop Simulator:** Dugmad sa testnim barkodovima za jednostavnu simulaciju i testiranje bez fizičke kamere.

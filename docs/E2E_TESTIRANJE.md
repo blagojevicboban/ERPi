@@ -877,3 +877,45 @@ uz arhiviranje žurnala računa u DMS priloge.
 - **Frontend test i `globalThis`:** `SufQrUvoz.test.ts` je u prvoj verziji koristio `global.fetch` što je obaralo TypeScript proveru u sklopu `npm run build`. Ispravljeno prelaskom na `globalThis.fetch`.
 - **Regresiona provera:** Svih 1,918 .NET testova i 323 frontend Vitest testova prolaze bez ijedne greške.
 
+---
+
+## §130 — 11.H: SUF QR skener kamerom uživo (rezervni dekoder za iOS/Firefox) (07.09.2026)
+
+Verifikacija **11.H iz `PLAN_SEPTEMBAR_2026.md`**: skeniranje QR koda fiskalnog isečka kamerom
+telefona/tableta na Webu, sa rezervnim `jsQR` dekoderom za pretraživače bez `BarcodeDetector`-a
+(iOS Safari, Firefox). Nov deljeni `useKameraSkener` hook koriste sva tri skenera u aplikaciji.
+
+### Metodologija
+
+Izolovan stack: `ERPiApi --port 5002` nad kopijom `DEMO.db` (`scratchpad/DEMO_11h.db`), vite na
+5174, headless Chrome na CDP 9333 sa `--use-fake-ui-for-media-stream` +
+`--use-fake-device-for-media-stream` (lažni video uređaj — Chrome servira testni signal umesto
+prave kamere). Namenski skript (`scratchpad/e2e-11h.mjs`, isti CDP obrazac kao
+`web-screens-pass/driver.mjs`, prijava osoblja preko `/api/auth/prijava-osoblje`). Pravi WebShop
+servis na 5000 nije dodirnut.
+
+### Testirana funkcionalnost i prolaz
+
+| Korak | Šta je provereno | Ishod |
+| :--- | :--- | :---: |
+| Otvaranje modala | `/admin/sef-izvodi` → dugme „SUF QR Uvoz" → modal sa poljem za link | ✅ |
+| Uključivanje kamere | `<video>` postoji, `srcObject` je `MediaStream`, `videoWidth = 1280` (lažni uređaj strimuje), viewfinder overlay iscrtan | ✅ |
+| Rezervni dekoder | Headless Chrome nema `BarcodeDetector` → napomena „Ovaj pretraživač koristi rezervni QR dekoder" prikazana, `import('jsqr')` izvršen bez greške (lenji chunk `jsQR-*.js` učitan) | ✅ |
+| Kontrole kamere | Dugme za zamenu prednje/zadnje kamere prisutno (blic sakriven — lažni uređaj nema `torch` capability, ispravno) | ✅ |
+| Isključivanje kamere | „Isključi" → `<video>` uklonjen, trake zaustavljene | ✅ |
+| Ručni unos — greška | Nevažeći `vl` kôd → „Učitaj" → portal PU vratio **400**, modal prikazao „Portal Poreske uprave je vratio grešku (400). Proverite link." i ostao otvoren (bez pada) | ✅ |
+| Uncaught izuzeci | Nijedan. Jedini `console.error` je poznati „connection stopped during negotiation" (SignalR — skript napušta stranicu usred handshake-a, v. §128) | ✅ |
+| Jedinični testovi | `useKameraSkener.test.ts` — 10 testova: start/stop strima, dozvola vs `NotAllowedError`, izbor native-vs-fallback staze, **native `BarcodeDetector` emituje kôd tačno jednom (dedup)**, **`jsQR` fallback crta frame na canvas i prosleđuje dekodirani QR sa `inversionAttempts: 'dontInvert'`**, torch, flip restart, cleanup | ✅ 10/10 |
+| Regresija | `tsc --noEmit` 0, `npm run build` OK (`jsQR` zaseban chunk, glavni bundle bez rasta), `npx vitest run` **348/348** | ✅ |
+
+### Granice (izričito neprovereno)
+
+- **Prava kamera i pravo dekodiranje QR-a sa isečka** — lažni media uređaj daje testni signal, ne
+  QR kôd; da `jsQR` tačno dekodira SUF QR sa papira ne može se dokazati bez fizičkog uređaja.
+  Ispravnost samog `jsQR` algoritma je odgovornost te (zrele, MIT) biblioteke; hook je testom
+  dokazano poziva ispravno.
+- **iOS Safari ponašanje** — fallback staza je ista grana koda koju headless Chrome ovde izvršava
+  (nijedan nema `BarcodeDetector`), ali stvarni Safari `getUserMedia` + `<video>` render nije
+  proveren na uređaju.
+- **WPF** — `SufQrUvozWindow` nema kameru (ni ranije); 11.H je po planu samo Web.
+
