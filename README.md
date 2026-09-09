@@ -3,13 +3,13 @@
 # ⚡ ERPi Enterprise Business Suite
 ### Celoviti, Hibridni Poslovni Informacioni Sistem & e-Commerce Platforma
 
-[![Version](https://img.shields.io/badge/version-2.74.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.75.0-blue.svg?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
 [![.NET](https://img.shields.io/badge/.NET-8.0--windows-512BD4.svg?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![WPF UI](https://img.shields.io/badge/UI-WPF%20Desktop-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](ERPiApp)
 [![WebShop & Admin](https://img.shields.io/badge/Web-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](ERPiWebShop)
 [![Codebase](https://img.shields.io/badge/Codebase-640k%2B%20LOC-blueviolet.svg?style=for-the-badge&logo=codefactor&logoColor=white)](README.md#-projekat-u-brojkama--inženjerska-metrika)
 [![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20Postgres%20%7C%20MSSQL-4479A1.svg?style=for-the-badge&logo=sqlite&logoColor=white)](docs/ARCHITECTURE.md)
-[![Tests](https://img.shields.io/badge/Tests-2321%20Passing%20(1971%20.NET%20%2B%20350%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
+[![Tests](https://img.shields.io/badge/Tests-2334%20Passing%20(1984%20.NET%20%2B%20350%20Web)-10B981.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](ERPiData.Tests)
 [![Auto-Update](https://img.shields.io/badge/Updater-Velopack-F97316.svg?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/blagojevicboban/ERPi/releases)
 
 <p align="center">
@@ -35,7 +35,7 @@
 
 | 📏 Obim Koda | 🗄️ Baza Podataka | 🖥️ Desktop Klijent | 🌐 Web & API | 🧪 Kvalitet & Testovi |
 | :---: | :---: | :---: | :---: | :---: |
-| **~400.000**<br/><sub>linija ručno pisanog koda</sub> | **120+ Modela**<br/><sub>91 EF migracija</sub> | **211 Ekrana**<br/><sub>WPF prozori i dijalozi</sub> | **34 Kontrolera**<br/><sub>276 React komponenti</sub> | **2.321 Test**<br/><sub>100% prolaznost</sub> |
+| **~400.000**<br/><sub>linija ručno pisanog koda</sub> | **120+ Modela**<br/><sub>93 EF migracije</sub> | **211 Ekrana**<br/><sub>WPF prozori i dijalozi</sub> | **34 Kontrolera**<br/><sub>276 React komponenti</sub> | **2.334 Testa**<br/><sub>100% prolaznost</sub> |
 
 </div>
 
