@@ -182,9 +182,15 @@ i pumpu, a prolaz ostaje kao rezerva).
   je Singleton koji šalje u `Clients.Group("admin")` procesno, bez tenant konteksta.
 - **Per-tenant hub grupisanje** (`$"tenant-{sifra}-admin"`, `ErpiLiveHub.OnConnectedAsync` čita
   `JwtService.ClaimTenantSifra` claim) je **zaseban cross-cutting korak koji pokriva SVE evente
-  odjednom** — ne uvoditi ga samo za lager (napravilo bi nedoslednost). `DIZAJN_SIGNALR.md` §5 i
-  `DIZAJN_MULTI_TENANT.md` §2 su ga već ostavili po strani; ostaje tamo. Nizak prioritet dok
-  `--tenants` niko ne koristi produkciono.
+  odjednom** — ne uvoditi ga samo za lager (napravilo bi nedoslednost).
+
+  ✅ *Realizovano 08.09.2026 (§133).* `ErpiLiveHub.GrupaZaTenant(sifra)`: van `--tenants` (token
+  nema `TenantSifra` claim) ostaje `"admin"` — bajt-identično ponašanje; u `--tenants` svaka firma
+  dobija `tenant-{sifra}-admin`. `ErpiLiveNotifier` metode dobile opcioni `string? tenantSifra`
+  (kontroler ga uzima iz `CurrentTenantAccessor`, pozadinski servis iz svoje petlje po zakupcima).
+  Dira 4 eventa + 2 kontrolera (`PorudzbineController`, `AdminController`) + 2 pozadinska servisa.
+  Testovi: `ErpiLiveHubTests` (3), `ErpiLiveNotifierTests` (+3). E2E pod `--tenants` sa dve kopije
+  `DEMO.db` — `docs/E2E_TESTIRANJE.md` §133.
 
 ### 3.4 Frontend prijem — lager
 

@@ -4,6 +4,37 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [Neobjavljeno]
+
+### 🔒 Zaštita od pregaza istovremenih izmena — ceo model
+
+Do sada je zaštitu od „dvoje istovremeno menja isti zapis pa drugi tiho pregazi prvog" imalo 9
+tipova (nalozi, kalkulacije, web porudžbine, artikli, partneri, radnici, sredstva, komisiono).
+Sada je ima **~110 tipova** — dokumenti i **njihove pojedinačne stavke** (stavka naloga, stavka
+kalkulacije, stavka obračuna zarade, računi, ponude, narudžbenice, interni prenosi, popisi, radni
+nalozi, sastavnice, reversi…), šifarnici koje uređuju i desktop i web (konto, magacin, cenovnik,
+poreske i parametarske tabele zarada, web kategorije i atributi) i jednoredna podešavanja (firma,
+web prodavnica, EFT POS, marketplace).
+
+- Ako dvoje otvori isti dokument (ili istu stavku istog dokumenta) i oba sačuvaju, drugi dobija
+  jasnu poruku „Zapis je izmenio neko drugi — osvežite i pokušajte ponovo" (web: HTTP 409; desktop:
+  upozorenje) umesto da mu izmena nestane.
+- Zatečene baze kolonu dobijaju automatski pri prvom pokretanju — na sve tri vrste baze
+  (SQLite, PostgreSQL, SQL Server), izvedeno iz modela (kao indeksi), bez ručnog održavanja spiska.
+- Namerno izostavljeni: revizijski dnevnik, kartice/knjige, fiskalni računi (nepromenljivi posle
+  fiskalizacije) i slične append-only tabele — tamo nema šta da se pregazi.
+
+### 🏢 Per-firma izolacija live kanala u multi-tenant režimu (11.K, poslednji deo)
+
+Kada jedan `ERPiApi` proces opslužuje više firmi (`--tenants` režim), live obaveštenja (nova
+porudžbina, promena statusa, promena zaliha, SEF status) do sada su odlazila svim prijavljenim
+administratorima u procesu — administrator firme A video bi „zvono" za događaj firme B. Sada svaki
+live event stiže samo administratorima firme na koju se odnosi.
+
+- Van `--tenants` režima (svi klijenti danas) ponašanje je nepromenjeno — proces je već jedna firma.
+- Granica se izvodi iz prijave: SignalR konekcija se pridružuje kanalu svoje firme na osnovu
+  podatka iz tokena, koji je već proveren protiv izabrane firme (`X-Tenant-Id`).
+
 ## [2.74.0] - 2026-09-08
 
 ### 📦 Live lager — zalihe na webu i kasi se osvežavaju same (11.K)

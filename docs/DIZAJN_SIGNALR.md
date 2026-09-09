@@ -112,9 +112,11 @@ WebSocket radi bez ičega dodatnog.
   `ERPiApi` piše nazad, ili WPF mora da pogodi/proba portove — pravi mali dizajn-pod-problem, ne
   rešiti uzgred unutar ovog dokumenta.
 - **Status porudžbine, lager, SEF** — vidi tabelu u §2.
-- **Multi-tenant grupisanje unutar jednog procesa** — ne postoji dok ne postoji sam multi-tenant
-  (`PLAN_NASTAVKA.md` stavka 10); kad taj dizajn krene, hub grupe postaju `firma-{firmaId}` umesto
-  fiksnog `"osoblje"`.
+- **Multi-tenant grupisanje unutar jednog procesa** — ~~ne postoji dok ne postoji sam multi-tenant~~
+  ✅ *realizovano 08.09.2026 (§133), posle `--tenants` režima (§121).* Hub grupa je
+  `ErpiLiveHub.GrupaZaTenant(sifra)`: van `--tenants` fiksno `"admin"` (nepromenjeno), u `--tenants`
+  `tenant-{sifra}-admin` iz `JwtService.ClaimTenantSifra` claim-a. `ErpiLiveNotifier` metode primaju
+  opcioni `tenantSifra`. Vidi `docs/DIZAJN_LAGER_SYNC.md` §3.3 i `docs/E2E_TESTIRANJE.md` §133.
 - **B2B portal kao primalac** (npr. "vaša porudžbina je isporučena") — ista cev, drugi predznak
   (kupac umesto osoblja); nije tražen ovom analizom, dodati tek na eksplicitan zahtev.
 

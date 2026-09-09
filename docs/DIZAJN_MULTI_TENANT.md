@@ -116,8 +116,11 @@ firmi, svaku sa svojom bazom (SQLite/Postgres/MSSQL, bilo koja), strogo izolovan
 - Migracija postojećih server-firmi (Postgres/MSSQL) NA multi-tenant hosting — v1 samo omogućava
   novim/premeštenim firmama da uđu u zajednički proces; ne postoji automatski "prebaci firmu sa
   sopstvenog servisa u deljeni proces" alat.
-- Multi-tenant grupe u SignalR hubu — ovaj dokument to omogućava (`firmaId` postaje dostupan u
-  `HttpContext`/claim-u), ali samo žičenje hub-grupa je poseban, mali sledeći korak, ne deo v1.
+- Multi-tenant grupe u SignalR hubu — ~~poseban, mali sledeći korak, ne deo v1~~ ✅ *realizovano
+  08.09.2026 (§133).* `ErpiLiveHub` čita `TenantSifra` claim i konektuje admina u
+  `tenant-{sifra}-admin` grupu; `ErpiLiveNotifier` emituje u tu grupu (šifra iz `CurrentTenantAccessor`
+  za kontrolere, iz petlje po zakupcima za pozadinske servise). Van `--tenants` grupa ostaje
+  `"admin"`. Vidi `docs/DIZAJN_LAGER_SYNC.md` §3.3.
 
 ## 3. Tenant identifikacija — pre autentifikacije, ne posle
 

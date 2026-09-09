@@ -1006,3 +1006,117 @@ Uvođenje test-only kuke u produkcioni kod nije srazmerno dobitku jer je najveć
 | `useErpiLiveHub.test.ts` +1 (`sefStatus` handler) | ✅ |
 | Izolovan start API-ja (`--db` kopija `DEMO.db`, `--port 5003`) — `SefStatusPollerBackgroundService` registrovan, API se digao bez greške | ✅ |
 
+
+---
+
+## §133 — 11.K: Per-tenant SignalR grupe — izolacija live kanala u `--tenants` režimu (08.09.2026)
+
+Verifikacija **per-tenant hub grupisanja** (`docs/DIZAJN_LAGER_SYNC.md` §3.3): u `--tenants` režimu
+jedan `ERPiApi` proces hostuje N firmi, a `ErpiLiveNotifier` je Singleton bez tenant konteksta — bez
+per-firma grupe admin firme A dobija „zvono" za svaki event firme B. Sada `ErpiLiveHub` konektuje
+admina u grupu `tenant-{sifra}-admin` (šifra iz `TenantSifra` JWT claim-a, već proverenog protiv
+`X-Tenant-Id` u `TenantClaimValidator`), a `ErpiLiveNotifier` emituje baš u tu grupu.
+
+### Metodologija
+
+Izolovan stack: `ERPiApi --port 5099 --tenants <tenants.json>` sa **dve** firme (`a`, `b`), svaka nad
+zasebnom kopijom `DEMO.db` (`scratchpad/tenant-a.db`, `tenant-b.db`). Pravi instalirani servis (5000)
+nije dodirnut. Skript `scratchpad/tenant-hub-izolacija.mjs` — **dva nezavisna `@microsoft/signalr`
+klijenta** (ne browser; raw hub konekcija je dovoljna jer se dokazuje serverska rutina grupe), svaki
+sa tokenom i `?tenant=` svoje firme. Treća strana (skript) menja status postojeće porudžbine preko
+`PUT /api/admin/porudzbine/{id}/status` sa `X-Tenant-Id` jedne firme; posmatra se koji klijent je
+primio `statusPorudzbine` okvir. Obe firme su kopija istog `DEMO.db`, pa porudžbina `#158` postoji u
+obe — isti `id`, ista firma-neutralna poruka, jedina razlika je kanal.
+
+### Testirana funkcionalnost i prolaz
+
+| Korak | Šta je provereno | Ishod |
+| :--- | :--- | :---: |
+| Prijava po firmi | `POST /api/auth/prijava-osoblje` sa `X-Tenant-Id: a` i `: b` — token svake nosi svoj `TenantSifra` | ✅ |
+| Hub handshake po firmi | `POST /hubs/erpi-live/negotiate` 200, `GET /hubs/erpi-live` **101** (WebSocket) za oba klijenta | ✅ |
+| Event firme A → samo tab A | `PUT .../porudzbine/158/status` sa `X-Tenant-Id: a` → klijent A primio `statusPorudzbine` (`#158`, Prihvacena→UPripremi), **klijent B ništa** | ✅ |
+| Event firme B → samo tab B | isti poziv sa `X-Tenant-Id: b` → klijent B primio okvir, **klijent A ništa** | ✅ |
+| Izolacija u oba smera | nijedan `statusPorudzbine` okvir ne pretekne u tuđi kanal | ✅ |
+| Jedinični testovi | `ErpiLiveHubTests` (3): bez claim-a → `"admin"`, sa claim-om → `tenant-<sifra>-admin`, diskonekcija uklanja iz iste grupe. `ErpiLiveNotifierTests` (+7): svaka metoda sa `tenantSifra` gađa per-firm grupu; `GrupaZaTenant` Theory (null/prazno → `"admin"`, trim). | ✅ 1981/1981 .NET |
+| Regresija | `dotnet build ERPi.slnx` 0/0, `vitest` 350/350 (frontend nedirnut) | ✅ |
+
+### Granice (izričito neprovereno)
+
+- **`novaPorudzbina` / `stanjeZalihe` / `sefStatus` uživo pod `--tenants`** — dokazana je zajednička
+  rutina grupe (`ErpiLiveNotifier.GrupaZaTenant` + hub grupa) preko `statusPorudzbine`; ostala tri
+  eventa idu istom cevi, samo drugi pozivalac prosleđuje `tenantSifra` (kontroler iz
+  `CurrentTenantAccessor`, pozadinski servisi iz petlje — jedinično pokriveno).
+- **Browser (React) klijent pod `--tenants`** — raw `@microsoft/signalr` klijent je isti transport;
+  frontend nije menjan (`useErpiLiveHub` već šalje `?tenant=` + header od §128).
+
+## §134 — Multiuser pristup istom zapisu na sva tri provajdera (08.09.2026)
+
+Provera da garancija „dva nezavisna procesa nad istim redom" (tipično `ERPiApp` desktop + `ERPiApi`
+servis, ili dve desktop instance) važi **jednako na SQLite, PostgreSQL i SQL Serveru**, ne samo na
+SQLite kako je do sada bilo pokriveno (`RowVerzijaKonkurentnostTests` je SQLite-only).
+
+### Metodologija
+
+Nov razred `ERPiData.Tests/MultiuserPristupTests.cs` — provajder-parametrizovan, isti
+`ServerDostupan` obrazac kao `ServerSemaSinhronizatorTests` (bez živog servera test prođe prazan, ne
+obara CI). SQLite uvek; PostgreSQL nad živim `Host=localhost;Port=5432` (PG 17); SQL Server nad
+`(localdb)\MSSQLLocalDB` (v17.0.4025). Svaka provera: `ErpiDbContext.Create` napravi svežu bazu,
+seed `Firma`+`Partner`+`Nalog`+`Artikal`+`MestoTroska`, pa dva nezavisna `ErpiDbContext`-a (analogno
+dva procesa) učitaju isti red i oba ga izmene.
+
+### Testirana funkcionalnost i prolaz
+
+| Provera | SQLite | PostgreSQL | SQL Server |
+| :--- | :---: | :---: | :---: |
+| WAL režim aktivan (`PRAGMA journal_mode` = `wal`) | ✅ | — (MVCC) | — (MVCC) |
+| Partner (šifarnik, `IImaRowVerziju`): drugi `SaveChanges` → `DbUpdateConcurrencyException`, u bazi ostaje prvi pisac | ✅ | ✅ | ✅ |
+| Nalog (Finansije, `IImaRowVerziju`): isti mehanizam | ✅ | ✅ | ✅ |
+| Artikal (WPF menja ERP naziv, Web admin web naziv istovremeno) → drugi dobija konflikt | ✅ | ✅ | ✅ |
+| **MestoTroška (token kao SHADOW svojstvo)** — dokaz da prošireni put radi isto kao interfejs | ✅ | ✅ | ✅ |
+| Čitalac (`AsNoTracking`) ne visi ni ne puca dok drugi drži otvorenu transakciju | ✅ (WAL) | ✅ (MVCC) | ✅ (MVCC) |
+
+Web strana konflikt već prevodi u HTTP **409** (`KonkurentnostIzuzetakHandler`), WPF u MessageBox
+(globalni `DispatcherUnhandledException` u `App.xaml.cs`) — oba postojeća, nedirnuta.
+
+### Proširenje tokena na ceo model (09.09.2026, „zaštiti sve što može")
+
+Do sada je `RowVerzija` imalo 9 entiteta (`IImaRowVerziju`). Sad ga dobija **~110 entiteta** kao
+SHADOW svojstvo — kurirana lista `ErpiDbContext.EntitetiSaShadowTokenom`, tri grupe:
+
+1. **Dokumenti + njihove stavke** — `StavkaNaloga`, `StavkaKalkulacije`, `ObracunStavka`, računi,
+   ponude, narudžbenice, interni prenosi, popisi, radni nalozi, sastavnice, zarade dokumenti,
+   sredstva reversi/popisi, web reklamacije… Sad dvoje koji menjaju **različite stavke istog
+   naloga/obračuna** ne mogu tiho da pregaze — drugi upis stavke baca konflikt.
+2. **Šifarnici koje diraju obe strane** — `Konto`, `Magacin`, `Cenovnik`, `PoreskaTarifa`,
+   `WebKategorija`, `Atribut`, parametarske tabele zarada (`Porezi`, `Doprinos`, `PoreznaStopa`,
+   `NeoporeziviLimit`…).
+3. **Jednoredna podešavanja** — `Firma`, `WebShopPodesavanja`, `EftPosPodesavanje`,
+   `MarketplacePodesavanje`, `ProizvodnjaPodesavanja`.
+
+**Mehanika (nula ručnih spiskova kolona):**
+
+- `OnModelCreating` registruje shadow `RowVerzija` + `IsConcurrencyToken()` za svaki tip iz liste.
+- `OsveziRowVerzije` prošireno da ide po `ChangeTracker.Entries()` i piše kroz `CurrentValues` —
+  pokriva i interfejs i shadow.
+- Nove baze: EF migracija `DodajRowVerzijuSiromModela` (114 `AddColumn`).
+- Zatečene SQLite baze: `EnsureRowVerzijaKolone` — izvedeno iz modela kao `EnsureIndeksi`, ne ručni
+  spisak. Invarijantu čuva `MigracijeSemaTests.ZatecenaBaza_RawSqlTabeleImajuSveKoloneIzModela`.
+- PostgreSQL / SQL Server: `ServerSemaSinhronizator` (isto, model-derived) — potvrđeno živim
+  `ServerSemaSinhronizatorTests` (PG 17) i `MultiuserPristupTests` (PG + LocalDB).
+
+**Namerno BEZ tokena:** `AuditLog`, sve `*Kartica`/knjige, `WebPoseta`, `Pfr*`/`FiskalniRacun*`
+(nepromenljivi posle fiskalizacije), `ObracunAudit`/`ObracunVerzija`, `SlanjeListica`, `Promena`,
+`PdvZapis`, `*Log`, `EsirBrojac` (ima svoj `Verzija`), append-only tabele — tamo token nema šta da
+štiti.
+
+### Granice (izričito neprovereno)
+
+- **`WebShopPorudzbinaLockService`** je in-process semafor — važi jer je 1 `ERPiApi` proces po
+  firmi; horizontalno skaliranje ili direktan upis porudžbine iz WPF-a ga zaobilaze
+  (`docs/ARHITEKTURA_ANALIZA_I_PREDLOZI.md`).
+- **SQLite na mrežnom disku** — WAL tiho pada na rollback-journal (nema deljene memorije preko SMB);
+  `SqlitePragmaInterceptor` to guta bez upozorenja. Za multiuser preko mreže → PG/MSSQL.
+- **MSSQL preko punog servisa** (`MSSQLSERVER`) — proveren samo LocalDB; isti `Microsoft.Data.SqlClient`
+  put, ista `UseSqlServer` grana.
+- **`PoklonKartica` stanje** — namerno van tokena: dve istovremene isplate kartice bi bilo bolje
+  rešiti atomskim `UPDATE ... SET stanje = stanje - x WHERE stanje >= x` nego 409-om.
