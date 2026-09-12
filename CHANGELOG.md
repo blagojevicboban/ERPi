@@ -4,6 +4,38 @@ Sve značajne promene i novine u aplikaciji **ERPi** dokumentovane su u ovom faj
 
 Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardu i prati Semantic Versioning.
 
+## [Neobjavljeno]
+
+## [2.75.1] - 2026-09-12
+
+### 🧾 Popravke
+
+- ESC/POS fiskalni isečak: kolone cena/količina/ukupno i poreska stopa/iznos se sada skraćuju
+  kad ne stanu na traku (58mm/80mm) — ranije bi veliki iznos probio širinu papira.
+- Modal za e-banking naloge dobavljačima: kolona „Naziv" je bila prazna, a pretraga po
+  partneru/kontu nikad nije pogađala (pogrešna imena polja iza `any[]` tipa).
+- Modal za dodelu artikla lokaciji: prikaz "šifra — naziv" je uvek pokazivao samo "— naziv"
+  (pogrešno ime polja iza `any` tipa).
+
+### 🧹 Održavanje
+
+- Web (`ERPiWebShop`): `eslint` prošao sa 0 grešaka (bilo 25) — globals za `scripts/*.mjs` i
+  `public/sw.js`, sitne ispravke tipova i redosleda hookova.
+- Web (`ERPiWebShop`): `@typescript-eslint/no-explicit-any` na nuli (bilo 442 upozorenja kroz
+  147 fajlova) — `catch (err: any)` svuda na `instanceof Error`, generic `<K extends keyof T>`
+  za "polje" setter helpere, pravi tipovi umesto `any`/`Record<string, any>` gde god su već
+  postojali u `services/`, `types/` ili `zaradeApi`/`magacinApi`.
+- Web (`ERPiWebShop`): `@typescript-eslint/no-unused-vars` na nuli (bilo 185) — neiskorišćeni
+  import-i, mrtve `const`, i po jedno namerno-neiskorišćeno mesto preimenovano `_` prefiksom
+  (obrasci: „setter se zove, vrednost se ne čita" i omit-destructuring `{ polje, ...rest }`).
+- Web (`ERPiWebShop`): `react-hooks/exhaustive-deps` na nuli (bilo 70) — time i `eslint` u
+  celini na **0 grešaka, 0 upozorenja** (bilo 705 pred početak ovog niza popravki). Tri
+  stvarna nalaza (nestabilan `x ?? []` niz u zavisnostima `useMemo` lanca u
+  `VarijanteUredjivac`/`B2bMatricaVarijanti`/`LiveSearchDropdown`, sad kroz sopstveni
+  `useMemo`); ostatak već ustaljen obrazac (`eslint-disable-next-line` za „učitaj na promenu
+  filtera" i namerno uzak ključ zavisnosti — postojao 44 puta u istom stablu, ovim dopunjen na
+  preostalih 66 mesta).
+
 ## [2.75.0] - 2026-09-09
 
 ### 🔒 Zaštita od pregaza istovremenih izmena — ceo model
@@ -92,6 +124,7 @@ Firefox-u kamera bi se uključila ali ne bi ništa prepoznala.
 ### 📦 Komisiono poslovanje i konsignacija (11.G)
 
 Kompletna podrška za prijem i prodaju tuđe robe (komision / konsignacija) u magacinskom i finansijskom poslovanju:
+
 - **Modeli i baza (`ERPiData`):**
   - Entiteti `KomisionaPrijemnica` i `KomisionaPrijemnicaStavka` za vanbilansni prijem robe od komitenta.
   - Entiteti `KomisionaOdjava` i `KomisionaOdjavaStavka` za periodični obračun prodate robe.
@@ -348,7 +381,6 @@ zbir osnovica po isplatama kod zarade isplaćene u više delova — i ispravljen
 gornja granica osnovice primenjuje samo ako je uneta u šifarnik `Doprinosi`, što je bilo tačno do
 03.09.2026, a od tada obe granice imaju ugrađenu vrednost po periodu koju šifarnik samo pregazi.
 
-
 ### 🐛 Zarade — „Ponovo obračunaj" nije osvežavao osnovicu doprinosa (§118)
 
 Preračunavanje zatečenog obračuna (WPF „Porezi i parametri" i „Doprinosi" posle snimanja, web
@@ -368,7 +400,6 @@ obračun izvodi. Time su usput prestala da zaostaju i:
 - **detaljne bruto stavke i prosek** na web putu, koji ih ranije nije prepisivao.
 
 Uneti sati se i dalje ne diraju.
-
 
 ### 🧾 Zarade — PPP-PD MFP „prethodno prijavljeno" za dvodelnu isplatu (§117)
 
@@ -468,6 +499,7 @@ mesta i **razišli se**: What-If je nosio osnovice iz 2024 (40.143/573.470), ša
 ### 🐛 Zarade — neoporezivi iznos i osnovice doprinosa osveženi na 2026 (§115)
 
 Neoporezivi iznos zarade je od 1.1.2026. **34.221** („Sl. glasnik RS" 109/2025) — usklađuje se
+
 1. januara, za razliku od ostalih neoporezivih iznosa (prevoz, dnevnice, jubilarna nagrada) koji se
 menjaju 1. februara. Kroz aplikaciju je stajala vrednost iz 2025 (28.423), i to zamrznuta za sve
 periode: obračun bez unetog šifarnika je i za 2023. i za 2026. dobijao isti, pogrešan iznos. Sad
@@ -1343,6 +1375,7 @@ tog opsega (`7003229..502286b`) našao je deset grešaka; sve su ispravljene.
   proveru. Uz njega i testovi determinizma, ravnoteže svih naloga glavne knjige, ispravnosti JMBG-a
   po `JmbgValidator`-u, prijave demo korisnika i postojanja konta koja servisi traže po broju.
   Radi nad **pravom SQLite bazom**, ne InMemory — vidi §5.
+
 ### 🐛 Ispravke otkrivene ovim radom
 
 - **`VrsteUgovoraSeed` je nosio napomenu od 213 znakova u koloni `MaxLength(200)`** — na SQLite-u
@@ -2389,6 +2422,7 @@ Puna dokumentacija: **`docs/KASA.md`** (lokalni fajl van git praćenja).
 - Nov dokument `docs/KASA.md`; `docs/ARCHITECTURE.md` dopunjen odeljkom 1.9.
 
 **Testovi: 901** (bilo 737), 100% prolaznost.
+
 ## [2.44.0] - 2026-08-17
 
 ### 📤 Masovno slanje na SEF i masovno osvežavanje statusa (ERPiApp)
@@ -2403,6 +2437,7 @@ Puna dokumentacija: **`docs/KASA.md`** (lokalni fajl van git praćenja).
 ## [2.43.0] - 2026-08-17
 
 ### 🔔 Bedž sa brojem pristiglih porudžbina u meniju (ERPiApp)
+
 - **Neobrađena porudžbina se više ne primećuje tek ručnim „Osveži”.** Porudžbina rezerviše zalihu čim stigne, pa neprimećena porudžbina drži robu neprodatom. Stavka *WebShop → Pristigle porudžbine* sada nosi crveni bedž sa brojem porudžbina u statusu *Nova* ili *Čeka odobrenje*.
 - **Vidljivo i kad je grupa skupljena.** Grupa *WEBSHOP (B2C / B2B)* je podrazumevano zatvorena, pa se broj dopisuje i u njen naziv — bedž na stavci unutar zatvorene grupe bio bi nevidljiv baš kad je najpotrebniji.
 - **Osvežava se na 60 sekundi i odmah po obradi** (odobrenje, promena statusa, fakturisanje), preko `WebPorudzbineView.PorudzbineIzmenjene`. Koristi zaseban kratkotrajan `DbContext`, jer glavni dele svi otvoreni ekrani, a EF kontekst ne podnosi dve istovremene operacije. Nedostupna baza ne ruši prozor — bedž samo ostane na prethodnoj vrednosti.
@@ -2433,11 +2468,13 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **Tuđa korpa se prepisivala poznavanjem tokena.** `POST /api/porudzbine/sinhronizuj-korpu` je korpu nalazio samo po klijentski poslatom `KorpaToken`, bez veze sa prijavljenim korisnikom, pa se tuđoj korpi mogao prepisati sadržaj, iznos i kontakt (email, ime, telefon) — a ti podaci hrane automatske podsetnike za napuštene korpe. Korpa koja pripada nalogu od sada se dira samo iz tog naloga; dodata je i gornja granica dužine tokena.
 
 ### 🔧 Ispravke
+
 - **PDF u ERPiApi je padao na 500 osim slučajno.** QuestPDF licencu su postavljali samo `ERPiApp` i statički konstruktor `B2bPdfService`-a; u ERPiApi procesu nije bila postavljena nigde, pa je svako generisanje PDF-a koje ne prolazi kroz `B2bPdfService` (predračun kupca, **admin predračun**, adresnica) padalo — osim ako je u istom procesu pre toga zatražen neki B2B PDF i time je postavio globalno podešavanje. Postavlja se pri pokretanju (`Community`, isto kao na svim ostalim mestima u repou).
 
 ## [2.40.0] - 2026-08-17
 
 ### 🗺️ Dinamički `sitemap.xml` sa slikama & prošireni `robots.txt` (ERPiApi / WebShop)
+
 - **Slike u mapi sajta.** `sitemap.xml` sada uz svaku adresu emituje i `image:image` zapise (Google image sitemap ekstenzija) — sve slike artikla iz `SlikeJson` i naslovnu sliku kategorije. Lokalne putanje (`/slike/12/a.jpg`) se pretvaraju u pune adrese prodavnice, tuđe CDN adrese prolaze netaknute, a zapisi koje pretraživač ne može da preuzme (`data:`, `file:`) i ponovljene slike otpadaju. Time proizvodi ulaze i u Google Images, ne samo u web pretragu.
 - **Varijacije više ne ulaze kao pokvareni linkovi.** Mapa je izlistavala i artikle-varijacije (`RoditeljArtikalId`), koje katalog ne prikazuje kao zasebne proizvode — adresa `/proizvod/{šifra varijacije}` posetiocu javlja „artikal ne postoji". Sada se, kao i u katalogu, emituju samo matični artikli.
 - **`lastmod` po stvarnoj izmeni.** Ranije je za **svaki** artikal stajao današnji datum, pa je mapa svakog dana tvrdila da se promenio ceo katalog — signal koji pretraživači posle par provera prestanu da uzimaju u obzir. Datum se sada čita iz audit traga (`AuditSaveChangesInterceptor` beleži kreiranje/izmenu artikla), a artikli bez traga ostaju bez `lastmod`-a.
@@ -2448,6 +2485,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.39.0] - 2026-08-17
 
 ### 🔍 DMS OCR Automatsko Parsiranje Računa & Ulazne Kalkulacije (ERPiApp Desktop)
+
 - **OCR uvoz na listi kalkulacija.** Dodato dugme *„🔍 OCR Uvoz računa”* u glavni toolbar `KalkulacijeView` za 1-klik učitavanje/skeniranje računa dobavljača (PDF ili slike) sa automatskim kreiranjem nove kalkulacije.
 - **OCR popunjavanje u editoru kalkulacije.** Dugme *„🔍 OCR Popuni iz računa”* u `KalkulacijaEditWindow` automatski popunjava broj računa, broj otpremnice, datum izdavanja/prometa, nabavne iznose (osnovicu) i pronalazi/kreira dobavljača po PIB-u.
 - **Automatsko arhiviranje u DMS.** Priloženi skenirani fajl se automatski vezuje uz kalkulaciju u bazi dokumenata sa ažuriranjem DMS bedža.
@@ -2456,6 +2494,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.38.0] - 2026-08-17
 
 ### 🔐 Google Identity Services (GIS) Zvanična Prijava & Registracija
+
 - **Zvanično Google Sign-In dugme.** Ugrađena `GoogleSignInButton.tsx` komponenta koja dinamički učitava zvanični Google Identity Services SDK (`https://accounts.google.com/gsi/client`) kada je `googleClientId` konfigurisan u CMS podešavanjima.
 - **Povezivanje u formama za prijavu i registraciju.** U `NalogForme.tsx` kupci sada mogu jednim klikom da se prijave ili registruju sa svojim verifikovanim Google nalogom.
 - **Loyalty nagrada za Google registraciju.** Novi kupci koji se registruju preko Google-a automatski dobijaju +50 dobrodošlica loyalty bonus bodova.
@@ -2464,6 +2503,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.37.0] - 2026-08-17
 
 ### 🚚 Integracija sa kurirskim API-jem (PostExpress / Bex Live & Sandbox)
+
 - **Live provera statusa pošiljke.** Novi endpoint `GET /api/admin/porudzbine/{id}/kurir-status` i dugme *„⚡ Live Kurir API Status”* u detaljima porudžbine sa vizuelnom vremenskom linijom kretanja paketa (Najavljeno ➔ Preuzeto ➔ U tranzitu ➔ Na dostavi ➔ Uručeno primaocu) sa tačnim datumom, satnicom i lokacijom.
 - **Masovno kreiranje pošiljki za 1-klik.** Na tabu *Porudžbine* dodata je mogućnost višestruke selekcije sa checkbox-ovima i trakom za masovno kreiranje tovarnih listova (`POST /api/admin/porudzbine/masovno-kreiraj-posiljke`) za izabranu kurirsku službu (PostExpress, Bex, DExpress, Aks).
 - **Proširena podrška za kurirske API-je.** `KurirskaSluzbaService` podržava automatsko kreiranje pošiljki, dodelu tracking kodova, kalkulaciju poštarine i proračun otkupnine sa dinamičkim prebacivanjem između Live API i Sandbox režima.
@@ -2471,22 +2511,26 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.36.1] - 2026-08-17
 
 ### 🔒 Bezbednost — kredencijali platnog procesora više ne izlaze na javni endpoint
+
 - **`GET /api/katalog/podesavanja` je vraćao tajne svakom anonimnom posetiocu.** Taj endpoint nije (i ne treba da bude) pod prijavom — prodavnica ga zove pri svakom učitavanju stranice — a u odgovoru su bili **Secret Key / 3DS HMAC ključ i API Key platnog procesora**, Merchant i Terminal ID, kao i **SMS API ključ i tajna** te Viber Service ID. Bili su čitljivi golim otvaranjem adrese u pregledaču, bez ikakvog naloga. Uklonjeni su iz javnog odgovora; ostali su samo prekidači i naziv procesora (`karticeProcesor`, `karticeSandboxMod`, `dozvoliKarticePlacanje`), po kojima prodavnica crta način plaćanja.
 - **Backoffice forma sada čita podešavanja sa admin endpointa.** CMS forma je polja za tajne punila iz istog javnog odgovora — zato su tajne i bile tamo. Sada se dopunjava sa `GET /api/admin/podesavanja` (pod `[Authorize(Roles = "Admin")]`), pa administrator vidi i uređuje ključeve kao i pre, a čuvanje ih ne prepisuje praznim vrednostima.
 
 ### ⚙️ Podešavanja koja se nisu mogla popuniti nigde
+
 - **Google OAuth Client ID.** Provera da je Google token izdat baš za ovu prodavnicu (audience) uvedena je u 2.29.2 i kod ju je čitao, ali polje nije postojalo ni u jednoj formi — moglo se popuniti samo ručnom izmenom baze. Dodato u `ERPiApp` → *Podešavanja → WebShop*, uz Google Analytics i Meta Pixel ID.
 - **Podrazumevana masa artikla (kg).** Po njoj kurirske službe daju cenu dostave kad artikal nema unetu masu; postojala je u modelu i u API-ju, ali bez polja u formi. Dodata uz troškove dostave.
 
 ## [2.36.0] - 2026-08-17
 
 ### 🌍 Multi-jezik (i18n — Srpski 🇷🇸 / Engleski 🇬🇧 / Nemački 🇩🇪)
+
 - **Kompletna višejezičnost na klijentu i serveru.** Podrška za 3 jezika (Srpski, Engleski, Nemački) kroz ceo proces pretrage, navigacije i kupovine.
 - **Backend dvojezična/trojezična pretraga.** `KatalogController` u upitima za pretragu proizvoda i Live Search autocomplete-u pretražuje po `NazivEn` i `NazivDe` pored osnovnog naziva i šifre artikla.
 - **Lokalizovane forme, korpa, checkout, lista želja i upoređivanje.** Svi tekstovi dugmadi, poruka, praznih stanja, modala i procesa poručivanja prevedeni su i automatski se prilagođavaju izabranom jeziku.
 - **Prevod naziva i opisa artikala i kategorija.** Dinamičko mapiranje naziva kategorija i artikala prema izabranom jeziku (`prevediProizvod`, `prevediKategoriju`).
 
 ### 🛒 Oporavak napuštenih korpi sada radi sam, a kupon stvarno prolazi na kasi
+
 - **Pozadinski servis, ne samo dugme.** Verzija 2.35.0 je oporavak napuštenih korpi opisala kao „automatski u pozadini”, ali ga je pokretalo isključivo admin dugme — kupac koji napusti korpu preko noći ne bi dobio ništa do jutra. Dodat je `NapusteneKorpeBackgroundService` u `ERPiApi` koji na svakih 15 minuta sam odrađuje prolaz. Dugme *„⚡ Pokreni automatski oporavak”* ostaje i pokreće isti kod.
 - **Prekidač u CMS-u sada nešto radi.** `NapusteneKorpeAutomatskiOmoguceno` se do sada upisivao u bazu i imao prekidač u admin panelu, ali ga nijedna linija koda nije čitala — isključivanje automatike bilo je bez efekta. Sada se čita pri svakom prolazu, pa isključivanje odmah zaustavlja slanje, bez restarta API-ja. Ručno slanje podsetnika za pojedinačnu korpu prekidač namerno ignoriše — to je izričita akcija administratora.
 - **Promo kupon iz podsetnika više nije mrtav kod.** Podsetnik je reklamirao kod (`VRATISE5`) i procenat popusta, ali kupon sa tim kodom nikad nije bio zaveden u šifarnik — a naplata traži aktivan `WebKupon`, pa je kupac na kasi dobijao odbijanje. Kupon se sada zavodi (i produžava) pri slanju, sa procentom iz podešavanja i rokom od 7 dana. Kupon koji je administrator ručno napravio pod istim kodom se **ne prepisuje** — njegova pravila (procenat, minimalni iznos, ograničenje iskorišćenja) ostaju nedirnuta.
@@ -2495,25 +2539,30 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - Logika je izvučena iz `AdminController` u `NapusteneKorpeOporavakService` (`ERPiData`), pa pozadinski servis, admin dugme i ručni podsetnik dele isti kod umesto tri kopije.
 
 ### 🔒 Bezbednost — prijava preko Google naloga
+
 - **Nepotvrđena Google email adresa više ne prolazi.** Provera potpisa uvedena u 2.29.2 dokazuje da je token Google-ov, ali ne i da je adresa u njemu proverena. Pošto se prijava vezuje na postojeći ERPi nalog po email adresi, nalog na tuđem Workspace domenu sa email-om postojećeg kupca mogao je da preuzme njegovu prijavu. Endpoint sada odbija token bez `email_verified`.
 
 ### 🔧 Ispravke
+
 - **Service Worker više ne pada na ne-GET zahtevima.** `cache.put` na POST zahtevu baca izuzetak; sada se keširaju samo GET zahtevi.
 - **Isključivanje PWA sada važi i za postojeće posetioce.** Registrovan Service Worker je nastavljao da služi keširanu verziju sajta i posle isključivanja PWA u CMS-u — sada se odjavljuje i briše keš, pa isključivanje ne važi samo za nove posetioce.
 
 ## [2.35.0] - 2026-08-17
 
 ### 🛒 Automatizacija Oporavka Napuštenih Korpi (Abandoned Cart Recovery Automation)
+
 - **Masovno slanje podsetnika iz Backoffice-a.** Sistem identifikuje kupce koji su dodali artikle u korpu a nisu dovršili narudžbinu i šalje im email i SMS podsetnik sa sačuvanim stavkama i podsticajnim kupon kodom. (Prolaz je u ovoj verziji pokretalo isključivo admin dugme — pozadinska automatika je dodata u 2.36.0.)
 - **Konfigurabilna pravila u CMS-u.** Administrator može podešavati sate čekanja pre slanja (npr. 2h), procenat popusta (npr. 5%) i promo kupon kod (`VRATISE5`) sa prekidačem za aktivaciju.
 - **1-Klik pokretanje automatskog oporavka.** U tabu *Napuštene korpe* u admin panelu dodato je dugme **„⚡ Pokreni automatski oporavak”** za trenutno procesiranje svih kvalifikovanih korpi uz live izveštaj o broju poslatih email i SMS obaveštenja.
 
 ### 🔧 Ispravke
+
 - **Dodata EF migracija za nova podešavanja WebShop-a** (mobilni UX, PWA i automatski oporavak korpi). Bez nje su te kolone postojale samo kroz `EnsureColumn` popravku pri pokretanju, pa je baza kreirana migracijama ostajala bez njih. Podrazumevane vrednosti u migraciji usklađene su sa modelom (funkcije uključene, prag 2h, popust 5%, kupon `VRATISE5`) — inače bi baze migrirane EF-om dobile te funkcije isključene, a one popravljene kroz `EnsureColumn` uključene.
 
 ## [2.34.0] - 2026-08-17
 
 ### 📦 Štampa Kurirskih Adresnica & Slanje PDF Fakture sa NBS IPS QR Kodom
+
 - **1-Klik štampa kurirske adresnice (A6).** Iz liste ili detalja porudžbine u admin panelu jednim klikom se generiše standardna PDF nalepnica A6 sa podacima pošiljaoca, kupca, otkupnine i bar-koda spremna za lepljenje na paket.
 - **Zvanični PDF predračun / faktura.** Generisanje A4 memoranduma sa stavkama i NBS IPS QR kodom za instant plaćanje m-bankingom.
 - **Slanje računa na email.** Dugme za 1-klik slanje PDF računa na email adresu kupca uz trenutnu potvrdu.
@@ -2521,27 +2570,32 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.33.0] - 2026-08-17
 
 ### 🔍 Instant Live Search (Autocomplete pretraga u realnom vremenu)
+
 - **Brzi padajući meni sa predlozima.** Čim kupac unese najmanje 2 slova u polje za pretragu u zaglavlju (na desktopu i na mobilnom telefonu), otvara se plutajući meni sa direktnim rezultatima: sličicama artikala, šiframa, nazivima, brendovima, cenama, statusom lagera i pogođenim kategorijama.
 - **Tastaturna navigacija.** Podrška za izbor stavki strelicama na tastaturi (`ArrowDown` / `ArrowUp`) i `Enter` za instant otvaranje.
 
 ## [2.32.0] - 2026-08-17
 
 ### 🏢 B2B Veleprodajni Portal — Matrica varijanti & Slanje cenovnika na Email
+
 - **B2B Matrica za brzo poručivanje varijanti.** Komercijalisti mogu izabrati model artikla (npr. radna odela, majice, obuću) i uneti količine po svim bojama i veličinama odjednom u preglednu 2D tabelu uz prikaz zaliha i međuzbirova, te jednim klikom dodati ceo paket u korpu.
 - **Slanje B2B cenovnika/lagera na Email.** Na tabu *Fakture i dugovanja* partner jednim klikom može zatražiti slanje ažurnog cenovnika (PDF, Excel ili oba) sa svojim ugovorenim cenama i raspoloživim zalihama na svoj email.
 
 ## [2.31.0] - 2026-08-17
 
 ### 📱 Mobilni UX, CRO i PWA podrška
+
 - **Sticky „Dodaj u korpu” traka na dnu ekrana.** Kada kupac na mobilnom uređaju skroluje kroz opis artikla, fiksna traka na dnu omogućava instant kupovinu sa biranjem količine u 1 klik.
 - **Touch Swipe galerija & Lightbox Zoom.** Glatko listanje slika prevlačenjem prsta na dodirnim ekranima, tačkasti indikatori i uvećanje visoke rezolucije preko celog ekrana.
 - **PWA (Progressive Web App).** Web manifest i Service Worker sa pozivom posetiocu za instalaciju aplikacije na početni ekran bez adresne trake.
 - **Dugme „Popuni podrazumevano”.** U CMS administratorskim podešavanjima omogućeno je 1-klik popunjavanje preporučenih postavki.
 
 ### 🎨 Varijante artikala (Boja / Veličina / Pakovanje)
+
 - **Grupisanje varijacija proizvoda.** Svaka varijanta je pun artikal u ERP šifarniku sa svojom šifrom, barkodom i zalihom, dok kupac na webu bira varijaciju (boje, veličine) na jednoj kartici uz trenutnu zamenu cene i stanja.
 
 ### 🌐 Google Schema.org Rich Snippets & Social Share
+
 - **Strukturirani JSON-LD podaci za Google.** Automatsko generisanje `Product`, `Offer`, `AggregateRating`, `Review`, `BreadcrumbList`, `WebSite` i `Organization` šema za prikaz žutih zvezdica, ocena, cena i stanja lagera u Google rezultatima pretrage.
 - **OpenGraph & Twitter kartice.** Dinamički meta tagovi za atraktivan prikaz slike, cene i opisa prilikom deljenja linkova na društvenim mrežama i chat servisima (WhatsApp, Viber, Facebook).
 - **Social Share vidžet.** Dugme „Podeli” na stranici artikla sa 1-klik akcijama za WhatsApp, Viber, Facebook i kopiranje linka.
@@ -2549,12 +2603,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.30.1] - 2026-08-17
 
 ### 👁️ Admin dobija uvid u B2B tim i porudžbine na čekanju
+
 - **Admin panel (`/admin`) sada vidi zašto je porudžbina na čekanju.** Lista porudžbina i stranica detalja pokazuju razlog — prekoračen kreditni limit (rešava admin) ili odobrenje ovlašćenog lica firme (rešava kolega na `/b2b/tim`, ne admin) — umesto golog statusa "Čeka odobrenje" bez objašnjenja.
 - **Kupci tab pokazuje veličinu B2B tima i broj sačuvanih adresa.** Kad firma ima više naloga na `/b2b/tim`, admin vidi koliko ih je i ko je odobravalac; kad ima sačuvane adrese isporuke, vidi koliko. Sve informativno, bez novih akcija za admina — uređivanje ostaje na B2B portalu.
 
 ## [2.30.0] - 2026-08-17
 
 ### 🏢 B2B portal — adrese isporuke, personalizovani cenovnik, multi-user odobravanje
+
 - **Firma sa više lokacija konačno ne mora da prekucava adresu svaki put.** Novi tab *Adrese isporuke* na `/b2b/adrese` čuva neograničen broj mesta isporuke (magacini, filijale), svako sa nazivom, kontakt osobom i telefonom; jedno se može označiti kao podrazumevano. Pri poručivanju se bira iz padajuće liste umesto ručnog unosa — ručan unos i dalje radi, ništa nije oduzeto.
 - **Partner sada može sam da preuzme svoj cenovnik.** Nova dugmad na *Fakture i dugovanja* generišu ceo cenovnik (PDF i Excel) sa tačno onim cenama koje taj partner vidi — ugovorenim gde postoje, standardnim inače, ista formula kao katalog i porudžbenica.
 - **Firme sa više zaposlenih dobijaju pravi tim.** Novi tab *Tim firme* (`/b2b/tim`): ovlašćeno lice dodaje kolegama naloge i bira ko sme da odobrava porudžbine. Porudžbina zaposlenog bez tog prava sad čeka odobrenje kolege pre dalje obrade — vidljivo u istom redu čekanja u kom je do sada čekala samo porudžbina koja prelazi kreditni limit. Pojedinačni B2B nalozi (bez kolega) rade potpuno isto kao do sada, bez ikakvog dodatnog koraka.
@@ -2562,6 +2618,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.29.2] - 2026-08-17
 
 ### 🔒 Bezbednosna ispravka — prijava preko Google naloga
+
 - **Prijava preko Google naloga sada stvarno proverava da je token pravi.** Do sada je `/api/auth/google-login` samo pročitao email iz tokena bez ikakve provere potpisa — teoretski je bilo ko mogao ručno sastaviti izmišljen token sa proizvoljnim email-om i dobiti validan ERPi nalog/prijavu, zaobilazeći lozinku u potpunosti. Endpoint sada kriptografski proverava potpis protiv Google-ovih javnih ključeva (`Google.Apis.Auth`).
 - Frontend dugme za Google prijavu i dalje šalje probni (ne pravi Google) token dok se ne završi prava GIS integracija — do tada će prijava preko Google naloga vraćati grešku umesto da tiho propušta neproverene tokene.
 - Novo podešavanje `GoogleClientId` (WebShopPodesavanja) — kad se popuni pravim OAuth Client ID-jem iz Google Cloud Console, dodaje se i provera da je token izdat baš za ovu prodavnicu (audience), pored provere potpisa koja važi uvek.
@@ -2569,21 +2626,25 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.29.1] - 2026-08-16
 
 ### 🔧 Ispravka
+
 - Nedostajala EF Core migracija za tabelu statistike poseta (`WebPosete`) — postojala je samo kao raw SQL šema. Dodata prava migracija, isti obrazac kao ostale WebShop tabele.
 
 ## [2.29.0] - 2026-08-16
 
 ### 📊 Statistika poseta na admin dashboard-u
+
 - **Dashboard prodavnice sada pokazuje ko je zapravo dolazi.** Do sada nije postojao nikakav uvid u saobraćaj WebShop-a — ni broj poseta, ni koliko je od toga stvarno različitih ljudi. Nova kartica na *Pregled poslovanja* pokazuje broj poseta danas i ovog meseca, broj jedinstvenih posetilaca, i grafikon po danima za poslednjih 30 dana.
 - Broje se svi posetioci, i gosti i prijavljeni kupci — sopstvene posete admina kroz *Admin panel* se ne računaju, da ne naduvavaju brojku.
 
 ### ✏️ Editovanje web/B2B korisnika
+
 - **Podaci kupca konačno mogu da se isprave posle registracije.** Do sada je jedino moglo da se odobri ili blokira nalog — pogrešan email, telefon ili naziv firme ostajali su trajno pogrešni. Novo dugme za izmenu (WPF *Web & B2B Korisnici* i web admin *Kupci* tab) otvara formu sa kontakt podacima, podacima firme i ručnim povezivanjem sa partnerom iz ERP šifarnika.
 - Koristi se i kad automatsko povezivanje partnera pri odobravanju B2B naloga promaši ili je preskočeno — sad postoji način da se to naknadno ispravi bez brisanja i ponovne registracije naloga.
 
 ## [2.28.0] - 2026-08-16
 
 ### 🏗️ Nedovršena proizvodnja konačno ima svoje mesto u bilansu
+
 - **Radni nalog koji je o zatvaranju meseca još u radu više ne kvari rezultat perioda.** Do sada je takav nalog nosio trošak (razdužen materijal, zarade, amortizaciju), a zaliha koja mu odgovara ulazila je u knjige tek po završetku — pa je mesec ispadao lošiji nego što jeste, a sledeći bolji. Novo dugme **🏗️ Nedovršena proizvodnja** na ekranu *Radni nalozi* radi obračun na zadati dan: duguje konto nedovršene proizvodnje (1100), potražuje isti konto povećanja vrednosti zaliha učinaka (6300) kao i gotov proizvod.
 - **Pre knjiženja vidite tabelu** — koji su nalozi bili u radu tog dana, koliko svaki vredi, koliko je za njega već proknjiženo i koliko se sada knjiži. Ništa se ne menja dok ne potvrdite, a nalog Glavne knjige nastaje kao **nacrt**.
 - **Knjiži se samo razlika**, ne cela vrednost svaki put. Zato ponovno pokretanje istog obračuna ne knjiži ništa, sledeći mesec knjiži samo prirast, a konto uvek pokazuje tekuće stanje.
@@ -2594,6 +2655,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.27.0] - 2026-08-16
 
 ### 🖼️ Slike artikala se konačno mogu uneti — i to za ceo katalog odjednom
+
 - **Uvoz slika iz foldera povezuje fotografije sa artiklima po šifri.** `27052.jpg` postaje glavna slika artikla 27052, a `27052_2.jpg` i `27052_3.jpg` njegove dodatne slike. Do sada su se adrese slika kucale rukom, jedna po jedna — za katalog od nekoliko hiljada artikala to niko nije mogao da odradi, pa je prodavnica stajala sa praznim sličicama.
 - **Pre bilo kakvog upisa dobijate pregled** — koliko je datoteka povezano, koje šifre ne postoje u katalogu i koji artikli već imaju slike. Ništa se ne menja dok ne potvrdite.
 - **Uređivanje slika jednog artikla je sada galerija** (WebShop → Web artikli i objave → *Uredi Web podatke & Slike*): prevucite datoteke mišem ili ih izaberite sa diska, menjajte redosled strelicama, brišite pojedinačno. Prva slika je glavna i vidno je označena.
@@ -2601,19 +2663,23 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **Slike se čuvaju uz bazu firme i ulaze u rezervnu kopiju**, tako da se pri prenosu na drugi računar ne gube. Starije rezervne kopije, napravljene bez slika, i dalje se vraćaju normalno.
 
 ### 📦 Objavljivanje na web više nije artikal po artikal
+
 - **Dugme „Objavi izabrane"** objavljuje sve označene artikle odjednom, uz dodelu web kategorije i popunjavanje web naziva. Uobičajen tok je: filtrirajte „Neobjavljeni na webu", označite sve (Ctrl+A) i objavite.
 - Artiklima koji već imaju kategoriju može se ostaviti postojeća, da masovna dodela ne pregazi ručno sređene.
 
 ### 🔎 Artikal se otvara kao svoja stranica, ne kao prozorčić preko kataloga
+
 - **Adresa `/proizvod/<šifra>` sada otvara punu stranicu** sa zaglavljem, putanjom (Početna › kategorija › artikal) i podnožjem. Podeljen link vodi na uredno pripremljenu stranicu, a ne na katalog sa prozorčićem preko njega.
 - **Google sada vidi stranicu proizvoda** kao proizvod — sa nazivom, šifrom, cenom i podatkom o dostupnosti.
 - Dodato stanje kada artikal ne postoji ili je povučen sa weba, umesto praznog prozora.
 
 ### 🏷️ Ispravke prikaza cena
+
 - **Nestala je oznaka „--Infinity%"** na artiklima kojima je redovna cena vođena kao nula. Takav artikal se više ne prikazuje kao sniženje i nema precrtanu nulu pored cene.
 - **„Ponuda dana" na početnoj više ne izmišlja popust.** Kada nijedan artikal nije stvarno snižen, prikazuje se kao istaknuta ponuda, bez oznake uštede i bez precrtane cene.
 
 ### 🖧 Prodavnica konačno radi i kad je firma na serveru
+
 - **Servis više ne odbija firmu na SQL Serveru ili PostgreSQL-u.** Do sada je podatke o vezi sa serverom prosleđivao pogrešno sklopljene, pa se baza nije mogla otvoriti — WebShop je za takve firme bio neupotrebljiv, i preko dugmeta *Pokreni Servis* i ručnim pokretanjem. Firme sa lokalnom bazom (`.db`) ovo nikad nije pogađalo.
 - **Podatak o tome koja je firma aktivna sada obuhvata i firme na serveru**, pa servis pokrenut bez argumenata otvara pravu firmu umesto da traži lokalnu datoteku koje nema.
 - **Konzola servisa više ne ispisuje lozinku baze** — umesto celih podataka o vezi ispisuje se samo koja je vrsta baze u pitanju.
@@ -2621,6 +2687,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.26.0] - 2026-08-16
 
 ### 🗓️ Režija se deli po mesecima — nalog koji traje preko dva meseca više ne nosi režiju samo jednog
+
 - **Nalog koji ste počeli u maju a završili u junu sada dobija deo režije oba meseca**, srazmerno tome koliko je u kom mesecu odrađeno. Do sada je ceo nalog padao u jedan mesec, pa je i režiju uzimao samo iz njega — nedovršena proizvodnja je time bila sistematski pogrešno opterećena.
 - **Podela ide po datumima faza.** Faza bez datuma pripada mesecu naloga, tako da kod koga se datumi faza ne vode ništa se ne menja u odnosu na raniju verziju.
 - **Svaki mesec deli svoju režiju sa svojim nalozima** — sati koje je drugi nalog odradio u junu ne ulaze u majski imenilac.
@@ -2632,6 +2699,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.25.1] - 2026-08-16
 
 ### 🛒 WebShop više ne pokazuje praznu prodavnicu kad se servis pokrene ručno
+
 - **ERPi sada pamti u kojoj ste firmi.** Pri ulasku u firmu upisuje se marker aktivne baze, pa servis (ERPiApi) pokrenut ručno iz konzole — bez dugmeta *Pokreni Servis* — otvara **tu** bazu umesto prve datoteke koju nađe. Ranije je to po pravilu bila prazna podrazumevana `erpi.db`, pa je WebShop prikazivao 0 artikala i 0 kategorija iako je firma puna robe, i to bez ijedne poruke o grešci.
 - **Ako markera nema** (servis pokrenut pre prvog ulaska u firmu), uzima se **najskorije menjana** baza umesto prve po redu, a u konzoli i dalje stoji upozorenje da je baza pogođena.
 - **Korpa na WebShop-u više ne ruši izmenu stavki** kad je kupac ostao prijavljen tokenom izdatim nad drugom bazom — takva korpa se čuva kao anonimna umesto da svaka izmena vrati grešku 500.
@@ -2640,6 +2708,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.25.0] - 2026-08-16
 
 ### 🧾 Režija se sada uzima iz Glavne knjige — poslednji ručan unos u ceni koštanja je nestao
+
 - **Opšti troškovi (režija) su bili jedina stavka cene koštanja koju ste morali sami da procenite.** Sada u tabu *Kalkulacija cene koštanja* pritisnete **🧾 Režija iz Glavne knjige** i program upiše deo stvarno proknjižene režije koji pripada tom nalogu. Time sve četiri stavke cene koštanja dolaze iz podataka: materijal sa kartica, rad iz zarada, amortizacija mašina iz osnovnih sredstava, režija iz Glavne knjige.
 - **Uzima se samo ono što je proknjiženo**, sa konta koja izaberete u *Podešavanja → Proizvodnja → Konta režije* (podrazumevano grupe **53** i **55**). Nacrti naloga se ne broje, a storno stavka umanjuje režiju umesto da je uveća.
 - **Grupe 51, 52 i 54 se namerno ne uzimaju** — materijal, zarade i amortizacija mašina već ulaze u cenu koštanja direktno, pa bi tu ušli po drugi put.
@@ -2652,6 +2721,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.24.0] - 2026-08-16
 
 ### 🛠️ Cena sata mašine se sada računa iz amortizacije
+
 - **Do sada je cena sata mašine bila jedini ručan unos u ceni koštanja pored režije.** Sada u fazi izrade izaberete **mašinu** (osnovno sredstvo) i pritisnete **🛠️ Cene mašine iz amortizacije** — program uzme amortizaciju koju ste za to sredstvo stvarno proknjižili i podeli je satima koje je ta mašina odradila u istom periodu. Isti postupak kao dugme **👷 Satnice iz zarada**, samo za mašinski deo troška.
 - **Uzima se poslednji obračunat period, ne tekući.** Sati tekućeg perioda se još skupljaju, pa bi vam ista mašina davala drugu cenu na svako otvaranje naloga.
 - **Radi bez obzira kako knjižite amortizaciju** — godišnje, kvartalno ili mesečno. Period se izvodi iz razmaka između dva obračuna, ne iz teksta u kartici.
@@ -2659,10 +2729,12 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **Kad cena ne može da se izvede, poruka kaže zašto** — nema dodeljene mašine, nema proknjižene amortizacije, ili mašina u tom periodu nema evidentiranih sati. Ono što ste uneli ručno se u svakom slučaju zadržava.
 
 ### 🏭 Proizvodnja je dobila svoje uputstvo
+
 - **Novo `Uputstvo za Proizvodnju`** (Pomoć → 🏭 Proizvodnja → *Otvori HTML uputstvo*) — do sada je jedini modul sa punim ekranima bio bez svog uputstva. Trinaest poglavlja: sastavnice i verzionisanje normativa, radni nalozi, faze izrade, kako se sastavlja cena koštanja, satnice iz zarada, cena mašine iz amortizacije, šta se dešava pri završetku naloga, konta za knjiženje, oba režima rasknjižavanja, varijanse i česta pitanja.
 - **Sedam novih tema u F1 pomoći** za Proizvodnju, sa novim dugmetom za filtriranje.
 
 ### 🐛 Baze na PostgreSQL i SQL Server serveru se konačno nadograđuju
+
 - **Ako vam baza firme stoji na serveru (PostgreSQL ili SQL Server), nova verzija programa joj do sada nije donosila nove tabele ni nova polja.** Program je novu šemu pravio samo ako je baza bila potpuno prazna; svaka baza koja je već korišćena ostajala je na staroj šemi i program bi na novom ekranu prijavio grešku. Sada se zatečena baza dopunjava pri svakom otvaranju — dodaje se ono što nedostaje, a postojeći podaci se ne diraju.
 - **Provereno nad živim serverima** (PostgreSQL 17 i SQL Server 2022): i nova i zatečena baza prolaze, ponovljeno otvaranje ne menja ništa.
 - Napomena: dopunjavanje je namerno samo *dodavanje* — tabele, polja i indeksi kojih nema. Ništa se ne briše i ne preimenuje.
@@ -2670,6 +2742,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.23.6] - 2026-08-16
 
 ### 🐛 Uvoz zarada više ne gubi drugi obračun istog meseca
+
 - **Radnik koji u jednom mesecu ima dva obračuna dobijao je samo jedan.** U vašoj živoj bazi zarada tako stoje dva obračuna za 7/2026 — neto **100.719,50** i **22.222,00**, nijedan storniran — a u ERPi je prelazio samo prvi. Isto se dešavalo i kad su dva obračuna pod različitim isplatama (akontacija i konačna). Sada prelaze svi: provereno nad pravim podacima, 5.002 obračuna u izvoru → 5.002 u ERPi, a ponovni uvoz i dalje ne dodaje nijedan.
 - **Uvoz iz starih DBF fajlova više ne pravi lažne duplikate.** Isti mesec stoji i u tekućem i u istorijskom fajlu (npr. `OBRACUN.DBF` i `OBRACUNI.DBF`), a program je duple zapise odbijao proverom koja ne vidi zapise koji čekaju upis u seriji od 500. Tako je u međubazu ulazilo **24 dupla obračuna, 96 duplih zapisa radnih sati i 23 njihova odbitka**. Sada se odbijaju čim se pojave.
 - **Ispravka merenja iz 2.23.5**: od 75 odbitaka koje je uvoz gubio, **23 su bila upravo ta lažna dupla**, a **52 su stvarna** (npr. isti kredit od 550,00 upisan u dva polja istog obračuna). Konačno stanje nad proverenim podacima: **4.984 obračuna, 5.261 zapis radnih sati, 3.400 odbitaka i 378 kredita — identično sa obe strane lanca**.
@@ -2677,12 +2750,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.23.5] - 2026-08-16
 
 ### 🐛 Uvoz zarada više ne gubi ponovljene odbitke
+
 - **Dva ista odbitka istog radnika u istom mesecu spajala su se u jedan.** U proverenoj DOS instalaciji tako je nestajalo **75 od 3.423 obustave**. Dva su stvarna izvora: ista šifra obustave upisana dvaput u isti obračun (npr. dva puta kredit od 550,00), i dve različite obustave iz šifarnika pod istim skraćenim nazivom i sa istim iznosom (naziv u starom programu staje u deset znakova, pa se npr. dva osiguranja vozila zovu isto). U oba slučaja je stari program iznos skinuo **dvaput**, pa oba reda moraju stići i u ERPi — inače bi radniku pri ponovnom obračunu nestala polovina obustave.
 - Ponovni uvoz i dalje ne dodaje nijedan zapis: provereno nad pravim podacima, oba prolaza daju istih 3.423 odbitka i 378 kredita.
 
 ## [2.23.4] - 2026-08-16
 
 ### 💳 Krediti i obustave iz starog DOS programa se konačno uvoze
+
 - **Fajl `KREDIT.DBF` do sada nije ni otvaran.** Iz starog programa su dolazile samo rate skinute u pojedinačnim obračunima, dok registar obustava — od kada do kada kredit traje, koliko ima rata, koliko je otplaćeno i koliko ostaje — nije postojao. Sada se uvozi: posle uvoza ekran *Zarade → Krediti* pokazuje pun plan otplate po radniku.
 - **Primalac, žiro račun i poziv na broj** se povlače iz šifarnika obustava, pa nalog za prenos ima kome da uputi ratu — bez toga se rata skidala radniku, a nije se znalo kome ide.
 - **Obustave se razvrstavaju** na kredite, administrativne zabrane, sudske zabrane, zakonsko izdržavanje i sindikalnu članarinu. Od te podele zavisi redosled naplate kad neto ne pokrije sve obustave; nepoznat naziv ostaje poslednji u redu, da ne bi dobio prvenstvo bez osnova.
@@ -2690,12 +2765,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **Provereno nad pravim podacima** (`C:\PLATA\PLATA\KOR28`, 25 godina obračuna): **378 kredita i obustava sklopljeno iz 3.338 pojedinačnih rata** za 33 radnika, ukupno 4.620.468,19 RSD — do dinara isto koliko piše u DBF fajlu. Bez ijednog upozorenja ili greške; ponovni uvoz ne dodaje nijedan zapis.
 
 ### 🐛 Ispravke uvoza
+
 - **Dve obustave istog radnika koje se ni po čemu ne razlikuju više se ne spajaju u jednu.** Naziv obustave u starom programu staje u deset znakova, pa isti radnik ume da ima dve različite obustave pod istim nazivom i sa istim planom otplate — u proverenim podacima tri takva slučaja. Druga je do sada tiho nestajala pri prenosu u ERPi.
 - **Potvrđena idempotentnost i za uvoz iz žive ERPiZarade baze** (drugi put isti uvoznik, druga vrata): 6.963 kartona radnika i 5.001 obračun; drugi uvoz završi za pola sekunde i ne doda nijedan zapis.
 
 ## [2.23.3] - 2026-08-16
 
 ### 🔁 Ponovni uvoz iz starih DBF baza (Zarade) više ne prekida posao
+
 - **Uvoz pokrenut po drugi put je padao odmah na početku** i nije prenosio ništa — ni obračune, ni radne sate, ni obustave. Uzrok: radnik bez upisanog JMBG-a (u proverenoj DOS instalaciji 217 od 6.873 kartona) nije mogao da se prepozna kao već uvezen, pa je program pokušavao da ga zavede kao novog partnera pod šifrom koja je već zauzeta. Sada se takav radnik prepoznaje po svojoj šifri i uvoz uredno preskače ono što već postoji.
 - Provereno nad pravim podacima: drugi uvoz istih 6.873 radnika i 4.984 obračuna završi za pola sekunde i **ne doda nijedan zapis**.
 - Potvrđeno da uvoz **ne gubi podatke**: manji broj obračuna i radnih sati u odnosu na pročitane iz DBF-a (24 i 96) su isključivo dupli zapisi istog perioda — stari program isti mesec drži i u tekućem i u istorijskom fajlu.
@@ -2703,6 +2780,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.23.2] - 2026-08-16
 
 ### 📖 Dokumentacija
+
 - **Proizvodnja konačno ima uputstvo.** Ceo modul do sada nije bio pomenut ni u jednom fajlu pomoći (F1) — dodato je poglavlje sa tokom posla od sastavnice do zaliha, objašnjenjem kako se računa cena koštanja, i šta tačno rade potpuno i delimično rasknjižavanje.
 - Ispravljen opis uvoza iz starih DBF baza — zatečeni tekst je opisivao fajlove, klase i mapiranja koja u programu ne postoje. Sada odgovara kodu i dopunjen je rezultatima provere nad pravim DOS podacima.
 - Dokumentovan mehanizam nadogradnje šeme baze (migracije + dopuna kolona pri pokretanju) i postupak objavljivanja nove verzije preko CI-ja.
@@ -2710,6 +2788,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.23.1] - 2026-08-16
 
 ### 🐛 DOS uvoz zarada je konačno prohodan
+
 - **Uvoz iz DOS/Clipper obračuna zarada nije radio nikada** — padao je odmah na početku sa greškom *„no such table: Radnici"*. Privremena baza kroz koju uvoz prolazi nije dobijala nijednu tabelu, a pojedinačne greške su usput gutane kao upozorenja, pa se problem video tek na kraju. Ispravljeno; uvoz sada prolazi ceo lanac.
 - **Provereno nad pravim podacima** (25 godina DOS obračuna, `C:\PLATA\PLATA\KOR28`): uvezeno **6.873 radnika** i **4.984 obračuna** kroz **302 obračunska perioda (5/2001 – 6/2026)**, bez ijednog upozorenja ili greške. Zbir neto isplata 198,3 miliona RSD, zbir bruto zarada 204,2 miliona RSD.
 - Bruto iznosi postoje od 2014. nadalje — stariji DOS periodi su vođeni samo kroz neto, i tako su i uvezeni (neto i sati su popunjeni u svim godinama).
@@ -2717,6 +2796,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.23.0] - 2026-08-15
 
 ### 🏭 Proizvodnja — cena koštanja i rasknjižavanje do kraja
+
 - **Satnica rada iz stvarnog obračuna zarada.** U radnom nalogu, tab *Faze izrade*, faza sada može da nosi **radnika**, a dugme **„👷 Satnice iz zarada"** popunjava satnicu punim troškom poslodavca po satu (bruto + doprinosi na teret poslodavca ÷ ukupno sati) iz poslednjeg obračuna tog radnika. Do sada se satnica unosila napamet, pa je cena koštanja bila tačna samo koliko i procena.
   - Sabira sve isplate u mesecu (akontacija, konačna, bonus), preskače stornirane obračune i po isplati uzima poslednju verziju.
   - Faze bez radnika ili bez obračuna zadržavaju ručno unetu satnicu — ništa se ne nuluje bez podatka.
@@ -2727,6 +2807,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.22.1] - 2026-08-15
 
 ### 🗄️ Zatvoren migracioni drift — WebShop kolone konačno u sistemu migracija
+
 - **60 kolona i tabela `WebNapusteneKorpe` unete u migracije.** Kurirske službe (v2.19.2), kartično plaćanje i loyalty program (v2.19.4), SMS/Viber notifikacije, live chat, marketing i višejezičnost (v2.22.0) dodavani su do sada isključivo „u hodu", pri pokretanju programa. Šema je time bila ispravna, ali je sistem migracija za te kolone znao da nešto nedostaje — pa je svaka naredna izmena baze kretala od pogrešnog stanja.
 - **Zatečene baze se ne diraju.** Bazama koje te kolone već imaju migracija se samo evidentira kao primenjena, bez ijedne izmene podataka. Provereno na svih 7 stvarnih baza: 37 migracija, ništa neprimenjeno, podaci netaknuti.
 - **Nadogradnja sa preskočene verzije više ne može da pukne.** Baza korisnika koji je preskočio neko od izdanja imala je samo deo kolona; takva baza sada dobija tačno ono što joj nedostaje, umesto da program prijavi grešku „kolona već postoji" pri prvom pokretanju.
@@ -2735,49 +2816,58 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.22.0] - 2026-08-15
 
 ### 🌐 Višejezičnost i Viševalutnost (Multilingual & Multi-Currency)
+
 - **Preklopnik jezika (🇷🇸 SR / 🇬🇧 EN / 🇩🇪 DE)**: Gornja promotivna traka i navigacija sadrže selektor jezika sa perzistencijom u `localStorage`.
 - **Kompletna lokalizacija interfejsa**: `LanguageCurrencyContext` sa prevodima za navigaciju, katalog, filtere, korpu, checkout, pretragu, recenzije i chat podršku.
 - **Višejezični nazivi i opisi u bazi i API-ju**: Polja `NazivEn`, `WebOpisEn`, `NazivDe`, `WebOpisDe` na `Artikal` i `NazivEn`, `NazivDe` na `WebKategorija` uz DTO prenos i pametni fallback.
 - **Preklopnik valuta (RSD / EUR / USD / BAM)**: Live NBS kursna lista preko `KursnaListaService` (`GET /api/katalog/kursevi`) sa automatskim preračunom i formatiranjem svih cena u katalogu i korpi (`formatCena`).
 
 ### 🔍 Pametni Quick-Search Modal (Ctrl+K) & Barcode Skener Kamerom
+
 - **Command Palette (`QuickSearchModal.tsx`)**: Globalne prečice `Ctrl+K`, `Cmd+K`, `/` sa live rezultatima, stanjem zaliha u magacinu, tastaturnom navigacijom i istorijom pretraga.
 - **Web Barcode & QR Skener (`BarcodeScannerModal.tsx`)**: HTML5 kamera skener za EAN-13, Code-128 i QR kodove sa laserskim nišanom, svetlom (Torch), audio zvučnim signalom i direktnim otvaranjem `ProductModal`-a (`GET /api/katalog/barkod/{kod}`).
 
 ### 💬 Live Chat Podrška & WhatsApp / Viber Widget
+
 - **Višekanalni lebdeći vidžet (`LiveChatWidget.tsx`)**: WhatsApp, Viber, direktan poziv i email podrška sa online statusom i radnim vremenom.
 - **Direktan upit o artiklu**: 1-klik prenos artikla sa `ProductModal` u formu za upit i automatsko slanje profesionalnog HTML email obaveštenja prodajnom timu (`POST /api/katalog/upit`).
 
 ## [2.21.0] - 2026-08-15
 
 ### ↩️ Rasknjižavanje i storniranje završenog radnog naloga
+
 - Novo dugme **„↩️ Rasknjiži“** u *Radnim nalozima*: poništava završetak naloga u celini — briše nacrt naloga glavne knjige, vraća zaduženje gotovog proizvoda i razduženje sirovina sa materijalnih kartica i briše automatski nastale dokumente, pa se nalog vraća u status *U radu* i može se ispraviti i ponovo završiti.
 - **Završen nalog se konačno može stornirati.** Ranije je storniranje takvog naloga bilo odbijeno („bez poništavanja skladišnih kretanja“); sada se nalog prvo rasknjiži pa označi kao storniran, uz jasno upozorenje šta se poništava.
 - Rasknjižavanje se **odbija ako je nalog glavne knjige u međuvremenu proknjižen** (prvo ga treba rasknjižiti u *Nalozima*) ili ako je posle njega bilo kasnijih knjiženja nad istom karticom — u oba slučaja ništa se ne dira.
 
 ### 💰 Utrošak materijala se knjiži po stvarnoj, a ne po planskoj vrednosti
+
 - Sirovina sa zaliha izlazi po **ponderisanoj prosečnoj ceni**, a nalog glavne knjige je do sada knjižio plansku nabavnu cenu sa radnog naloga — kod odstupanja cena magacin i knjigovodstvo su govorili dva različita iznosa. Sada se u glavnu knjigu upisuje vrednost koju je magacin **stvarno otpisao**.
 - Po istoj vrednosti se preračunava i **cena koštanja gotovog proizvoda**, pa gotov proizvod ulazi na zalihe po ceni koja odgovara utrošenom materijalu.
 - Planska vrednost ostaje zapisana na radnom nalogu radi poređenja i koristi se kao rezerva za naloge završene bez skladišnih kretanja.
 
 ### 🖱️ Sitnije
+
 - Dugme **„✅ Završi & Zaduži“** više nije puki duplikat dugmeta *Otvori nalog* — otvara nalog sa kursorom na polju proizvedene količine.
 
 ## [2.20.0] - 2026-08-15
 
 ### 🏭 Završetak radnog naloga konačno stvarno menja zalihe i knjiži se u glavnu knjigu
+
 - **Gotov proizvod sada zaista ulazi na stanje.** Zaduženje magacina gotovih proizvoda se do sada obeležavalo kao proknjiženo, ali **nije upisivalo nijedan red materijalne kartice** — proizvedena roba nije postojala na zalihama, a dokument se više nije mogao ni naknadno proknjižiti jer je već bio označen kao knjižen.
 - **Razduženje sirovina više ne promašuje karticu.** Utrošak se upisivao pod *nazivom* komponente umesto pod *šifrom* materijala, pa red nije pripadao kartici tog materijala i zaliha se realno nije smanjivala. Oba koraka sada idu kroz iste servise koje koriste Trebovanja i Robna kretanja, uključujući i **zabranu odlaska zalihe u minus**.
 - **Radni nalog se označava kao završen tek kada knjiženje uspe** — ako nema dovoljno sirovine, nalog ostaje u radu umesto da postane „završen“ bez ijednog skladišnog traga. Nad SQLite bazom ceo zahvat ide u jednu transakciju.
 - **Komponente bez veze ka šifarniku se više ne preskaču ćutke** — završetak naloga jasno kaže koje komponente treba dopuniti u sastavnici.
 
 ### 📒 Automatsko knjiženje proizvodnje (Faza 6)
+
 - Završetak radnog naloga pravi **nalog glavne knjige u statusu Nacrt**: utrošak materijala (duguje 5110 / potražuje 1010) i prijem gotovog proizvoda po ceni koštanja (duguje 1200 / potražuje 6300). Knjigovođa ga pregleda i proknjiži u *Nalozima*, isto kao naloge iz Zarada i Osnovnih sredstava.
 - Nalog se **ne pravi dva puta** za isti radni nalog, a broj naloga se upisuje na sam radni nalog.
 - Ako knjiženje u glavnu knjigu ne uspe (npr. konto ne postoji u kontnom planu), **radni nalog i skladišna kretanja ostaju** uz izričito upozorenje — dokumenti se ne gube.
 - Trošak rada i amortizacije se ovde ne knjiži jer u glavnu knjigu već ulazi kroz obračun zarada i amortizaciju sredstava.
 
 ### 📱 Automatske SMS & Viber Notifikacije Kupcima
+
 - **Integracija sa Provajderima**: Podrška za Infobip (SMS / Viber Business API), SMS Gateway RS (MTS, Yettel, A1) i BulkSMS.
 - **Normalizacija Telefona**: Automatsko formatiranje brojeva u međunarodni E.164 standard (`+381...`).
 - **Tri Automatska Scenarija**:
@@ -2787,6 +2877,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **Sandbox Simulator & CMS Kontrole**: Prekidač za bezbedno testiranje bez trošenja kredita i interaktivna forma za probno slanje u `/admin` CMS podešavanjima.
 
 ### 🛒 Marketing Automatizacija (Cross-Sell, Količinski Popusti & Napuštene Korpe)
+
 - **✨ "Često se kupuje zajedno" (Cross-Sell Bundle)**: Prikaz kompatibilnih artikala na `ProductModal` uz automatski zbir i 1-klik dodavanje celog kompleta u korpu, sa inteligentnim fallback-om na istu kategoriju.
 - **🏷️ Količinski Popusti (Volume Discounts)**: Pragovi minimalnih količina sa procentualnim popustima, dinamičko isticanje aktivnog nivoa na proizvodu i u korpi, i transparentan prikaz uštede.
 - **🛒 Oporavak Napuštenih Korpi (Abandoned Cart Recovery)**:
@@ -2796,20 +2887,24 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   - Responsivan HTML email predložak sa 1-klik linkom za nastavak kupovine.
 
 ### 💬 Live Chat Podrška & WhatsApp / Viber Widget
+
 - **Lebdeći Višekanalni Vidžet (`LiveChatWidget.tsx`)**: Donji desni ugao sa pulsirajućim online indikatorom, brzim kanalima (WhatsApp chat, Viber razgovor, direktan poziv, email) i radnim vremenom podrške.
 - **Interaktivni Upit o Artiklu**: Direktan prenos slike, naziva i šifre artikla iz `ProductModal` u formu za upit, sa slanjem formatiranog HTML email obaveštenja službi prodaje (`POST /api/katalog/upit`).
 - **CMS Podešavanja**: Konfiguracija brojeva telefona, email adrese, radnog vremena i poruke dobrodošlice u `/admin` panelu.
 
 ### 🔍 Pametni Quick-Search Modal (Ctrl+K) & Barcode Skener Kamerom
+
 - **Globalni Command Palette (`QuickSearchModal.tsx`)**: Instant pretraga artikala, kategorija i prečica (`Ctrl+K` / `Cmd+K` / `/`), sa sličicama, cenama, stanjem na zalihama, brzim čip filterima i `localStorage` istorijom pretraga.
 - **Web Barcode & QR Skener (`BarcodeScannerModal.tsx`)**: Kamera skener (EAN-13, Code-128, QR Code) sa laserskim nišanom, zvučnim 880Hz signalom, haptičkom vibracijom, blicem i automatskim otvaranjem pronađenog artikla (`GET /api/katalog/barkod/{kod}`).
 
 ### ⚙️ Podešavanja → Proizvodnja (novo)
+
 - Nov tab sa **kontima za knjiženje proizvodnje** (prazno polje = podrazumevani konto) i prekidačem za automatsko pravljenje naloga glavne knjige pri završetku radnog naloga.
 
 ## [2.19.4] - 2026-08-15
 
 ### 💳 Online Kartično Plaćanje (Payment Gateway & 3D Secure 2.0)
+
 - **Kompletna E-Commerce Payment Gateway Integracija**:
   - Podrška za domaće i inostrane platne procesore: **AllSecure**, **CorvusPay**, **Payten / ChipCard (Asseco)**, **NestPay (Banca Intesa, OTP Banka)** i **Stripe**.
   - Dinamičko potpisivanje zahteva i verifikacija digitalnog potpisa (**SHA512** i **HMAC-SHA256**) sa tajnim ključem trgovca.
@@ -2829,6 +2924,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.19.3] - 2026-08-15
 
 ### 🎁 B2C Korisnički Nalog & Loyalty Program (Program Lojalnosti)
+
 - **👤 Korisnički Profili za Fizička Lica**:
   - **Google Prijava**: Brza prijava u 1 klik preko Google naloga (`POST /api/auth/google-login`).
   - **Email / Lozinka Registracija**: Standardna registracija kupaca sa automatskom dodelom **50 Welcome Bonus Poena**.
@@ -2850,6 +2946,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.19.2] - 2026-08-15
 
 ### 🚚 Kurirske Službe & API Praćenje Pošiljki (PostExpress, DExpress, Bex, Aks)
+
 - **1-Klik Kreiranje Pošiljke**: U `/admin` panelu (i pregledu detalja porudžbine) ugrađen je poseban blok za izbor kurira (*PostExpress*, *DExpress*, *Bex*, *Aks*) i automatsko kreiranje tovarnog lista. Porudžbina automatski dobija status `Poslata` uz upis broja pošiljke.
 - **Direktno Live Praćenje**: Servis automatski generiše tačne linkove za praćenje pošiljke na portalima kurirskih službi:
   - *PostExpress* (`https://www.posta.rs/lat/alati/pracenje-posiljke.aspx?broj=...`)
@@ -2866,16 +2963,19 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.19.1] - 2026-08-15
 
 ### 🗃️ Šema baze — WebShop i Proizvodnja konačno u sistemu migracija
+
 - **17 tabela i 32 kolone** su do sada nastajale isključivo kroz interni SQL pri pokretanju, mimo sistema migracija — ceo WebShop, cela Proizvodnja, web polja artikala, korisnička prava, SMTP podaci firme i fiskalna polja računa. Sada su deo zvanične migracije, pa je šema baze konačno u potpunosti opisana na jednom mestu.
 - **Postojeće baze se ne diraju.** Pošto sve navedeno već imaju, migracija se nad njima samo evidentira kao primenjena umesto da se izvršava — nema prepravljanja tabela, nema rizika po podatke. Provereno na kopijama svih postojećih baza: sve prolaze, podaci netaknuti.
 - **Nove instalacije** dobijaju kompletnu šemu odmah, bez oslanjanja na naknadne dopune.
 
 ### 🛠️ Ispravke
+
 - **Ugrađeni `admin` nalog na novoj instalaciji dobijao bi nalog bez prava administracije.** Podrazumevana prava nisu bila navedena uz sistemski nalog, pa bi na sveže instaliranom sistemu administrator ostao bez pristupa administraciji. Ispravljeno i pokriveno testom.
 
 ## [2.19.0] - 2026-08-15
 
 ### ⭐ Ocene i recenzije artikala
+
 - **Kupci ocenjuju kupljene artikle** ocenom 1–5 uz opcioni komentar, direktno na stranici proizvoda. Ocenu može ostaviti **samo kupac koji je taj artikal stvarno naručio** (provera se radi na serveru nad njegovim porudžbinama, otkazane se ne računaju), pa sve recenzije nose oznaku **Verifikovana kupovina**. Isti kupac ne može oceniti isti artikal dva puta.
 - **Moderacija pre objave**: nova recenzija se upisuje kao *na čekanju* i ne vidi se na sajtu dok je administrator ne odobri u novom tabu **`/admin` → Recenzije**. Neodobrene recenzije se ne broje ni u prosečnu ocenu ni u broj recenzija.
 - **Brojač na Dashboard-u i u bočnom meniju** pokazuje koliko recenzija čeka odobrenje — bez njega bi, uz pre-moderaciju, ocene lako ostale zauvek neobjavljene.
@@ -2885,10 +2985,12 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.18.4] - 2026-08-15
 
 ### 🧾 Fakturisanje Web Porudžbine sada odmah i knjiži račun
+
 - **1-klik `🧾 Kreiraj Račun u ERP-u`** (i u `/admin` Backoffice-u i u `ERPiApp → WebShop → Porudžbine`) sada, pored kreiranja računa-otpremnice, **odmah i knjiži** taj račun: razdužuje magacin na materijalnoj kartici i kreira nalog prodaje u glavnoj knjizi (kupac 204 / prihod 612 / obračunati PDV 470, uz nabavnu vrednost prodate robe 501 naspram konta robe). Do sada je knjiženje bilo zaseban ručni korak, pa je prodata roba znala da ostane na zalihama neograničeno dugo.
 - **Ako knjiženje ne uspe, račun ostaje kreiran** uz jasno upozorenje da magacin nije razdužen — dokument se ne gubi, a rezervacija zalihe se ne otpušta, pa se roba ne može prodati dva puta. Administrator račun proknjiži ručno u *Računi-Otpremnice*.
 
 ### 📦 Podešavanje "Magacin za zalihe" konačno radi
+
 - Podešavanje **`Magacin za zalihe`** (`WebShopPodesavanja`) se do sada čuvalo u ekranu podešavanja, ali ga **nijedan kod nije koristio**. Sada ga koriste sve tri putanje: prikaz zalihe na izlogu, provera raspoloživosti pri poručivanju i kreiranje/knjiženje računa-otpremnice.
 - Time je uklonjena neusklađenost u kojoj je prodavnica prikazivala **zbir svih magacina**, a račun se pravio na **proizvoljnom prvom magacinu** iz šifarnika — što je moglo dovesti do neuspelog razduženja pri knjiženju.
 - Ako magacin nije eksplicitno podešen, ponašanje ostaje kao ranije (zbir svih magacina + prvi magacin za račun). **Preporučuje se da se magacin eksplicitno podesi.**
@@ -2896,6 +2998,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.18.3] - 2026-08-15
 
 ### 🛠️ Ispravke — Rezervacija Zaliha (sprečena prodaja iste robe više puta)
+
 - **Roba iz primljenih porudžbina se sada rezerviše.** Do sada je WebShop gledao samo sirovo stanje na materijalnoj kartici, a roba se sa kartice skida tek pri *knjiženju* računa-otpremnice — što je zaseban, ručni korak. Između prijema porudžbine i knjiženja, ista roba je izgledala potpuno raspoloživa i mogla se prodati proizvoljan broj puta.
 - **Novo `MaterijalnaKarticaService.GetRaspolozivoZaWebAsync()`**: raspoloživo za web = stanje na kartici **minus** količina rezervisana u već primljenim porudžbinama. Rezervacija se otpušta kada je porudžbina `Otkazana` ili kada je njen račun-otpremnica stvarno **proknjižen** (`IsKnjizen`) — status `Fakturisana` sam po sebi je ne otpušta, jer kreiranje računa ne razdužuje magacin.
 - **Zatvorena trka pri istovremenim porudžbinama** (`WebShopPorudzbinaLockService`): provera zalihe i upis porudžbine sada se izvršavaju kao jedna nedeljiva sekcija, pa dva kupca koji poruče u istom trenutku ne mogu oba "kupiti" poslednji preostali komad.
@@ -2903,11 +3006,13 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **Admin pregledi ostaju na fizičkom stanju**: Dashboard *Low-Stock* vidžet i admin lista artikala namerno prikazuju stvarnu zalihu u magacinu, a ne web-raspoloživost.
 
 ### 📝 Dokumentacija
+
 - Ispravljena netačna tvrdnja u `docs/WEBSHOP.md` da 1-klik kreiranje Računa-Otpremnice radi "automatsko skladišno razduženje" — razduženje se dešava tek pri knjiženju računa u `RacuniOtpremniceView`. Dodat nov odeljak *§12 Rezervacija Zaliha* sa dijagramom toka.
 
 ## [2.18.2] - 2026-08-15
 
 ### 🛠️ WebShop Admin Stranica `/admin` (Multi-Firma Backoffice)
+
 - **Posebna samostalna stranica (`/admin`)**: Umesto modalnog panela, administracija se sada prikazuje kao samostalna stranica (Standalone Page) preko celog ekrana, sa čistom navigacijom i tasterom `← Prodavnica`.
 - **Namenski Admin Login ekran**: Automatska zaštita pristupa sa namenskim login formularom, proverom `IsAdmin` uloge i opcijom za brzu prijavu.
 - **8 specijalizovanih tabova za operativno vođenje web prodaje**:
@@ -2933,31 +3038,37 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - **REST API Backend (`AdminController.cs` & `AuthController.cs`)**: Zaštićene administratorske rute (`[Authorize(Roles = "Admin")]`) sa automatskom autentifikacijom preko `WebShopPodesavanja` i `WebKorisnici` tabela tekuće firme.
 
 ### 🎟️ Sistem Promo Kodova & Kupona
+
 - **Model `WebKupon`**: Podrška za kupone u bazi podataka sa evidencijom iskorišćenja.
 - **Validacija na Checkout-u**: Endpoint `POST /api/porudzbine/proveri-kupon` proverava važenje, datum i minimalni iznos i u realnom vremenu primenjuje popust na Checkout modalu.
 
 ### 🛠️ Ispravke
+
 - **Pouzdano zaustavljanje ERPiApi servisa (`AppTrayService.ZaustaviApiServis`)**: Servis se sada zaustavlja preko SCM-a kad god postoji instaliran Windows servis (a ne samo kad postoji bundled exe), i uvek se dodatno ubijaju eventualni zaostali `ERPiApi` procesi — sprečava situacije gde je API ostajao aktivan posle "Zaustavi" akcije.
 
 ## [2.18.1] - 2026-08-15
 
 ### 📈 SEO, Marketing & Analitika
+
 - **Dinamički `sitemap.xml` i `robots.txt`**: `SitemapController` automatski generiše XML sitemap iz baze sa svim kategorijama i odobrenim artiklima za trenutno indeksiranje na pretraživačima (Google, Bing).
 - **Google Analytics 4 & Meta Pixel integracija**: Konfigurabilan unos GA4 Measurement ID i Meta Pixel ID direktno iz ERP-a (`WebShopPodesavanjaView`) bez menjanja koda. `AnalyticsContext` na frontendu prati preglede stranica, artikala (`view_item`), dodavanje u korpu (`add_to_cart`) i konverzije (`purchase`).
 - **Lista želja (Wishlist)**: Čuvanje omiljenih artikala u `LocalStorage`-u za posetioce i sinhronizacija sa bazom (`WebZelje` tabela) za registrovane kupce, uz brz prenos u korpu.
 - **Upoređivanje artikala (Compare)**: Interaktivna matrica za upoređivanje do 4 artikla istovremeno sa tehničkim specifikacijama, cenama i stanjem na zalihama.
 
 ### 🚚 Integracija sa Kurirskim Službama (DExpress, Bex, Post Express, AKS)
+
 - **Generisanje adresnica**: Dugme `📦 Generiši adresnicu` u `WebPorudzbineView` otvara dijalog sa automatskim proračunom otkupnine (za pouzeće), brojem paketa i masom.
 - **Štampa PDF nalepnica sa bar-kodom**: Standardizovane A6/termo nalepnice (100x150 mm) sa čitljivim `CODE_128` bar-kodom broja pošiljke, podacima pošiljaoca, primaoca, otkupninom i napomenom.
 - **Podrška za vodeće kurirske službe**: DExpress, Bex Express, Post Express (Pošta Srbije) i AKS Express Kurir sa formatiranim tracking kodovima.
 
 ### 📧 Automatski Transakcioni Email Servis & SystemTray Notifikacije
+
 - **Email potvrda kupcu sa PDF predračunom**: Čim kupac napravi porudžbinu, automatski mu se šalje HTML email sa priloženim PDF predračunom (`WebPorudzbinaPredracunDocument`) i **NBS IPS QR kodom** za instant plaćanje.
 - **Email obaveštenje o slanju paketa**: Kupac dobija email čim se paket preda kuriru, sa nazivom kurirske službe i kodom za praćenje pošiljke.
 - **Notifikacije administratoru**: Email obaveštenje za svaku novu porudžbinu i **Windows SystemTray Toast Popup sa zvukom** (`SystemSounds.Asterisk`) čim narudžbina stigne.
 
 ### 🏢 B2B Veleprodajni Portal — Jačanje Veleprodaje
+
 - **Zahtev za B2B nalog (Registracija pravnih lica)**: Online forma na webshop-u sa unosom PIB-a, matičnog broja, naziva firme i kontakata. Kreira nalog na čekanju i šalje notifikaciju administratoru.
 - **Administracija i verifikacija naloga (`WebKorisniciView`)**: Novi ekran u ERPiApp-u za jednoklikovno odobravanje B2B pristupa, automatsko prepoznavanje ili kreiranje novog Partnera u šifarniku sa dodelom šifre (`P1001`...).
 - **Preuzimanje PDF e-Faktura & IOS-a**: B2B partneri direktno sa portala preuzimaju originalne PDF račune-otpremnice i zvanične IOS obrasce (Izvod otvorenih stavki) generisane preko `B2bPdfService` (QuestPDF).
@@ -2966,6 +3077,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.18.0] - 2026-08-15
 
 ### 🛠️ ERPiApi kao pravi Windows Service (nezavisan od ERPiApp-a)
+
 - Do sada je WebShop backend bio dete-proces `ERPiApp`-a — vezan za životni vek WPF prozora (gasio se
   pri promeni firme, autostart je zavisio od `HKCU\...\Run` koji se izvršava samo pri prijavi
   konkretnog Windows korisnika). Sada je `ERPiApi` pravi Windows Service, registrovan po firmi
@@ -2986,6 +3098,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.17.2] - 2026-08-15
 
 ### 🐛 Ispravke nakon testiranja v2.17.1 (instalirana verzija)
+
 - **Windows autostart nije radio**: `WindowsStartupHelper` je i dalje tražio `ERPiApi.exe` direktno
   pored `ERPiApp.exe`, dok je v2.17.1 uvela pakovanje u podfolder `ERPiApi\` — putanja se nikad nije
   poklopila, pa se registry Run ključ nikad nije upisao (ništa se nije pokretalo pri boot-u).
@@ -3005,6 +3118,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.17.1] - 2026-08-15
 
 ### 🐛 Ispravka: WebShop servis se nije pokretao na instaliranoj verziji
+
 - **Koren problema**: ni `publish.ps1` ni CI (`.github/workflows/release.yml`) nikad nisu pakovali
   `ERPiApi` (backend) niti build-ovali/pakovali `ERPiWebShop` (React prodavnicu) u instalacioni
   paket — instalirana verzija je sadržala samo `ERPiApp.exe`. Firewall pravilo se kreiralo (nezavisna
@@ -3027,6 +3141,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.16.0] - 2026-08-14
 
 ### 🌐 Hibridni B2C & B2B WebShop Modul & e-Commerce Ekosistem
+
 - **`ERPiData/Models/WebShop/`**:
   - `WebKategorija`: Hijerarhijsko stablo kategorija sa neograničenom dubinom, slug-ovima i SEO opisima.
   - `Atribut` & `ArtikalAtributVrednost`: Dinamički tehnički atributi za fasetirano filtriranje.
@@ -3057,42 +3172,50 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.15.0] - 2026-08-14
 
 ### 🗄️ Multi-DBMS Podrška (SQLite, PostgreSQL, Microsoft SQL Server 2022)
+
 - **Podrška za Microsoft SQL Server**: Puna podrška za SQL Server 2022 (Express, Developer, Standard, Enterprise i LocalDB) uz rešene kaskadne veze i transakcioni `SET IDENTITY_INSERT` mehanizam.
 - **`SqlServerInstallerService`**: Automatska detekcija aktivnih instanci na računaru (`MSSQLSERVER`, `SQLEXPRESS`, `LocalDB`), 1-klik preuzimanje i pokretanje instalacije SQL Express-a i automatsko otvaranje Windows Firewall portova (TCP 1433, UDP 1434).
 - **Pametna detekcija parametara**: Dijalozi za novu firmu i migraciju automatski prepoznaju dostupne instance i uspešno testiraju konekciju ka serveru pre fizičkog kreiranja šeme.
 
 ### 🔐 Globalna Enterprise Autentifikacija i Dozvole (RBAC)
+
 - **`GlobalLoginWindow`**: Početni prozor za prijavu na nivou sistema pre izbora firme.
 - **`MasterAuthService`**: Bezbedno PBKDF2 SHA-256 hesiranje lozinki sa solju (`master_users.json`).
 - **`KorisniciDozvoleWindow`**: Administracija globalnih operatera i selektivno dodeljivanje prava pristupa pojedinačnim firmama.
 - **Single Sign-On (SSO)**: Automatski prelazak u izabranu firmu bez potrebe za ponovnim unosom lozinke.
 
 ### 🌐 Mrežni Klijentski Režim (LAN Radna Stanica)
+
 - **`NetworkClientSetupWindow`**: Čarobnjak za izbor uloge računara — Samostalni / Glavni server ili Mrežna radna stanica u kancelariji/magacinu.
 - **Jednokratno povezivanje**: Unos IP adrese servera, test veze u realnom vremenu i automatsko usmeravanje na centralnu bazu.
 
 ### 🏭 Modul Proizvodnja (Sastavnice, Radni Nalozi, Cena Koštanja)
+
 - **`Sastavnice` & `SastavniceView`**: Normativi materijala sa jediničnim količinama i tehnološke faze/operacije sa normiranim vremenima i mašinama.
 - **`RadniNalozi` & `RadniNaloziView`**: Praćenje proizvodnih naloga (Planiran, U radu, Završen, Storniran), automatsko razduženje sirovina i automatsko zaduženje gotovih proizvoda na zalihe.
 - **`KalkulacijaCeneKostanjaService`**: Izračunavanje direktnog materijala, direktnog rada, varijabilne i fiksne režije po jedinici proizvoda sa procentualnim učešćem.
 - **`ProizvodnjaDashboardView`**: Vizuelna radna tabla proizvodnje sa KPI karticama, grafikonima statusa i brzim prečicama.
 
 ### 📋 Dupliranje i Izmena Podataka Firme
+
 - **`KopirajFirmuWindow`**: 1-klik kreiranje nezavisne kopije baze podataka (šifarnici, nalozi, zalihe, plate, osnovna sredstva) za potrebe arhive, testiranja ili nove poslovne godine.
 - **`IzmeniFirmuWindow`**: Izmena naziva, šifre, PIB-a, matičnog broja i adrese sa sinhronizacijom u registru i bazi.
 
 ### 🚀 Velopack Auto-Update Unapređenje
+
 - **Asinhrona provera pri startovanju**: Provera nove verzije na GitHub Releases odmah pri pokretanju u `GlobalLoginWindow` pre prijave korisnika, čime se izbegava dupli restart tokom rada.
 - **xUnit testovi**: Svih **219/219 testova** uspešno prolazi.
 
 ## [2.14.0] - 2026-08-13
 
 ### 📈 Kontroling i Cash-Flow Projekcije Likvidnosti
+
 - **`CashFlowForecastService` (`ERPiData/Services/CashFlowForecastService.cs`)**: Automatska analiza trenutnog novca na računima (klasa 24), potraživanja od kupaca (konta 204x/120x) i obaveza prema dobavljačima (konta 435x/220x) po koficama dospeća (već dospelo, 0-30 dana, 31-60 dana, 61-90 dana, >90 dana).
 - **Procena zarada i kumulativni Cash-Flow**: Uključivanje mesečnih izdataka za plate i projekcija kumulativnog salda sa detekcijom rizika likvidnosti.
 - **`CashFlowForecastView`**: Vizuelna radna tabla kontrolinga sa KPI karticama likvidnosti i tabelom projekcija.
 
 ### 📧 Automatsko slanje IOS-a i Opomena na E-mail
+
 - **`OpomeneEmailService` (`ERPiData/Services/OpomeneEmailService.cs`)**: Tri nivoa opomena (Podsetnik, Opomena za dug/IOS usaglašavanje, Opomena pred utuženje) sa stilizovanim HTML i tekstualnim šablonima, tabelom dospelih faktura i instrukcijama za uplatu.
 - **`AutomatskeOpomeneWindow`**: Upravljanje dospelim potraživanjima sa podrškom za pojedinačno i masovno (bulk) slanje opomena.
 - **Centralizovana SMTP konfiguracija**: Proširen model `Firma` sa SMTP podešavanjima za sve module.
@@ -3101,12 +3224,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.13.0] - 2026-08-13
 
 ### 🔍 OCR i Pametni DMS (Čitanje skeniranih računa)
+
 - **`OcrInvoiceParser` (`ERPiData/Services/OcrInvoiceParser.cs`)**: Pametna ekstrakcija i validacija finansijskih podataka sa skeniranih slika i PDF-ova (PIB i MB sa ISO 7064 kontrolnim algoritmom, broj računa, tekući račun, datum izdavanja/prometa/valute, osnovica, stope PDV-a 20%/10%/0% i ukupno za uplatu).
 - **`OcrEngineService` (`ERPiData/Services/OcrEngineService.cs`)**: OCR motor za obradu skenirane dokumentacije.
 - **`OcrPregledRacunaWindow`**: Podeljeni ekran (skenirani original levo, prepoznati podaci desno) sa jednim klikom za kreiranje ulazne kalkulacije magacina ili naloga Glavne knjige i arhiviranjem u DMS.
 - **Integracija u `DmsWindow`**: Brzo OCR prepoznavanje računa sa traci i u tabeli priloga.
 
 ### 🔒 Granularna prava pristupa (RBAC po modulima)
+
 - **Predefinisane uloge (`Korisnik.cs`)**:
   - `Magacioner`: Pristup isključivo magacinskom i materijalnom poslovanju bez uvida u plate i finansijske bilanse.
   - `Komercijalista`: Izrada ponuda, predračuna i faktura-otpremnica bez prava brisanja i bez uvida u plate/GK.
@@ -3119,6 +3244,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.12.0] - 2026-08-13
 
 ### ⚡ SEF i Automatizacija Ulazne Dokumentacije (UBL 2.1)
+
 - **`SefUblParser` (`ERPiData/Services/SefUblParser.cs`)**: Namenski XML parser za OASIS UBL 2.1 e-fakture po srpskom SEF profilu. Parsira zaglavlje, PIB/MB, adrese, tekuće račune dobavljača/kupca, sve stavke (sa količinama, cenama, rabatima i stopama PDV-a) i kompletnu poresku rekapitulaciju.
 - **Proširenje SEF API klijenta i servisa (`SefApiClient.cs`, `SefService.cs`)**:
   - Preuzimanje punog UBL XML sadržaja i zvaničnog vizuelnog PDF dokumenta sa SEF portala.
@@ -3134,6 +3260,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.11.0] - 2026-08-12
 
 ### 🧾 Račun-Otpremnica — cena/PDV paritet sa DOS-om
+
 - Nov `Cenovnik` entitet (istorijska cena po datumu/magacinu) i `RacunOtpremnicaStavka.
   PorezUkljucenUCeni` — PDV se sad izvlači iz cene umesto da se dodaje (legacy `por_u_cen`),
   paritet sa `MAT5.PRG unos()`/`cena_artikla()`. Odvojena `CenaOtpremnice` za samostalnu
@@ -3152,6 +3279,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   parametar, ne čita `racun.Stavke`.
 
 ### 🏷️ DOS uvoz — kupac na Robnim računima (robna analitika bez finansijskog pandana)
+
 - DOS uvoz nikad nije povezivao `RacunOtpremnica.PartnerId` (samo `KontoKupcaId`) — ispravljeno u
   `ErpiFinansijeImporter` (mečovanje `KontoKupca → Konto.BrojKonta → Partner.SifraPartnera`, ista
   konvencija kao dobavljači na Kalkulacijama). Repair alat za već uvezene račune: dugme 🔧 u
@@ -3170,6 +3298,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   mesta čim se naiđe na pravi red iz kontnog plana, umesto da ostanu duplirani/nepovezani.
 
 ### ✨ Sitne ispravke
+
 - Brojevne kolone u tabelama (Blagajna, Partneri, Devizno valviranje, Bruto bilans, IOS, Kompenzacije,
   Mesta troška, Materijalno, Nivelacija, Poreski bilans, Putni nalozi) usklađene sa
   `NumericColumnElementStyle`.
@@ -3179,6 +3308,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.10.0] - 2026-08-12
 
 ### 📎 DMS — prilozi na Partnere, Sredstva, Račune/Kalkulacije, Ugovore + skeniranje
+
 - `DokumentPrilog` sad podržava šest vlasnika (Nalog/Račun-otpremnica/Kalkulacija + novo Partner/
   Sredstvo/Ugovor). Dugme 📎 sa bedžom broja priloga dodato u `PartnerEditWindow`, Sredstva
   analitička kartica, `RacunOtpremnicaEditWindow`, `KalkulacijaEditWindow`, `UgovorDokumentWindow`.
@@ -3188,12 +3318,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   istim putem kao ručno izabran fajl.
 
 ### 🗂️ Robno — UvoznaKalkulacijaWindow
+
 - `UvozneKalkulacijeView` je bio prazan grid bez načina da se doda nov red — portovan nedostajući
   `UvoznaKalkulacijaWindow` iz ERPiFinansije, prilagođen ERPi šemi. Sitne dopune: `PonudeView`
   "Pretvori u Račun" ograničeno na predračune, ispravljeno omogućavanje Knjiži/Rasknjiži dugmadi u
   `RacuniOtpremniceView`, nova prečica "Kartica Konta" na Dashboard-u.
 
 ### 🧭 Navigacija i pomoć
+
 - Kontni plan i Dnevnik glavne knjige premešteni u "Glavna knjiga i Nalozi", ukinut suvišan
   Expander "MATIČNI PODACI".
 - `uputstvo-erpi.html` potpuno prepisan kao pravi master hub (rad sa firmama, korisnici i uloge,
@@ -3201,10 +3333,12 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - Ukinut mrtav duplikat `Views/Zarade/Pomoc/*`, konsolidovano u kanonski `Views/Pomoc`.
 
 ### 📜 Audit
+
 - Nov generički EF `SaveChangesInterceptor` za šifarnike bez sopstvenog audit traga (Partner/
   Konto/MestoTroska/Sredstvo/Artikal/Magacin).
 
 ### 🧾 Partneri i izveštaji
+
 - IOS izveštaj dobio pravi opseg konta (od–do), oživljen zaboravljen filter ekran
   (`IosIzvestajWindow`) kao pravi korak pre `IosPreviewWindow`.
 - PDF izvoz za obračun zatezne kamate.
@@ -3212,22 +3346,25 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   prerađen sa 1:1 na checkbox multi-select.
 
 ### ✅ Testovi
+
 - 172/172 (od 158 u 2.9.1) — novi testovi za audit interceptor i grupno zatvaranje stavki.
 
 ## [2.9.1] - 2026-08-11
 
 ### 🧾 e-Fiskalizacija (PFR) — pregled/štampa fiskalnog isečka
+
 - Novo dugme "🖨️ Štampaj / Pregled isečka" u `FiskalniRacunWindow` — generiše PDF fiskalnog
   isečka (format A5: firma, broj i datum, stavke sa PDV oznakom po stavci, rekapitulacija PDV-a
   po stopi, ukupan iznos, QR kod verifikacionog URL-a) i otvara ga u podrazumevanom PDF čitaču.
   Radi i za pravu fiskalizaciju i za **SIMULACIJU** — simuliran isečak je jasno označen
-  ("*** SIMULACIJA ***", bez QR koda), pošto kasa u praksi uvek štampa isečak bez obzira da li je
+  (`*** SIMULACIJA ***`, bez QR koda), pošto kasa u praksi uvek štampa isečak bez obzira da li je
   PFR uređaj stvarno dostupan. Nova funkcionalnost — izvorni ERPiFinansije nije imao PDF pregled
   za fiskalne isečke, samo tekstualni prikaz žurnala.
 
 ## [2.9.0] - 2026-08-11
 
 ### 📜 Istorija izmena (generički revizioni trag)
+
 - Nov `AuditLog` model + `AuditLogService` — evidentira ko je i kada izvršio osetljivu radnju nad
   kojim zapisom. Odvojeno od Zaradinog postojećeg `ObracunAudit`/`RevizioniTragWindow` mehanizma
   (koji ostaje kakav je), pokriva ono što Finansije/Korisnici/Firma do sada nisu imali.
@@ -3238,20 +3375,24 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   zapisa.
 
 ### 🧾 e-Fiskalizacija (PFR) — PDV oznake po stavci
+
 - Fiskalni zahtev za Račun-otpremnicu sad šalje pravu poresku oznaku po stavci (Đ=20%, E=10%,
   А=0%, `PfrService.PdvLabelaZaStopu`) umesto uvek podrazumevane "Đ".
 
 ### 🧮 Faza 6 — testovi za Prijava/Rashod Sredstava → Glavna knjiga
+
 - `PrijavaKnjizenjeServiceTests` (8) i `RashodKnjizenjeServiceTests` (9) — paritet sa već
   postojećim testovima za Amortizaciju/Zarade (uravnotežen nacrt nalog, dedup po `IzvorId`,
   greške na nedostajući konto/mapiranje, sabiranje stavki istog konta, odvojen brojač po vrsti
   naloga).
 
 ### 📊 PDV evidencija — PDF štampa knjiga
+
 - Novo 🖨️ dugme na KIR i KPR tabu u `PdvEvidencijaView` — štampa PDF knjige (landscape A4, red po
   zapisu + zbirni red), ranije su postojali samo Excel i PP-PDV XML izvoz.
 
 ### 🧪 Testovi
+
 - `dotnet test ERPiData.Tests` → 158/158 (28 novih testova u odnosu na 2.8.0-ino 130/130: 4 za
   `AuditLogService`, 17 za Prijava/Rashod GK knjiženje, 3 za PDV KIR/KPR, 4 za PDV oznake po
   stavci).
@@ -3259,12 +3400,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.8.0] - 2026-08-11
 
 ### ❓ F1 Pomoć hub
+
 - Kontekstualni F1 help dodat na svih preostalih 25 edit ekrana (`EditHelpWindow`) — pokriva sve
   module (Finansije, Sredstva, Zarade).
 - `uputstvo-sredstva.html` kompletno prepisan (104 → ~730 redova) sa stvarnim nazivima dugmadi,
   kolona i tokom rada, isti dizajn-sistem kao Finansije/Zarade uputstva.
 
 ### 🧾 e-Fiskalizacija (PFR) — dopuna
+
 - Zaštita od duple fiskalizacije istog računa.
 - Novo polje `RacunOtpremnica.FiskalniStatus` (Fiskalizovan/Simulacija/Greška).
 - Izbor načina plaćanja (Gotovina/Kartica/Virman) i nov `FiskalniRacunWindow` sa prikazom
@@ -3272,26 +3415,31 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - Nova kolona "Fiskalni status" u pregledu računa.
 
 ### 💾 Rezervne kopije (Backup)
+
 - Nov tab "💾 Rezervne kopije" u Podešavanjima — ručni backup, vraćanje iz fajla, automatski
   backup pri izlasku (jednom po izlasku ili jednom dnevno), istorija sa vraćanjem/brisanjem po
   redu. Ranije je servis postojao, ali bez ijednog UI ekrana.
 
 ### 🗂️ Sve firme (FirmeView)
+
 - Nov tab "🗂️ Sve firme" u Podešavanjima — CRUD nad svim registrovanim firmama (registar, ne
   samo firmama u podrazumevanom folderu): aktiviranje (prelazak na drugu firmu), izmena osnovnih
   podataka, uklanjanje sa liste (baza na disku se ne briše).
 
 ### 📦 Računi-Otpremnice — SEF/PFR ožičeni na ekran
+
 - Filter statusa (Svi/Proknjiženi/Neproknjiženi/Predračuni), tabela stavki izabranog računa,
   dugmad Pošalji na SEF / UBL XML / Fiskalizuj (PFR) / Ulazne SEF, i masovno knjiženje —
   backend je već postojao, sada je ožičen na ovaj ekran.
 
 ### 🧪 Testovi
+
 - `dotnet test ERPiData.Tests` → 130/130 (3 nova testa za PFR fiskalizaciju).
 
 ## [2.7.0] - 2026-08-10
 
 ### 🔗 Faza 6 — automatsko knjiženje Zarade/Sredstva → Glavna knjiga
+
 - Zarade: novo dugme "📘 Proknjiži direktno (nacrt)" u Nalog za knjiženje — upisuje nalog pravo u
   `Nalog`/`StavkaNaloga` iste baze (zamena za dosadašnji JSON izvoz/ručni uvoz, ostatak iz doba
   odvojenih aplikacija). Sprečeno dupliranje po periodu/isplati.
@@ -3309,11 +3457,13 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   naloga po vrsti) — 117/117 testova prolazi.
 
 ### 📥 DOS uvoz — Materijalna primopredaja (M_PRIMO.DBF)
+
 - Povezan uvoz M_PRIMO.DBF (pravo Materijalno knjigovodstvo, FK na Materijal) — do sada je
   postojala samo šema bez ijednog pisca. Ponovo koristi postojeći mapер za MAT_NAL/ZADUZ/RAZDUZ,
   razdvojeno po vrsti dokumenta od Robno primopredaje.
 
 ### 🏗️ Dokumentacija
+
 - `docs/ARCHITECTURE.md` ispravljen: prethodni opis multi-tenant šeme (`FirmaMasterContext`/
   `FirmaMaster.db`, pogrešna imena modela) nije odgovarao stvarnom kodu — zamenjen tačnim opisom
   (jedan `.db` fajl po firmi, `AppSession` bez DbContext-a) i napomenom o tehničkom dugu
@@ -3322,6 +3472,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.6.2] - 2026-08-09
 
 ### 🗂️ Navigacija i UI unifikacija
+
 - Harmonika (accordion) meni po modulima u bočnoj navigaciji — svi tabovi i ekrani Robnog i
   Materijalnog knjigovodstva (14 + 6 ekrana) raspoređeni direktno u sklapajuće grupe umesto
   gornjih tabova. `ModernTabControlStyle`/`NoHeaderTabControlStyle` u `App.xaml`.
@@ -3331,6 +3482,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   (🖨️ PDF, 📊 Excel, 🔄 Osveži) i standardne boje po akciji (➕/✏️/⚡/⚙️/🗑️) kroz Magacin ekrane.
 
 ### 📊 Robno knjigovodstvo — štampa, izvoz, F2 piker
+
 - Nova PDF štampa za Robno kretanje (Primopredaje/Zaduženja/Razduženja) i Zapisnik o nivelaciji
   cena (`PdfReportService.GenerisiRobnoKretanjePdf`/`GenerisiZapisnikONivelacijiPdf`), portovano
   iz ERPiFinansije.
@@ -3346,6 +3498,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.6.1] - 2026-08-09
 
 ### 📚 Dokumentacija i uputstva
+
 - Novo objedinjeno HTML uputstvo za ERPi (`uputstvo-erpi.html`) i dopuna uputstva za Sredstva
   (`uputstvo-sredstva.html`) u F1 Pomoć hub-u.
 - Repo dokumentacija: `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT.md`, `docs/DEPLOYMENT.md`,
@@ -3356,6 +3509,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.6.0] - 2026-08-09
 
 ### 🧾 Nalozi (Glavna knjiga) — devizno knjiženje, PDV, F2 pretraga konta, prilozi
+
 - `NalogEditWindow` dobija devizne kolone (`Valuta`/`KursValute`/`DevizniDuguje`/
   `DevizniPotrazuje`), PDV kolone (`Osnovica`/`StopaPdv`), F2 pretragu konta
   (`KontoPickerWindow`, editabilan uživo filtriran ComboBox u koloni Konto) i šifarnik opisa
@@ -3368,12 +3522,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   rade nad više selektovanih naloga odjednom.
 
 ### 📊 Magacin — Robne/Materijalne kartice
+
 - Robne kartice dobijaju opciju "🏢 Svi magacini" (zbirni pregled kartice artikla po svim
   magacinima).
 - Kartica materijala: dupli klik na stavku otvara izvorni dokument (ulaz/trebovanje/
   primopredaja).
 
 ### 🧪 Testovi i uputstvo
+
 - Novi unit testovi za `BankIzvodParsers`/`BankIzvodFormatDetector` (Halcom/Asseco XML,
   CAMT.053, MT940).
 - Popunjeno opsežno HTML uputstvo za Finansije (`uputstvo-finansije.html`) i ispravljeno da se
@@ -3382,6 +3538,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.5.0] - 2026-08-07
 
 ### 🧮 Kalkulacije — zavisni troškovi nabavke
+
 - Veleprodajne kalkulacije sad računaju zavisne troškove nabavke (transport, uskladištenje,
   utovar/istovar, transportno osiguranje, ostalo) i srazmerno ih raspodeljuju po stavkama
   artikala — potpuni paritet sa ERPiFinansije.
@@ -3394,10 +3551,12 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   maloprodaja).
 
 ### 🧾 Partner picker
+
 - Nova deljena komponenta `PartnerPicker` (pretraga po šifri/nazivu/PIB-u, isti obrazac kao
   postojeći `KontoPicker` za kontni plan) — prvo uvedena u Račun-otpremnicu.
 
 ### 💰 Blagajna, Kompenzacije, Putni nalozi, Mesta troška — PDF štampa i Excel izvoz
+
 - Blagajna: štampa pojedinačnog blagajničkog naloga (uplatnica/isplatnica) i blagajničkog
   dnevnika u PDF, plus izvoz u Excel.
 - Kompenzacije, Putni nalozi i Mesta troška/projekti dobijaju izvoz u Excel (do sad nisu imali).
@@ -3405,16 +3564,19 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   fiksnog naslova/datuma.
 
 ### 🏛️ Bilansi (APR) — status poruke
+
 - Bilans Stanja i Bilans Uspeha na ekranu "Zvanični Finansijski Izveštaji za APR" sad prikazuju
   iste statusne poruke kao ERPiFinansije — upozorenje o (ne)ravnoteži Aktiva/Pasiva i poruku o
   neto dobitku/gubitku perioda (do sad su postojali samo tooltip-ovi na dugmadima, bez ijedne
   poruke).
 
 ### 🎨 Partneri — icon-only dugmad
+
 - Dugmad za kursnu listu, verifikaciju računa, IOS PDF i obračun kamate su sad icon-only sa
   tooltip-om, u skladu sa ostatkom aplikacije.
 
 ### 🛠️ Sitne ispravke
+
 - Robni bruto bilans: zadnje stanje/saldo/cena po artiklu se sad ispravno računaju kad je
   poslednja kartica nulta (isti tip greške kao ranija DBF uvoz agregata za Sredstva) — više se ne
   gubi vrednost zadnjeg stanja.
@@ -3424,6 +3586,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.4.1] - 2026-08-07
 
 ### 🛠️ Sitne ispravke posle 2.4.0
+
 - DOS uvoz Sredstava — progres traka sad stvarno prati napredak po koraku/fazi umesto da
   stoji zaglavljena na 15%/60%/100%.
 - Uklonjeno duplo dugme "Uvoz iz ERPiZarade" iz Finansije uvoznog wizard-a — taj uvoz ide
@@ -3432,6 +3595,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.4.0] - 2026-08-07
 
 ### 📖 Nalog — pregled proknjiženog naloga
+
 - Dupli klik na stavku u Kartici konta sad stvarno otvara nalog (do sad je prikazivao samo
   poruku sa detaljima stavke, iako je tooltip odavno obećavao otvaranje) — dodat i kontekst-meni
   (desni klik) sa "👁️ Pregledaj nalog" / "✏️ Izmeni / Rasknjiži nalog".
@@ -3440,6 +3604,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   ponašanje iz Nalozi liste i iz Kartice konta.
 
 ### 🧮 Kompenzacije, Putni nalozi — Nova/Izmeni
+
 - Kompenzacije konačno imaju editor ("➕ Nova"/"✏️ Izmeni") — dupli klik na kandidata u
   "Pametnom skeniranju" predpopunjava novu kompenzaciju sa tim partnerom.
 - Putni nalozi konačno imaju editor ("➕ Nova"/"✏️ Izmeni") umesto poruke "biće dostupno u
@@ -3448,15 +3613,18 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   naknada) ume da učita, po mesecu/godini; uvozni lanac Finansije→Zarade je sada kompletan.
 
 ### 👤 Korisnici i uloge
+
 - Nov ekran za upravljanje korisnicima i njihovim ulogama (do sad se korisnici nisu mogli
   administrirati kroz UI, samo kroz prijavu) — dostupan iz nove stavke "👤 Korisnici i uloge" u
   bočnom meniju.
 
 ### 💱 Kursna lista
+
 - Nov ekran za pregled kursne liste. Usput ispravljen bag: dugme "Kursna lista" u Partnerima je
   greškom otvaralo prozor za devizno valorizovanje, ne kursnu listu.
 
 ### 🧾 Račun-otpremnica — prava PDF štampa, konverzija predračuna, uslužne stavke
+
 - Dugme "🖨️ PDF" na Računima-otpremnicama sad stvarno generiše i otvara PDF (ranije je samo
   prikazivalo poruku o uspehu, bez ijednog fajla).
 - Novo dugme "🔄 Pretvori u fakturu" pretvara predračun u pravi račun.
@@ -3465,6 +3633,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   knjiže/čuvaju bez magacina.
 
 ### 🚀 SEF e-Fakture i PFR fiskalizacija — od mock podataka do pravih poziva
+
 - "Fakture" ekran (SEF) je do sad radio nad izmišljenim podacima (lažni iznosi, lokalna promena
   statusa bez ijednog mrežnog poziva) — sad prikazuje prave proknjižene Račune-otpremnice i zove
   stvarni SEF servis za slanje/status/UBL izvoz.
@@ -3475,12 +3644,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 - Nov ekran za preuzimanje ulaznih e-faktura sa SEF-a ("📥" dugme u Fakturama).
 
 ### 📊 Analitički drill-down bruto bilansa
+
 - Novo "🔎" dugme u Bruto bilansu otvara analitički pregled prometa grupisan po partneru (ne
   samo po kontu), sa poštovanjem već izabranog perioda.
 
 ## [2.3.0] - 2026-08-07
 
 ### 🎨 Zarade modul i sidebar usklađeni sa ERPiZarade
+
 - Dugmad u celom Zarade modulu (PrimaryButton/SecondaryButton) sad nose ljubičastu paletu
   samostalnog ERPiZarade (#2D1B42/#43305F) umesto opšte plave — isti obrazac po kom je ranije
   urađen SredstvaStyles.xaml, preko jedne merge-ovane ZaradeStyles.xaml pa nije trebalo dirati
@@ -3497,6 +3668,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   dostupan i iz Pomoći).
 
 ### 🐛 Ispravke
+
 - "Isplate naknada van radnog odnosa" je otvarala isti tok kao "Isplate zarada" (nedostajao
   parametar roda isplate) — prikazivala vrste isplate koje postoje samo kod zarade (akontacija,
   13. plata...) umesto ekrana sa samo datumom, kakav naknade zahtevaju.
@@ -3505,12 +3677,14 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   `Migrate()` bio no-op; zamenjeno sa `EnsureCreated()` (isti fix kao ranije za Finansije).
 
 ### 🧭 Navigacija
+
 - Povratak na modul (klik na Finansije/Zarade/Sredstva tab) sad otvara stavku menija na kojoj je
   korisnik poslednji put bio u tom modulu, ne uvek Radnu tablu.
 - Kad se bočni meni sklopi na uzanu traku, stavke menija ostaju samo sa vodećom ikonicom
   (umesto da im se tekst seče na pola) — pun naziv se seli u ToolTip.
 
 ### 📥 Uvoz Zarada — vizuelna povratna informacija
+
 - Uvoz iz ERPiZarade i DOS/DBF uvoz Zarada sad prikazuju mali dijalog sa indikatorom napretka i
   uživo logom dok traje (operacija zna da potraje po nekoliko minuta bez ijedne druge povratne
   informacije) — isti obrazac kao progres dijalozi u Finansijama/Sredstvima.
@@ -3518,6 +3692,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.2.0] - 2026-08-06
 
 ### 📊 Radna tabla za Zarade modul + redizajn tabela
+
 - Nova početna stranica modula Zarade — "Radna tabla" (KPI kartice: aktivnih radnika, neto/bruto
   masa, aktivnih kredita; grafikon pregleda zarada po mesecima) — port iz ERPiZarade, isti obrazac
   kao Radna tabla u Finansijama i Osnovnim sredstvima.
@@ -3525,6 +3700,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   osenčeni redovi, uređen header — umesto dotadašnjeg podrazumevanog Windows izgleda.
 
 ### 🔄 Automatska provera ažuriranja
+
 - Aplikacija sad pri pokretanju proverava da li postoji nova verzija na GitHub-u
   (`github.com/blagojevicboban/ERPi`) i, ako postoji, nudi preuzimanje i instalaciju u jednom
   kliku — isti mehanizam (Velopack) kao ERPiFinansije/ERPiSredstva/ERPiZarade.
@@ -3533,6 +3709,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
   ranijeg fiksnog teksta — uvek prikazuje stvarnu istoriju verzija.
 
 ### 🧾 DOS uvoz — dalje dopune Robno/Materijalno (nastavak iz 2.1.1)
+
 - DOS/DBF uvoz Finansija dopunjen dodatnim tabelama do pariteta sa ERPiFinansije: Poreske tarife,
   Kalkulacije, Maloprodajne kalkulacije, Računi-otpremnice, Nivelacije cena (Robno), Materijalne
   kartice, Ulazi, Trebovanja, Primopredaje/Zaduženja/Razduženja (Materijalno), Promene (opisi
@@ -3544,6 +3721,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.1.1] - 2026-08-06
 
 ### 🧾 DOS uvoz — paritet Robno/Materijalno sa ERPiFinansije
+
 - DOS/DBF uvoz sad čita 16 vrsta fajlova umesto dosadašnjih 6 — dodati Kalkulacije, Poreske
   tarife, Računi-otpremnice, Nivelacije cena, Maloprodajne kalkulacije, Ulazi/Trebovanja/
   Primopredaje za Materijalno.
@@ -3556,6 +3734,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.1.0] - 2026-08-06
 
 ### 📦 Samostalno izdanje
+
 - ERPi postaje potpuno samostalan repozitorijum — uklonjene sve spoljne zavisnosti od
   ERPiFinansije/ERPiSredstva/ERPiZarade repozitorijuma.
 - Velopack izdanja za 32-bitne i 64-bitne Windows sisteme.
@@ -3565,6 +3744,7 @@ Nastavak revizije započete u 2.36.1. Sva četiri nalaza su potvrđena i na podi
 ## [2.0.0] - 2026-08-06
 
 ### 🌟 Prvo objedinjeno izdanje
+
 Spajanje tri samostalne aplikacije — **ERPiFinansije**, **ERPiSredstva** i **ERPiZarade** — u
 jedan desktop paket sa jednom SQLite bazom po firmi.
 
