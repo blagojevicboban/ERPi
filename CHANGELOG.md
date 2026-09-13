@@ -6,6 +6,67 @@ Format je zasnovan na [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) s
 
 ## [Neobjavljeno]
 
+### 🔑 Licenca — kostur klijentske strane (§142)
+
+- **Ne menja ponašanje aplikacije.** Nijedan modul se trenutno ne zaključava — ovo je infrastruktura
+  koju vlasnik uključuje tek kad potvrdi odluke iz `PLAN_LICENCIRANJE.md` (sad u zasebnom privatnom
+  repou `ERPiLicencaServer`, ranije netrackovan fajl u ovom repou).
+- `ERPiData.Services.Licenca`: `LicencaService` čita potpisan token (JWS ES256, rotacija ključa po
+  `kid`) iz nove kolone `Firma.LicencaToken` i vraća `StanjeLicence` (Start/Trial/Firma/Agencija,
+  grace period, koji moduli su pokriveni). Offline — nikad mrežni poziv pri proveri.
+  `LicencaServerKlijent` zove licencni server servera **samo na klik** (zahtev/preuzimanje).
+- `ERPiApi`: `LicencaController` (`/api/licenca`) + `[ZahtevaModul]` atribut (402 Payment Required)
+  na kontrolerima Zarade/ESS/Putni nalog/Osnovna sredstva/Proizvodnja/MRP. Nikad na Kasa, SEF,
+  prijavu ni na samoj Firmi/Licenci — zakonske radnje se ne zaključavaju, zaključano testom
+  (`ZahtevaModulTests`, IL sken u `LicencaTests` da `PfrService`/`SefApiClient` ne dodiruju licencu).
+- `ERPiApp`: nov tab *Podešavanja → 🔑 Licenca*; `ERPiWebShop`: nov pod-tab *Firma i korisnici →
+  3. Licenca*. Oba prikazuju stanje, šalju zahtev, preuzimaju izdatu licencu i primaju ručni uvoz
+  tokena (fajl/mejl — rezerva bez interneta).
+- 3 nova xUnit fajla (potpis/PIB/grace/IL sken, gejt 402/prolaz) + 4 Vitest testa.
+
+### 🧾 Kasa (Web) — otpornost na prekid veze pri naplati (§140)
+
+- **Server:** `RacunOtpremnica.KlijentRequestId` (novo, jedinstven indeks) — `PosService.ZakljuciRacunAsync`
+  prima opcioni klijentski GUID i, ako dokument sa istim ID-jem već postoji, nastavlja nad NJIM
+  umesto da napravi drugi. Zatvara latentan rizik dupliranja: ponovljen HTTP poziv (izgubljen
+  odgovor, ručni dupli klik) je do sada mogao da napravi drugi `RacunOtpremnica` i drugi fiskalni
+  račun za istu prodaju i da robu razduži dvaput. Bez `RequestId`-ja (WPF i svi stariji pozivaoci)
+  ponašanje ostaje bajt-identično.
+- **Web (`KasaTab`):** kad `zakljuciRacun` ne uspe zbog PRAVE mrežne greške (ne poslovnog
+  odbijanja) prodaja se čuva u lokalni IndexedDB red čekanja (`offlineRed.ts`) umesto da se
+  izgubi; korpa se prazni da kasirka odmah može na sledećeg kupca. Red se sam prazni na `online`
+  događaj, periodičan tajmer i Background Sync (gde postoji), FIFO redosled zbog ESIR brojeva.
+  Vidljiv baner sa brojem čekajućih prodaja i dugmetom „Pokušaj sad".
+- 2 nova xUnit testa (idempotentnost, uklj. dokaz da se roba razdužuje samo jednom), 6 novih
+  Vitest testova (`offlineRed.test.ts`, uz nov `fake-indexeddb` dev-dependency za jsdom).
+
+### 📦 Kasa (Web) — pun offline katalog za rad bez veze (§141)
+
+- **Server:** `GET api/Kasa/katalog-snapshot` — pun katalog magacina (šifra/naziv/barkod/cena/PDV/
+  stanje) bez limita, bulk razrešavanje cenovnika/poreskih tarifa (ne N+1 po artiklu). Novo
+  podešavanje po firmi `Firma.KasaOfflineUpozorenjeMinuti`/`KasaOfflineBlokadaMinuti` (WPF
+  Podešavanja → Kasa).
+- **Web (`KasaTab`):** periodičan IndexedDB snapshot (`offlineKatalog.ts`) korišćen za pretragu/
+  dodavanje u korpu kad je prava mrežna greška; lokalni preračun osnovice/PDV/ukupno istom
+  formulom kao server. Baner starosti keša (upozorenje/blokada po pragovima sa firme).
+- **Sukob otkriven pri implementaciji, ne pretpostavka iz dizajna:** zaliha ne može stvarno
+  "otići u minus" (`KnjiziRacunAsync` odbija knjiženje bez dovoljno zaliha) — prava, opasnija
+  situacija je **fiskalizovan a NEKNJIŽEN račun** (kupac ima fiskalni račun za robu koju je neko
+  drugi prodao dok je ova čekala offline). Nov SignalR event `kasaKnjizenjeNijeUspelo`
+  (`ErpiLiveHub`) obaveštava sve otvorene terminale/admin panele odmah. Usput ispravljen i bug u
+  `flushRed`-u iz §140: ponovljena prodaja iz reda se brisala iz reda i kad NIJE čisto uspela
+  (server uvek vraća HTTP 200, ishod je u telu) — sad ostaje vidljiva na terminalu koji ju je
+  poslao dok je neko ne pregleda.
+- Vidi [`docs/DIZAJN_PWA_OFFLINE_KASA.md`](docs/DIZAJN_PWA_OFFLINE_KASA.md) §8 — obe celine (§3+§6)
+  sada zatvorene.
+- **Nađeno vizuelnom proverom, ne testovima:** generisana EF migracija je imala `defaultValue: 0`
+  za oba nova polja umesto 30/120 (`dotnet ef migrations add` ne čita C# inicijalizator svojstva
+  kao DB default) — na zatečenoj bazi (`AUTOTEST.db`) bi oba polja tiho ostala 0. Ispravljeno u
+  migraciji pre bilo kakvog objavljivanja. Prava `DEMO.db` je u međuvremenu (van ove sesije)
+  dobila migraciju sa starim defaultom — ispravljena direktnim `UPDATE` na tačno ta dva polja,
+  bez diranja šeme.
+- 7 novih xUnit testova, 19 novih Vitest testova.
+
 ## [2.75.1] - 2026-09-12
 
 ### 🧾 Popravke
